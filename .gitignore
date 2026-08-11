@@ -1,0 +1,10 @@
+.env
+node_modules/
+
+# runtime state / logs — machine-local, and some contain real business data
+.claude/settings.local.json
+.last-checkpoint
+scripts/.deliverability-state.json
+scripts/*.log
+scripts/deliverability-log.txt
+logs/
