@@ -4,10 +4,10 @@ You are running Albert Scott's SmartLead ↔ Pipedrive sync, unattended, on a sc
 This prompt is fully self-contained — you have no memory of any prior run.
 
 ## Access
-- SmartLead: direct REST API via `/Users/Eikko/smartlead-api-client` (`src/client.js` / `src/cli.js`).
-  Base URL and API key load from `/Users/Eikko/smartlead-api-client/.env`. Company account.
+- SmartLead: direct REST API via `/home/user/smartlead-api-client` (`src/client.js` / `src/cli.js`).
+  Base URL and API key load from `/home/user/smartlead-api-client/.env`. Company account.
 - Pipedrive: use the connected Pipedrive MCP tools directly.
-- Checkpoint file: `/Users/Eikko/smartlead-api-client/.last-checkpoint` — an ISO 8601 timestamp
+- Checkpoint file: `/home/user/smartlead-api-client/.last-checkpoint` — an ISO 8601 timestamp
   of the last reply successfully processed. Read it at the start; write the newest
   `last_reply_time` you processed back to it at the end. If the file doesn't exist, default to
   24 hours before now.
@@ -84,11 +84,11 @@ domain+email in Smartlead so no campaign re-contacts them.
 
 ## Step 6 — Update checkpoint
 Write the max `last_reply_time` across everything you just processed (or now, if nothing new) to
-`/Users/Eikko/smartlead-api-client/.last-checkpoint`.
+`/home/user/smartlead-api-client/.last-checkpoint`.
 
 ## Step 7 — Log every processed contact
 Append one row per lead you took any action on (category set, Pipedrive synced, and/or domain
-blocked) to `/Users/Eikko/smartlead-api-client/logs/inbox-sync-log.csv` (create it with a header
+blocked) to `/home/user/smartlead-api-client/logs/inbox-sync-log.csv` (create it with a header
 row if it doesn't exist yet). Columns, in order:
 `timestamp,campaign,lead_name,lead_email,category_applied,pipedrive_action,domain_blocked,reply_excerpt`
 - `timestamp`: now, ISO 8601
