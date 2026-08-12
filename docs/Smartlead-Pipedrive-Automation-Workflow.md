@@ -22,7 +22,9 @@ Monitor SmartLead's Master Inbox for new lead replies, categorize each one corre
 |---|---|---|
 | SmartLead | Cold email campaigns, Master Inbox, lead categorization, domain blocklist | `app.smartlead.ai` — MCP connector (once fixed on Yoni's account) |
 | Pipedrive | CRM — organizations, persons, activities | `albertscott.pipedrive.com` — MCP connector |
-| Gmail (salesmanager@albertscott.com) | Calendly booking notifications | Gmail / browser |
+
+**Out of scope:** Gmail / Calendly booking sync (Section 6, below) is disabled. This workflow is
+Smartlead ↔ Pipedrive only until further notice — no Gmail connector, no Calendly handling.
 
 **MCP tools used (SmartLead):**
 - `fetch_master_inbox_unread_replies` / `fetch_master_inbox_replies` — pull new inbox activity
@@ -108,15 +110,20 @@ At least once a week, scan back through Unread Replies to the last confirmed che
 
 ---
 
-## 6. Calendly Booking Flow (separate trigger, same destination)
+## 6. Calendly Booking Flow — DISABLED (out of scope)
 
-Calendly confirmations land in salesmanager@albertscott.com, separate from SmartLead replies, but resolve to the same Pipedrive sync pattern:
+This section is kept for reference only. Gmail/Calendly booking sync is not part of the current
+workflow — focus is Smartlead ↔ Pipedrive only. Do not stand this back up without explicit
+instruction.
 
-1. Detect new Calendly booking email (from notifications@calendly.com, "scheduled" in subject)
-2. Extract: name, email, meeting date/time
-3. `searchPersons` by email → update if found, else `addOrganization` (if company known) + `addPerson`
-4. `addActivity`: type "Meeting", subject "Calendly Booking", date/time from the email, `participants` array (rule 5), owner_id 26939288
-5. Add email + domain to SmartLead's blocklist so no campaign re-contacts them
+~~Calendly confirmations land in salesmanager@albertscott.com, separate from SmartLead replies,
+but resolve to the same Pipedrive sync pattern:~~
+
+~~1. Detect new Calendly booking email (from notifications@calendly.com, "scheduled" in subject)~~
+~~2. Extract: name, email, meeting date/time~~
+~~3. `searchPersons` by email → update if found, else `addOrganization` (if company known) + `addPerson`~~
+~~4. `addActivity`: type "Meeting", subject "Calendly Booking", date/time from the email, `participants` array (rule 5), owner_id 26939288~~
+~~5. Add email + domain to SmartLead's blocklist so no campaign re-contacts them~~
 
 ---
 

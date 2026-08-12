@@ -72,15 +72,10 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
      the top level, it's read-only and 400s.
    - `owner_id`: 26939288
 
-## Step 5 — Calendly (best-effort — unverified as of this prompt's authoring)
-Search Gmail for messages from `notifications@calendly.com` with "scheduled" in the subject,
-received since the checkpoint. NOTE: the production doc says these land in
-`salesmanager@albertscott.com`, a mailbox that may not be the one connected to this session's
-Gmail tools — if a search against the connected account comes back empty, say so explicitly
-rather than reporting "no bookings," since that's ambiguous with "wrong mailbox." For any booking
-found: extract name/email/date/time, `searchPersons` → update or create person+org as in Step 4,
-`addActivity` type "Meeting" subject "Calendly Booking" with the date/time, then block that
-domain+email in Smartlead so no campaign re-contacts them.
+## Step 5 — Calendly: OUT OF SCOPE (do not run)
+Calendly/Gmail booking sync is intentionally disabled. This run is Smartlead ↔ Pipedrive only —
+do not search Gmail, do not request Gmail tools, and do not report on Calendly bookings one way
+or the other. Skip straight to Step 6.
 
 ## Step 6 — Update checkpoint
 Write the max `last_reply_time` across everything you just processed (or now, if nothing new) to
@@ -102,8 +97,9 @@ taken, not everything scanned.
 
 ## Step 8 — Report
 One-paragraph summary: replies pulled, how many skipped (Rachel campaigns), how many per category,
-deals/persons created or updated in Pipedrive, domains blocked, any Calendly bookings synced, any
-errors (403s, unexpected payload shapes, etc. — call these out, don't silently swallow them).
+deals/persons created or updated in Pipedrive, domains blocked, any errors (403s, unexpected
+payload shapes, etc. — call these out, don't silently swallow them). Calendly/Gmail is out of
+scope (Step 5) — don't mention it in the report either way.
 
 ## Weekly backlog scan (only on the run tagged "weekly")
 Instead of using the checkpoint file, set the `replyTimeBetween` start to 8 days before now, to
