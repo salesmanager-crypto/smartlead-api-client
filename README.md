@@ -63,6 +63,14 @@ node src/drive-cli.js drive:get <fileId>
 Uses the `drive.file` scope, so it can only see/manage files it creates (or files a
 user explicitly opens with it) — not your whole Drive.
 
+**One-shot export + upload:** find campaigns by name, merge their leads into a CSV,
+and upload it to Drive in a single command:
+
+```bash
+node scripts/export-and-upload.mjs "fancy food"                    # -> exports/fancy-food-leads.csv, uploaded to Drive root
+node scripts/export-and-upload.mjs "fancy food" 1AbC...             # ...into a specific Drive folder
+```
+
 ## Programmatic usage
 
 ```js
