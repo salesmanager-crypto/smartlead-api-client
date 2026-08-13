@@ -1,7 +1,7 @@
 /**
- * Combines the 1st and 2nd tabs of a spreadsheet (by position, regardless of their
- * titles/column layouts) into a normalized contact schema, de-duplicates by email,
- * and overwrites the 3rd tab with the result.
+ * Normalizes rows from one or more source tabs into a common contact schema,
+ * de-duplicates by email across all of them, and writes the result into a
+ * target tab.
  */
 
 // Normalized master schema — every source row gets mapped into this shape.
@@ -41,30 +41,12 @@ function normalizeRows(header, rows, sourceLabel) {
 }
 
 /**
- * @param {import("./google-sheets-client.js").GoogleSheetsClient} sheets
- * @param {string} spreadsheetId
- * @returns {Promise<{tab1: object, tab2: object, tab3: object, duplicatesRemoved: number}>}
+ * Normalize + de-duplicate (by email) any number of {header, rows, label} sources.
+ * @param {Array<{header: string[], rows: string[][], label: string}>} sources
+ * @returns {{rows: string[][], duplicatesRemoved: number}}
  */
-export async function buildMasterList(sheets, spreadsheetId) {
-  const meta = await sheets.getSpreadsheet(spreadsheetId, { fields: "sheets.properties" });
-  const byIndex = meta.sheets.sort((a, b) => a.properties.index - b.properties.index);
-  if (byIndex.length < 3) {
-    throw new Error(`Expected at least 3 tabs, found ${byIndex.length}: ${byIndex.map((s) => s.properties.title).join(", ")}`);
-  }
-  const [tab1, tab2, tab3] = byIndex;
-
-  const [tab1Values, tab2Values] = await Promise.all([
-    sheets.getValues(spreadsheetId, tab1.properties.title),
-    sheets.getValues(spreadsheetId, tab2.properties.title),
-  ]);
-  const [tab1Header, ...tab1Rows] = tab1Values;
-  const [tab2Header, ...tab2Rows] = tab2Values;
-
-  const combined = [
-    ...normalizeRows(tab1Header, tab1Rows, tab1.properties.title),
-    ...normalizeRows(tab2Header, tab2Rows, tab2.properties.title),
-  ];
-
+export function dedupeSources(sources) {
+  const combined = sources.flatMap((s) => normalizeRows(s.header, s.rows, s.label));
   const emailCol = MASTER_COLUMNS.indexOf("Email");
   const seen = new Set();
   const deduped = [];
@@ -78,14 +60,61 @@ export async function buildMasterList(sheets, spreadsheetId) {
     if (key) seen.add(key);
     deduped.push(row);
   }
+  return { rows: deduped, duplicatesRemoved: duplicates };
+}
 
-  await sheets.clearValues(spreadsheetId, tab3.properties.title);
-  await sheets.updateValues(spreadsheetId, tab3.properties.title, [MASTER_COLUMNS, ...deduped]);
+/**
+ * Reads one or more source tabs (by title) from a spreadsheet, normalizes + de-dupes
+ * them by email, and overwrites a target tab (by title) with the result.
+ * @param {import("./google-sheets-client.js").GoogleSheetsClient} sheets
+ * @param {string} spreadsheetId
+ * @param {object} opts
+ * @param {string[]} opts.sourceTitles
+ * @param {string} opts.targetTitle
+ */
+export async function buildDedupedTab(sheets, spreadsheetId, { sourceTitles, targetTitle }) {
+  const values = await Promise.all(sourceTitles.map((title) => sheets.getValues(spreadsheetId, title)));
+  const sources = values.map((v, i) => {
+    const [header, ...rows] = v;
+    return { header, rows, label: sourceTitles[i] };
+  });
+
+  const { rows: deduped, duplicatesRemoved } = dedupeSources(sources);
+
+  await sheets.clearValues(spreadsheetId, targetTitle);
+  await sheets.updateValues(spreadsheetId, targetTitle, [MASTER_COLUMNS, ...deduped]);
 
   return {
-    tab1: { title: tab1.properties.title, rows: tab1Rows.length },
-    tab2: { title: tab2.properties.title, rows: tab2Rows.length },
-    tab3: { title: tab3.properties.title, rows: deduped.length },
-    duplicatesRemoved: duplicates,
+    sources: sources.map((s, i) => ({ title: sourceTitles[i], rows: s.rows.length })),
+    target: { title: targetTitle, rows: deduped.length },
+    duplicatesRemoved,
+  };
+}
+
+/**
+ * Combines the 1st and 2nd tabs of a spreadsheet (by position, regardless of their
+ * titles/column layouts) and overwrites the 3rd tab with the de-duplicated result.
+ * @param {import("./google-sheets-client.js").GoogleSheetsClient} sheets
+ * @param {string} spreadsheetId
+ * @returns {Promise<{tab1: object, tab2: object, tab3: object, duplicatesRemoved: number}>}
+ */
+export async function buildMasterList(sheets, spreadsheetId) {
+  const meta = await sheets.getSpreadsheet(spreadsheetId, { fields: "sheets.properties" });
+  const byIndex = meta.sheets.sort((a, b) => a.properties.index - b.properties.index);
+  if (byIndex.length < 3) {
+    throw new Error(`Expected at least 3 tabs, found ${byIndex.length}: ${byIndex.map((s) => s.properties.title).join(", ")}`);
+  }
+  const [tab1, tab2, tab3] = byIndex;
+
+  const result = await buildDedupedTab(sheets, spreadsheetId, {
+    sourceTitles: [tab1.properties.title, tab2.properties.title],
+    targetTitle: tab3.properties.title,
+  });
+
+  return {
+    tab1: { title: tab1.properties.title, rows: result.sources[0].rows },
+    tab2: { title: tab2.properties.title, rows: result.sources[1].rows },
+    tab3: result.target,
+    duplicatesRemoved: result.duplicatesRemoved,
   };
 }
