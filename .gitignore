@@ -8,3 +8,7 @@ scripts/.deliverability-state.json
 scripts/*.log
 scripts/deliverability-log.txt
 logs/
+
+# CSV exports contain real lead PII — never commit
+exports/
+*.csv
