@@ -33,7 +33,9 @@ if (!clientId || !clientSecret) {
 
 // drive.file: this app can only see/manage files it creates or that the user opens with it —
 // broader than that requires the "drive" scope instead, which is not needed here.
-const SCOPE = "https://www.googleapis.com/auth/drive.file";
+// spreadsheets: full read/write on any Sheets file the account can already access (needed
+// to merge/dedupe existing sheets that this app didn't create).
+const SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 
 const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 authUrl.searchParams.set("client_id", clientId);
