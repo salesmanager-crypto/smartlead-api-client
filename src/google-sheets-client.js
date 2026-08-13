@@ -65,6 +65,11 @@ export class GoogleSheetsClient {
     return this._request("GET", `${SHEETS_BASE}/${spreadsheetId}`, { query: { fields } });
   }
 
+  /** Create a brand-new spreadsheet. Returns the full spreadsheet resource (incl. spreadsheetId). */
+  createSpreadsheet(title) {
+    return this._request("POST", SHEETS_BASE, { body: { properties: { title } } });
+  }
+
   /** Any batchUpdate request(s) not covered by a dedicated helper below. */
   batchUpdate(spreadsheetId, requests) {
     return this._request("POST", `${SHEETS_BASE}/${spreadsheetId}:batchUpdate`, { body: { requests } });
@@ -87,6 +92,13 @@ export class GoogleSheetsClient {
           fields: Object.keys(properties).join(","),
         },
       },
+    ]);
+  }
+
+  /** Rename the spreadsheet itself (its file title, not a tab). */
+  updateSpreadsheetProperties(spreadsheetId, properties) {
+    return this.batchUpdate(spreadsheetId, [
+      { updateSpreadsheetProperties: { properties, fields: Object.keys(properties).join(",") } },
     ]);
   }
 
