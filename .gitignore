@@ -12,3 +12,7 @@ logs/
 # CSV exports contain real lead PII — never commit
 exports/
 *.csv
+
+# Google OAuth credentials/tokens — never commit
+.google-token.json
+client_secret*.json

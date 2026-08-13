@@ -35,6 +35,34 @@ node src/cli.js inboxes:warmup-stats 987
 node src/cli.js leads:add 12345 '[{"email":"lead@example.com","first_name":"Jane"}]'
 ```
 
+## Google Drive export (optional)
+
+Upload, organize, and move CSV exports (e.g. the output of
+`scripts/export-campaign-leads-csv.mjs`) in Google Drive.
+
+**One-time setup:**
+
+1. In Google Cloud Console, create an OAuth client of type **Web application**
+   (APIs & Services → Credentials → Create Credentials → OAuth client ID).
+2. Copy its `client_id` / `client_secret` into `.env` (see `.env.example`).
+3. Run `node scripts/google-drive-auth.mjs`, open the printed URL, sign in with the
+   Google account to connect, then paste the resulting redirect URL/code back in.
+   It prints a `GOOGLE_REFRESH_TOKEN` line — add that to `.env` too.
+
+**CLI usage:**
+
+```bash
+node src/drive-cli.js drive:upload exports/fancy-food-leads.csv          # upload a CSV
+node src/drive-cli.js drive:upload exports/fancy-food-leads.csv 1AbC...  # ...into a specific folder
+node src/drive-cli.js drive:create-folder "Fancy Foods Exports"
+node src/drive-cli.js drive:move <fileId> <newParentFolderId> <oldParentFolderId>
+node src/drive-cli.js drive:list "name contains 'fancy-food'"
+node src/drive-cli.js drive:get <fileId>
+```
+
+Uses the `drive.file` scope, so it can only see/manage files it creates (or files a
+user explicitly opens with it) — not your whole Drive.
+
 ## Programmatic usage
 
 ```js
