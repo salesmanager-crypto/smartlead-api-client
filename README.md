@@ -63,3 +63,10 @@ console.log(health);
 All methods map directly to Smartlead's documented REST endpoints
 (`https://api.smartlead.ai/reference`). Extend `SmartleadClient` with `client.get/post/patch/delete`
 for any endpoint not yet wrapped.
+
+## Docs
+
+- [`docs/Email-Deliverability-Roles.md`](docs/Email-Deliverability-Roles.md) — deliverability job
+  titles/responsibilities and how they map to this repo's monitoring scripts.
+- [`docs/Smartlead-Pipedrive-Automation-Workflow.md`](docs/Smartlead-Pipedrive-Automation-Workflow.md) —
+  the SmartLead ↔ Pipedrive lead-sync workflow.
