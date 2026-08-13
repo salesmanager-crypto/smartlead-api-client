@@ -104,6 +104,18 @@ export class GoogleDriveClient {
   }
 
   /**
+   * Copy an existing file. Passing `mimeType: "application/vnd.google-apps.spreadsheet"`
+   * against a source .xlsx converts it to a native Google Sheet in the same request —
+   * handy since the Sheets API can only operate on native Sheets files, not raw .xlsx blobs.
+   */
+  copyFile(fileId, { name, mimeType, parents } = {}) {
+    return this._request("POST", `${DRIVE_BASE}/files/${fileId}/copy`, {
+      body: { name, mimeType, parents },
+      query: { fields: "id,name,mimeType" },
+    });
+  }
+
+  /**
    * Upload file content to Drive (multipart: metadata + media in one request).
    * @param {object} opts
    * @param {Buffer|string} opts.content - file bytes or text
