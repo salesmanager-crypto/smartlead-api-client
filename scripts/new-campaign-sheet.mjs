@@ -132,6 +132,9 @@ await sheets.updateSheetProperties(spreadsheetId, tab1SheetId, { title: tab1Titl
 await sheets.updateValues(spreadsheetId, tab1Title, [leadsHeader, ...leadsRows]);
 console.error(`Wrote ${leadsRows.length} row(s) to Tab 1 ("${tab1Title}").`);
 
+// The final de-duplicated tab is always named this way, whichever position it lands in.
+const masterTitle = `Master List of ${titleCased}`;
+
 let result;
 if (driveFile) {
   const sourceMeta = await sheets.getSpreadsheet(driveFile.id, { fields: "sheets.properties" });
@@ -140,19 +143,19 @@ if (driveFile) {
   await sheets.updateSheetProperties(spreadsheetId, copied.sheetId, { title: "Tab 2", index: 1 });
   console.error(`Copied "${sourceSheet.properties.title}" from "${driveFile.name}" into Tab 2.`);
 
-  await sheets.addSheet(spreadsheetId, { title: "Tab 3", index: 2 });
+  await sheets.addSheet(spreadsheetId, { title: masterTitle, index: 2 });
   result = await buildMasterList(sheets, spreadsheetId);
   console.error(
-    `Tab 3 master list: ${result.tab1.rows} (Tab 1) + ${result.tab2.rows} (Tab 2) -> ${result.tab3.rows} unique ` +
+    `"${masterTitle}": ${result.tab1.rows} (Tab 1) + ${result.tab2.rows} (Tab 2) -> ${result.tab3.rows} unique ` +
       `(${result.duplicatesRemoved} duplicate(s) removed).`
   );
 } else {
-  // No Drive file to merge — Tab 2 is just the de-duplicated Tab 1 list.
-  await sheets.addSheet(spreadsheetId, { title: "Tab 2", index: 1 });
-  const deduped = await buildDedupedTab(sheets, spreadsheetId, { sourceTitles: [tab1Title], targetTitle: "Tab 2" });
+  // No Drive file to merge — the master list is just the de-duplicated Tab 1 list.
+  await sheets.addSheet(spreadsheetId, { title: masterTitle, index: 1 });
+  const deduped = await buildDedupedTab(sheets, spreadsheetId, { sourceTitles: [tab1Title], targetTitle: masterTitle });
   result = { tab1: deduped.sources[0], tab2: deduped.target, duplicatesRemoved: deduped.duplicatesRemoved };
   console.error(
-    `Tab 2 de-duplicated list: ${result.tab1.rows} (Tab 1) -> ${result.tab2.rows} unique ` +
+    `"${masterTitle}": ${result.tab1.rows} (Tab 1) -> ${result.tab2.rows} unique ` +
       `(${result.duplicatesRemoved} duplicate(s) removed).`
   );
 }
