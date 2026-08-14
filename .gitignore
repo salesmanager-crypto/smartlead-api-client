@@ -1,5 +1,6 @@
 .env
 node_modules/
+.DS_Store
 
 # runtime state / logs — machine-local, and some contain real business data
 .claude/settings.local.json
