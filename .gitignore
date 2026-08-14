@@ -9,3 +9,4 @@ scripts/.deliverability-state.json
 scripts/*.log
 scripts/deliverability-log.txt
 logs/
+scripts/output/

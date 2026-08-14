@@ -50,10 +50,38 @@ const health = await client.getAllInboxHealth();
 console.log(health);
 ```
 
+## Campaign analytics report
+
+`scripts/campaign-analytics-report.mjs` pulls performance for every campaign created on/after
+a given date, aggregates per-lead engagement *across* those campaigns, and flags what's worth
+acting on — high-bounce or low-open-rate campaigns, leads who never open after repeated sends,
+addresses that bounce, leads who open repeatedly but never convert, and unhealthy sending
+inboxes. `scripts/build-analytics-dashboard.mjs` turns its JSON output into a self-contained
+HTML dashboard.
+
+```bash
+# live run against your real account
+node scripts/campaign-analytics-report.mjs --since=2026-07-01 --end=2026-08-14
+node scripts/build-analytics-dashboard.mjs scripts/output/2026-07-01_2026-08-14-campaign-report.json
+# open the resulting .html directly, or publish it as a Claude Artifact
+
+# try it with bundled synthetic sample data — no API key needed
+node scripts/campaign-analytics-report.mjs --fixture
+```
+
+Key flags: `--since`, `--start`/`--end` (analytics window, defaults to `--since`..today),
+`--status=ACTIVE|ALL`, `--out=path.json`, `--skip-inbox-health`, and threshold overrides
+(`--bounce-warn`, `--bounce-critical`, `--open-warn`, `--open-critical`, `--unsub-warn`,
+`--unsub-critical`, `--min-sends`). Defaults live in `scripts/lib/analytics-report-core.mjs`.
+
+For a recurring run, see `scripts/scheduled-analytics-report-prompt.md` (same pattern as
+`scripts/scheduled-inbox-sync-prompt.md`).
+
 ## Coverage
 
 - **Campaigns**: list, get, create, delete, status (start/pause/stop), schedule, settings,
-  sequences, analytics, statistics, analytics-by-date, global analytics overview.
+  sequences, analytics, statistics (+ auto-paginated `getAllCampaignStatistics`),
+  analytics-by-date, global analytics overview.
 - **Email accounts / deliverability**: list, create, update, get, warmup config, warmup stats,
   aggregate inbox health helper (`getAllInboxHealth`), assign/remove accounts on a campaign.
 - **Leads**: list, add (bulk), update, pause/resume, delete, unsubscribe (per-campaign & global),

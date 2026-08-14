@@ -170,6 +170,24 @@ export class SmartleadClient {
     });
   }
 
+  /**
+   * Convenience: page through `getCampaignStatistics` until exhausted and
+   * return every lead's per-lead engagement record in one array. Stops when
+   * a page comes back shorter than `pageSize`, or after `maxPages` as a
+   * runaway backstop.
+   */
+  async getAllCampaignStatistics(campaignId, { pageSize = 100, maxPages = 200 } = {}) {
+    const all = [];
+    for (let page = 0; page < maxPages; page++) {
+      const offset = page * pageSize;
+      const res = await this.getCampaignStatistics(campaignId, { offset, limit: pageSize });
+      const list = Array.isArray(res) ? res : res?.data ?? [];
+      all.push(...list);
+      if (list.length < pageSize) break;
+    }
+    return all;
+  }
+
   /** Global metrics across all campaigns. */
   getAnalyticsOverview(params = {}) {
     return this.get("/analytics/overview", { query: params });
