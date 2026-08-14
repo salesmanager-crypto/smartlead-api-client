@@ -6,23 +6,36 @@
  * keeps it testable without an API key and reusable from both the live CLI
  * script and the fixture-based dry run.
  *
- * ADAPT_ME: field-name mapping. This project's own docs (README/client.js)
- * describe the *shape* of Smartlead's analytics/statistics responses but not
- * the exact key names for every field, and we don't have a live API key in
- * this environment to confirm them against a real response. Every place this
- * module reads a metric off a raw API object goes through `pick()` against a
- * list of candidate key names below — if a real run's numbers look off
- * (e.g. always zero), the fix is almost certainly "add the real key name to
- * the matching list here," not a rewrite.
+ * Field-name mapping below was confirmed against this account's real
+ * Smartlead responses on 2026-08-14 (`getCampaign`, `getCampaignAnalyticsByDate`,
+ * `getCampaignStatistics`) — every metric read still goes through `pick()`
+ * against a candidate list so a future API change degrades gracefully instead
+ * of silently reading `undefined`, but these are confirmed, not guesses.
+ *
+ * IMPORTANT — per-lead statistics rows are one row per *sequence-step send*,
+ * not one row per lead: a lead who received 3 follow-ups shows up as 3 rows
+ * with the same `lead_email`. There is no per-row send *count* field, so each
+ * row counts as exactly one send (see the `|| 1` fallback below). Also,
+ * per-row `reply_count`/`email_reply_count` fields don't exist on real rows —
+ * the only reply signal is a non-null `reply_time` — so replied-ness is
+ * derived from that, not from `LEAD_STAT_FIELDS.replied` alone.
+ *
+ * IMPORTANT — open/click tracking can be disabled per campaign
+ * (`track_settings` containing `"DONT_EMAIL_OPEN"` / `"DONT_LINK_CLICK"`).
+ * When disabled, `open_count`/`click_count` are always 0 — that is a tracking
+ * setting, not an engagement signal, and must not be treated as "nobody
+ * opened." See `getTrackingFlags()` — every open/click-rate computation and
+ * flag in this module is gated on it.
  */
 
-// ---- field-name candidates (see ADAPT_ME above) ---------------------------
+// ---- field-name candidates ------------------------------------------------
 
 export const CAMPAIGN_META_FIELDS = {
   id: ["id", "campaign_id"],
   name: ["name", "campaign_name"],
   status: ["status"],
   createdAt: ["created_at", "createdAt", "created", "campaign_created_at"],
+  trackSettings: ["track_settings"],
 };
 
 export const CAMPAIGN_ANALYTICS_FIELDS = {
@@ -41,8 +54,19 @@ export const LEAD_STAT_FIELDS = {
   opened: ["open_count", "email_open_count", "opens"],
   clicked: ["click_count", "email_click_count", "clicks"],
   replied: ["reply_count", "email_reply_count", "replies"],
+  replyTime: ["reply_time"],
   bounced: ["is_bounced", "bounced", "bounce_count"],
 };
+
+/** Does this campaign have open and/or click tracking turned off? */
+export function getTrackingFlags(campaignRaw) {
+  const raw = pick(campaignRaw, CAMPAIGN_META_FIELDS.trackSettings);
+  const list = Array.isArray(raw) ? raw : [];
+  return {
+    openDisabled: list.includes("DONT_EMAIL_OPEN"),
+    clickDisabled: list.includes("DONT_LINK_CLICK"),
+  };
+}
 
 // ---- sensible-default thresholds (all tunable via CLI flags) --------------
 
@@ -125,16 +149,18 @@ export function sumAnalytics(rawResponses) {
   return totals;
 }
 
-/** Turn summed raw totals into rates. */
-export function computeCampaignMetrics(totals) {
+/** Turn summed raw totals into rates. openRate/clickRate are `null` (not 0) when tracking is disabled. */
+export function computeCampaignMetrics(totals, trackingFlags = {}) {
   const { sent, opened, clicked, replied, bounced, unsubscribed } = totals;
   return {
     ...totals,
-    openRate: rate(opened, sent),
-    clickRate: rate(clicked, sent),
+    openRate: trackingFlags.openDisabled ? null : rate(opened, sent),
+    clickRate: trackingFlags.clickDisabled ? null : rate(clicked, sent),
     replyRate: rate(replied, sent),
     bounceRate: rate(bounced, sent),
     unsubRate: rate(unsubscribed, sent),
+    openTrackingDisabled: !!trackingFlags.openDisabled,
+    clickTrackingDisabled: !!trackingFlags.clickDisabled,
   };
 }
 
@@ -149,7 +175,9 @@ export function flagCampaign(metrics, thresholds = DEFAULT_THRESHOLDS) {
   } else if (metrics.bounceRate >= thresholds.bounceRateWarning) {
     flags.push({ level: "warning", code: "high-bounce-rate", message: `Bounce rate ${pct(metrics.bounceRate)} — above the healthy threshold.` });
   }
-  if (metrics.openRate <= thresholds.openRateCritical) {
+  if (metrics.openRate === null) {
+    flags.push({ level: "info", code: "open-tracking-disabled", message: "Open tracking is disabled for this campaign — open rate/non-opener signals aren't available." });
+  } else if (metrics.openRate <= thresholds.openRateCritical) {
     flags.push({ level: "critical", code: "low-open-rate", message: `Open rate ${pct(metrics.openRate)} — likely deliverability or subject-line/targeting problem.` });
   } else if (metrics.openRate <= thresholds.openRateWarning) {
     flags.push({ level: "warning", code: "low-open-rate", message: `Open rate ${pct(metrics.openRate)} — below the healthy range.` });
@@ -169,12 +197,16 @@ function pct(n) {
 // ---- cross-campaign, per-lead aggregation ----------------------------------
 
 /**
- * @param {Array<{campaignId, campaignName, leads: object[]}>} perCampaignLeads
+ * @param {Array<{campaignId, campaignName, leads: object[], openTrackingEnabled?: boolean}>} perCampaignLeads
  *   `leads` is the raw array from getAllCampaignStatistics for that campaign.
+ *   `openTrackingEnabled` (default true) marks whether that campaign's opens
+ *   are real signal — sends from tracking-disabled campaigns still count
+ *   toward `sent` but not toward `trackedSent`, so they can't manufacture a
+ *   false "never opens" flag on a lead we simply never measured.
  */
 export function aggregateLeadStats(perCampaignLeads) {
   const byEmail = new Map();
-  for (const { campaignId, campaignName, leads } of perCampaignLeads) {
+  for (const { campaignId, campaignName, leads, openTrackingEnabled = true } of perCampaignLeads) {
     for (const raw of leads) {
       const email = pick(raw, LEAD_STAT_FIELDS.email);
       if (!email) continue;
@@ -186,6 +218,7 @@ export function aggregateLeadStats(perCampaignLeads) {
           campaignIds: new Set(),
           campaignNames: new Set(),
           sent: 0,
+          trackedSent: 0,
           opened: 0,
           clicked: 0,
           replied: 0,
@@ -195,10 +228,15 @@ export function aggregateLeadStats(perCampaignLeads) {
       const entry = byEmail.get(key);
       entry.campaignIds.add(campaignId);
       entry.campaignNames.add(campaignName);
-      entry.sent += numField(raw, LEAD_STAT_FIELDS.sent) || 1; // fall back to "1 send" if the API only gives a per-row record
+      const sentIncrement = numField(raw, LEAD_STAT_FIELDS.sent) || 1; // fall back to "1 send" — real rows are one-per-sequence-step, no count field
+      entry.sent += sentIncrement;
+      if (openTrackingEnabled) entry.trackedSent += sentIncrement;
       entry.opened += numField(raw, LEAD_STAT_FIELDS.opened);
       entry.clicked += numField(raw, LEAD_STAT_FIELDS.clicked);
-      entry.replied += numField(raw, LEAD_STAT_FIELDS.replied);
+      // real rows have no reply_count field — a reply shows up only as a non-null reply_time
+      const repliedFromCount = numField(raw, LEAD_STAT_FIELDS.replied);
+      const repliedFromTimestamp = pick(raw, LEAD_STAT_FIELDS.replyTime) ? 1 : 0;
+      entry.replied += Math.max(repliedFromCount, repliedFromTimestamp);
       const bouncedVal = pick(raw, LEAD_STAT_FIELDS.bounced);
       entry.bouncedCount += typeof bouncedVal === "boolean" ? (bouncedVal ? 1 : 0) : toNumber(bouncedVal);
     }
@@ -226,7 +264,9 @@ export function flagLeads(byEmail, thresholds = DEFAULT_THRESHOLDS) {
       chronicBouncers.push(summary);
       continue; // a bounced address shouldn't also show up as a "non-opener" — it's undeliverable, not disengaged
     }
-    if (entry.sent >= thresholds.minSendsForNonOpenerFlag && entry.opened === 0) {
+    // gated on trackedSent, not sent — a lead only ever emailed via tracking-disabled
+    // campaigns has trackedSent 0 and can never trip this flag on a false "zero opens"
+    if (entry.trackedSent >= thresholds.minSendsForNonOpenerFlag && entry.opened === 0) {
       repeatNonOpeners.push(summary);
     }
     if (
@@ -261,7 +301,8 @@ export function buildReport({ campaigns, analyticsByCampaign, leadsByCampaign, t
   const campaignReports = campaigns.map((c) => {
     const id = pick(c, CAMPAIGN_META_FIELDS.id);
     const totals = analyticsByCampaign.get(id) ?? { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, unsubscribed: 0 };
-    const metrics = computeCampaignMetrics(totals);
+    const tracking = getTrackingFlags(c);
+    const metrics = computeCampaignMetrics(totals, tracking);
     return {
       id,
       name: pick(c, CAMPAIGN_META_FIELDS.name),
@@ -272,16 +313,38 @@ export function buildReport({ campaigns, analyticsByCampaign, leadsByCampaign, t
     };
   });
 
-  const globalTotals = campaignReports.reduce(
-    (acc, c) => {
-      for (const key of ["sent", "opened", "clicked", "replied", "bounced", "unsubscribed"]) acc[key] += c.metrics[key];
-      return acc;
-    },
-    { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, unsubscribed: 0 }
-  );
-  const globalMetrics = computeCampaignMetrics(globalTotals);
+  // openRate/clickRate use only the sent volume from campaigns where that
+  // tracking is actually on — otherwise tracking-disabled campaigns' sends
+  // dilute the denominator and understate the real open/click rate.
+  const globalTotals = { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, unsubscribed: 0 };
+  let trackedSentForOpen = 0;
+  let trackedSentForClick = 0;
+  let campaignsWithOpenTrackingOff = 0;
+  let campaignsWithClickTrackingOff = 0;
+  for (const c of campaignReports) {
+    const m = c.metrics;
+    for (const key of ["sent", "opened", "clicked", "replied", "bounced", "unsubscribed"]) globalTotals[key] += m[key];
+    if (m.openTrackingDisabled) campaignsWithOpenTrackingOff += 1;
+    else trackedSentForOpen += m.sent;
+    if (m.clickTrackingDisabled) campaignsWithClickTrackingOff += 1;
+    else trackedSentForClick += m.sent;
+  }
+  const globalMetrics = {
+    ...globalTotals,
+    openRate: rate(globalTotals.opened, trackedSentForOpen),
+    clickRate: rate(globalTotals.clicked, trackedSentForClick),
+    replyRate: rate(globalTotals.replied, globalTotals.sent),
+    bounceRate: rate(globalTotals.bounced, globalTotals.sent),
+    unsubRate: rate(globalTotals.unsubscribed, globalTotals.sent),
+    campaignsWithOpenTrackingOff,
+    campaignsWithClickTrackingOff,
+  };
 
-  const leadMap = aggregateLeadStats(leadsByCampaign);
+  const leadsByCampaignWithTracking = leadsByCampaign.map((entry) => {
+    const campaign = campaigns.find((c) => pick(c, CAMPAIGN_META_FIELDS.id) === entry.campaignId);
+    return { ...entry, openTrackingEnabled: campaign ? !getTrackingFlags(campaign).openDisabled : true };
+  });
+  const leadMap = aggregateLeadStats(leadsByCampaignWithTracking);
   const leadFlags = flagLeads(leadMap, thresholds);
 
   const inboxFlags = flagInboxHealth(inboxHealth);

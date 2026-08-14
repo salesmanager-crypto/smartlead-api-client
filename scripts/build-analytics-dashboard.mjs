@@ -116,6 +116,7 @@ function renderHtml(report) {
   .dot.critical { background: var(--critical); }
   .dot.warning { background: var(--warning); }
   .dot.good { background: var(--good); }
+  .dot.info { background: var(--text-muted); }
   .flag-campaign { font-weight: 600; margin-right: 6px; }
 
   .bar-row { display: grid; grid-template-columns: 220px 1fr 60px; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.85rem; }
@@ -140,6 +141,7 @@ function renderHtml(report) {
   .badge.critical { background: color-mix(in srgb, var(--critical) 18%, transparent); color: var(--critical); }
   .badge.warning { background: color-mix(in srgb, var(--warning) 22%, transparent); color: var(--text-primary); }
   .badge.good { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); }
+  .badge.info { background: var(--surface-2); color: var(--text-secondary); }
   .muted { color: var(--text-muted); font-size: 0.8rem; }
   .empty { color: var(--text-muted); font-size: 0.85rem; padding: 8px 0; }
   .footer-note { color: var(--text-muted); font-size: 0.78rem; margin-top: 8px; }
@@ -149,11 +151,12 @@ function renderHtml(report) {
 <script>
   const REPORT = ${dataJson};
 
-  function pct(n) { return (n * 100).toFixed(1) + "%"; }
+  function pct(n) { return n === null || n === undefined ? "—" : (n * 100).toFixed(1) + "%"; }
   function num(n) { return n.toLocaleString(); }
   function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
   function severityFor(value, warn, critical, higherIsWorse) {
+    if (value === null || value === undefined) return null;
     if (higherIsWorse) {
       if (value >= critical) return "critical";
       if (value >= warn) return "warning";
@@ -171,10 +174,12 @@ function renderHtml(report) {
   function renderKpis(r) {
     const g = r.global;
     const t = r.thresholds;
+    const openLabel = g.campaignsWithOpenTrackingOff ? \`Open rate (\${g.campaignsWithOpenTrackingOff} campaign\${g.campaignsWithOpenTrackingOff === 1 ? "" : "s"} untracked)\` : "Open rate";
+    const clickLabel = g.campaignsWithClickTrackingOff ? \`Click rate (\${g.campaignsWithClickTrackingOff} untracked)\` : "Click rate";
     return [
       kpiTile("Emails sent", num(g.sent)),
-      kpiTile("Open rate", pct(g.openRate), severityFor(g.openRate, t.openRateWarning, t.openRateCritical, false)),
-      kpiTile("Click rate", pct(g.clickRate)),
+      kpiTile(openLabel, pct(g.openRate), severityFor(g.openRate, t.openRateWarning, t.openRateCritical, false)),
+      kpiTile(clickLabel, pct(g.clickRate)),
       kpiTile("Reply rate", pct(g.replyRate)),
       kpiTile("Bounce rate", pct(g.bounceRate), severityFor(g.bounceRate, t.bounceRateWarning, t.bounceRateCritical, true)),
       kpiTile("Unsubscribe rate", pct(g.unsubRate), severityFor(g.unsubRate, t.unsubRateWarning, t.unsubRateCritical, true)),
@@ -186,7 +191,8 @@ function renderHtml(report) {
     for (const c of r.campaigns) {
       for (const f of c.flags) rows.push({ level: f.level, campaign: c.name, message: f.message });
     }
-    rows.sort((a, b) => (a.level === b.level ? 0 : a.level === "critical" ? -1 : 1));
+    const order = { critical: 0, warning: 1, info: 2 };
+    rows.sort((a, b) => (order[a.level] ?? 3) - (order[b.level] ?? 3));
     if (!rows.length) return '<div class="empty">No campaign-level flags in this window — every campaign is within the healthy thresholds.</div>';
     return rows
       .map((f) => \`<div class="flag-row"><span class="dot \${f.level}"></span><div><span class="flag-campaign">\${esc(f.campaign)}</span>\${esc(f.message)}</div></div>\`)
@@ -194,9 +200,13 @@ function renderHtml(report) {
   }
 
   function renderBarChart(r, metricKey, warnKey, criticalKey, higherIsWorse) {
-    const rows = [...r.campaigns].sort((a, b) => (higherIsWorse ? b.metrics[metricKey] - a.metrics[metricKey] : a.metrics[metricKey] - b.metrics[metricKey]));
+    const all = r.campaigns;
+    const untracked = all.filter((c) => c.metrics[metricKey] === null);
+    const rows = all
+      .filter((c) => c.metrics[metricKey] !== null)
+      .sort((a, b) => (higherIsWorse ? b.metrics[metricKey] - a.metrics[metricKey] : a.metrics[metricKey] - b.metrics[metricKey]));
     const max = Math.max(...rows.map((c) => c.metrics[metricKey]), 0.01);
-    return rows
+    const bars = rows
       .map((c) => {
         const v = c.metrics[metricKey];
         const status = severityFor(v, r.thresholds[warnKey], r.thresholds[criticalKey], higherIsWorse);
@@ -208,6 +218,10 @@ function renderHtml(report) {
         </div>\`;
       })
       .join("");
+    const note = untracked.length
+      ? \`<p class="muted">\${untracked.length} campaign\${untracked.length === 1 ? "" : "s"} excluded — tracking disabled: \${untracked.map((c) => esc(c.name)).join(", ")}</p>\`
+      : "";
+    return bars + note;
   }
 
   function statusBadge(level) {
@@ -218,9 +232,13 @@ function renderHtml(report) {
     const rows = r.campaigns
       .map((c) => {
         const m = c.metrics;
-        const worst = c.flags.some((f) => f.level === "critical") ? "critical" : c.flags.length ? "warning" : "good";
+        const actionable = c.flags.filter((f) => f.level !== "info");
+        const worst = actionable.some((f) => f.level === "critical") ? "critical" : actionable.length ? "warning" : "good";
+        const trackingNote = m.openTrackingDisabled || m.clickTrackingDisabled
+          ? \`<span class="muted" title="Open/click tracking disabled for this campaign"> (untracked)</span>\`
+          : "";
         return \`<tr>
-          <td>\${esc(c.name)}</td>
+          <td>\${esc(c.name)}\${trackingNote}</td>
           <td>\${esc(c.status)}</td>
           <td class="num">\${num(m.sent)}</td>
           <td class="num">\${pct(m.openRate)}</td>
@@ -238,13 +256,19 @@ function renderHtml(report) {
     </table></div>\`;
   }
 
+  const LEAD_TABLE_CAP = 50;
+
   function leadTable(rows, columns) {
     if (!rows.length) return '<div class="empty">None in this window.</div>';
+    const shown = rows.slice(0, LEAD_TABLE_CAP);
     const head = columns.map((c) => \`<th>\${esc(c.label)}</th>\`).join("");
-    const body = rows
+    const body = shown
       .map((row) => \`<tr>\${columns.map((c) => \`<td class="\${c.num ? "num" : ""}">\${esc(c.render ? c.render(row) : row[c.key])}</td>\`).join("")}</tr>\`)
       .join("");
-    return \`<div class="table-scroll"><table><thead><tr>\${head}</tr></thead><tbody>\${body}</tbody></table></div>\`;
+    const truncNote = rows.length > LEAD_TABLE_CAP
+      ? \`<p class="muted">Showing top \${LEAD_TABLE_CAP} of \${num(rows.length)}, sorted worst-first. Full list is in the underlying JSON report.</p>\`
+      : "";
+    return \`<div class="table-scroll"><table><thead><tr>\${head}</tr></thead><tbody>\${body}</tbody></table></div>\${truncNote}\`;
   }
 
   function renderLeadSections(r) {
@@ -341,7 +365,7 @@ function renderHtml(report) {
         \${renderInboxHealth(r)}
       </div>
 
-      <p class="footer-note">Thresholds: bounce warn/critical \${pct(r.thresholds.bounceRateWarning)}/\${pct(r.thresholds.bounceRateCritical)} &middot; open warn/critical \${pct(r.thresholds.openRateWarning)}/\${pct(r.thresholds.openRateCritical)} &middot; unsub warn/critical \${pct(r.thresholds.unsubRateWarning)}/\${pct(r.thresholds.unsubRateCritical)} &middot; non-opener flag at \${r.thresholds.minSendsForNonOpenerFlag}+ sends with 0 opens. All tunable via CLI flags on campaign-analytics-report.mjs.</p>
+      <p class="footer-note">Thresholds: bounce warn/critical \${pct(r.thresholds.bounceRateWarning)}/\${pct(r.thresholds.bounceRateCritical)} &middot; open warn/critical \${pct(r.thresholds.openRateWarning)}/\${pct(r.thresholds.openRateCritical)} &middot; unsub warn/critical \${pct(r.thresholds.unsubRateWarning)}/\${pct(r.thresholds.unsubRateCritical)} &middot; non-opener flag at \${r.thresholds.minSendsForNonOpenerFlag}+ tracked sends with 0 opens (sends from tracking-disabled campaigns don't count toward that threshold). All tunable via CLI flags on campaign-analytics-report.mjs.\${r.global.campaignsWithOpenTrackingOff ? \` \${r.global.campaignsWithOpenTrackingOff} of \${r.campaigns.length} campaigns have open tracking disabled (Smartlead's "Don't track email opens" setting) — shown as "—" throughout.\` : ""}</p>
     \`;
   }
 

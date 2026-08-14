@@ -17,6 +17,7 @@
  *   --start=YYYY-MM-DD       analytics window start (default: --since)
  *   --end=YYYY-MM-DD         analytics window end (default: today)
  *   --status=ACTIVE|ALL      campaign status filter (default: ALL)
+ *   --exclude-ids=1,2,3      comma-separated campaign IDs to drop from scope (test campaigns, etc.)
  *   --out=path.json          where to write the JSON report
  *                            (default: scripts/output/<start>_<end>-campaign-report.json)
  *   --fixture                use bundled synthetic sample data instead of
@@ -50,6 +51,7 @@ const SINCE = args.since || "2026-07-01";
 const START = args.start || SINCE;
 const END = args.end || todayIso();
 const STATUS_FILTER = (args.status || "ALL").toUpperCase();
+const EXCLUDE_IDS = new Set((args.excludeIds || "").split(",").map((s) => s.trim()).filter(Boolean).map(Number));
 
 async function main() {
   loadDotEnv();
@@ -60,6 +62,8 @@ async function main() {
   const allCampaigns = normalizeList(await client.listCampaigns());
 
   const inScope = allCampaigns.filter((c) => {
+    const id = pick(c, CAMPAIGN_META_FIELDS.id);
+    if (EXCLUDE_IDS.has(Number(id))) return false;
     const createdAt = pick(c, CAMPAIGN_META_FIELDS.createdAt);
     const createdDate = createdAt ? String(createdAt).slice(0, 10) : null;
     if (createdDate && createdDate < SINCE) return false;
