@@ -50,9 +50,9 @@ body `{"category_id": <id>, "pause_lead": <true if disqualifying/handled, false 
 |---|---|---|
 | Interested, Follow Up, Meeting Request | ✓ Org + Person + Activity | ✓ |
 | Do Not Contact, Not Interested, Ignore | ✗ | ✓ (email + domain) |
-| Out of Office — no other contact named | ✗ | ✓ |
-| Out of Office — names a reachable colleague | ✗ | ✗ — do not block, leave reachable |
-| Wrong Person, Unsure | ✗ | use judgment — block only if clearly a dead end |
+| Out of Office (any case) | ✗ | ✗ — never block, they'll return |
+| Wrong Person | ✗ | ✗ — never block, contact is still reachable |
+| Unsure | ✗ | use judgment — block only if clearly a dead end |
 
 **Before blocking**, always check first:
 GET `${BASE}/leads/get-domain-block-list?api_key=...&filter_email_or_domain=<domain>`
