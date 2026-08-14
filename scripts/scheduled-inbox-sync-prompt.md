@@ -44,6 +44,12 @@ Apply via: POST `${BASE}/campaigns/{campaignId}/leads/{leadId}/category?api_key=
 body `{"category_id": <id>, "pause_lead": <true if disqualifying/handled, false if OOO with no other action needed>}`
 (campaignId = `email_campaign_id`, leadId = `email_lead_id` from the reply record.)
 
+Once a lead is tagged **Out Of Office, Do Not Contact, Ignore, or Not Interested**, the category
+call above is the only action needed on its read state — do not also try to mark the inbox
+thread unread (that was the old "Ignore Reply" workaround from the production doc's
+`mark_master_inbox_lead_as_unread` tool; it doesn't apply to this category-based flow and isn't
+needed here).
+
 ## Step 3 — Category-specific action (Section 5 of the production doc)
 
 | Category | Pipedrive sync | Block domain |
