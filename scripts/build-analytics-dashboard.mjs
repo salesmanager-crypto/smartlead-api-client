@@ -86,23 +86,45 @@ function renderHtml(report) {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     background: var(--surface-2);
     color: var(--text-primary);
-    padding: 0 24px 24px;
+    padding: 0 24px 40px;
     max-width: 1180px;
     margin: 0 auto;
   }
   .topbar { height: 3px; background: var(--accent); margin: 0 -24px 24px; border-radius: 0 0 3px 3px; }
   .eyebrow { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; text-wrap: balance; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; text-wrap: balance; }
   h2 { font-size: 1.05rem; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
   h2::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); flex: 0 0 auto; }
-  .subtitle { color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 24px; }
+  .subtitle { color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 20px; }
+
+  .nav { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 0 28px; padding: 10px 0; border-top: 1px solid var(--gridline); border-bottom: 1px solid var(--gridline); }
+  .nav a { color: var(--text-secondary); text-decoration: none; font-size: 0.82rem; font-weight: 500; }
+  .nav a:hover, .nav a:focus-visible { color: var(--accent); }
+
+  section { margin-bottom: 32px; }
+  section:last-of-type { margin-bottom: 0; }
+  .section-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px; }
+
   .card {
     background: var(--surface-1);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px 20px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
+  .card:last-child { margin-bottom: 0; }
+
+  .summary-card {
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface-1));
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+  }
+  .summary-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .summary-list li { display: flex; gap: 10px; align-items: baseline; font-size: 0.95rem; line-height: 1.45; }
+  .summary-list li::before { content: "→"; color: var(--accent); font-weight: 700; flex: 0 0 auto; }
+  .summary-list strong { font-variant-numeric: tabular-nums; }
   .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
   .kpi-tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
   .kpi-label { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px; }
@@ -146,6 +168,13 @@ function renderHtml(report) {
   .empty { color: var(--text-muted); font-size: 0.85rem; padding: 8px 0; }
   .footer-note { color: var(--text-muted); font-size: 0.78rem; margin-top: 8px; }
   .source-badge { display: inline-block; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; color: var(--text-secondary); margin-left: 8px; }
+
+  @media print {
+    .nav { display: none; }
+    .card, .summary-card { break-inside: avoid; border: 1px solid #ccc; }
+    section { break-inside: avoid-page; }
+    body { background: #fff; }
+  }
 </style>
 <div class="viz-root" id="app"></div>
 <script>
@@ -186,17 +215,63 @@ function renderHtml(report) {
     ].join("");
   }
 
-  function renderFlags(r) {
-    const rows = [];
-    for (const c of r.campaigns) {
-      for (const f of c.flags) rows.push({ level: f.level, campaign: c.name, message: f.message });
+  function renderExecSummary(r) {
+    const flagged = r.campaigns.filter((c) => c.flags.some((f) => f.level !== "info"));
+    const bullets = [];
+    bullets.push(\`<strong>\${flagged.length} of \${r.campaigns.length}</strong> campaigns are flagged for bounce rate, open rate, or unsubscribe issues.\`);
+    const worstBounce = [...r.campaigns].filter((c) => c.metrics.sent > 0).sort((a, b) => b.metrics.bounceRate - a.metrics.bounceRate)[0];
+    if (worstBounce && worstBounce.metrics.bounceRate >= r.thresholds.bounceRateWarning) {
+      bullets.push(\`<strong>\${esc(worstBounce.name)}</strong> has the highest bounce rate at <strong>\${pct(worstBounce.metrics.bounceRate)}</strong> — active sender-reputation risk.\`);
     }
-    const order = { critical: 0, warning: 1, info: 2 };
-    rows.sort((a, b) => (order[a.level] ?? 3) - (order[b.level] ?? 3));
-    if (!rows.length) return '<div class="empty">No campaign-level flags in this window — every campaign is within the healthy thresholds.</div>';
-    return rows
-      .map((f) => \`<div class="flag-row"><span class="dot \${f.level}"></span><div><span class="flag-campaign">\${esc(f.campaign)}</span>\${esc(f.message)}</div></div>\`)
+    const nonOpeners = r.leadFlags.repeatNonOpeners.length;
+    if (nonOpeners) {
+      const share = r.leadCount ? nonOpeners / r.leadCount : 0;
+      bullets.push(\`<strong>\${num(nonOpeners)} leads</strong> (\${pct(share)} of everyone contacted) have been emailed \${r.thresholds.minSendsForNonOpenerFlag}+ times with zero opens — the largest targeting-refinement opportunity in this window.\`);
+    }
+    const bouncers = r.leadFlags.chronicBouncers.length;
+    if (bouncers) bullets.push(\`<strong>\${num(bouncers)} addresses</strong> are bouncing and still active in campaigns — block-list candidates.\`);
+    if (r.inboxHealth.length) bullets.push(\`<strong>\${r.inboxHealth.length} sending inbox\${r.inboxHealth.length === 1 ? "" : "es"}</strong> need attention (see Inbox Health).\`);
+    if (!bullets.length) bullets.push("Nothing flagged this window — every campaign is within the healthy thresholds.");
+    return \`<ul class="summary-list">\${bullets.map((b) => \`<li>\${b}</li>\`).join("")}</ul>\`;
+  }
+
+  const FLAG_LABELS = {
+    "high-bounce-rate": "Bounce",
+    "low-open-rate": "Open",
+    "high-unsub-rate": "Unsub",
+    "no-sends": "No sends",
+  };
+
+  function renderAtRiskTable(r) {
+    const order = { critical: 0, warning: 1 };
+    const flagged = r.campaigns
+      .filter((c) => c.flags.some((f) => f.level !== "info"))
+      .sort((a, b) => {
+        const aw = Math.min(...a.flags.filter((f) => f.level !== "info").map((f) => order[f.level] ?? 2));
+        const bw = Math.min(...b.flags.filter((f) => f.level !== "info").map((f) => order[f.level] ?? 2));
+        return aw - bw || b.metrics.bounceRate - a.metrics.bounceRate;
+      });
+    if (!flagged.length) return '<div class="empty">No campaign-level flags in this window — every campaign is within the healthy thresholds.</div>';
+    const rows = flagged
+      .map((c) => {
+        const badges = c.flags
+          .filter((f) => f.level !== "info")
+          .map((f) => \`<span class="badge \${f.level}" title="\${esc(f.message)}">\${esc(FLAG_LABELS[f.code] ?? f.code)}</span>\`)
+          .join(" ");
+        return \`<tr>
+          <td>\${esc(c.name)}</td>
+          <td class="num">\${num(c.metrics.sent)}</td>
+          <td class="num">\${pct(c.metrics.bounceRate)}</td>
+          <td class="num">\${pct(c.metrics.openRate)}</td>
+          <td class="num">\${pct(c.metrics.unsubRate)}</td>
+          <td>\${badges}</td>
+        </tr>\`;
+      })
       .join("");
+    return \`<div class="table-scroll"><table>
+      <thead><tr><th>Campaign</th><th>Sent</th><th>Bounce</th><th>Open</th><th>Unsub</th><th>Flagged for</th></tr></thead>
+      <tbody>\${rows}</tbody>
+    </table></div>\`;
   }
 
   function renderBarChart(r, metricKey, warnKey, criticalKey, higherIsWorse) {
@@ -323,47 +398,70 @@ function renderHtml(report) {
       <h1>Campaign Analytics Report\${r.source === "fixture-sample" ? '<span class="source-badge">sample data</span>' : ""}</h1>
       <p class="subtitle">Campaigns created on/after \${esc(r.range.since)} &middot; window \${esc(r.range.start)} → \${esc(r.range.end)} &middot; \${r.campaigns.length} campaigns &middot; \${num(r.leadCount)} leads &middot; generated \${generated.toLocaleString()}</p>
 
-      <div class="card">
-        <h2>Overview</h2>
-        <div class="kpi-grid">\${renderKpis(r)}</div>
-      </div>
+      <nav class="nav">
+        <a href="#overview">Overview</a>
+        <a href="#at-risk">Where to focus</a>
+        <a href="#performance">Campaign performance</a>
+        <a href="#targeting">Targeting opportunities</a>
+        <a href="#inbox-health">Inbox health</a>
+      </nav>
 
-      <div class="card">
-        <h2>Campaigns needing attention</h2>
-        \${renderFlags(r)}
-      </div>
-
-      <div class="card">
-        <h2>Bounce rate by campaign</h2>
-        <div class="legend">
-          <span class="legend-item"><span class="dot good"></span>healthy (&lt; \${pct(r.thresholds.bounceRateWarning)})</span>
-          <span class="legend-item"><span class="dot warning"></span>warning (≥ \${pct(r.thresholds.bounceRateWarning)})</span>
-          <span class="legend-item"><span class="dot critical"></span>critical (≥ \${pct(r.thresholds.bounceRateCritical)})</span>
+      <section id="overview">
+        <p class="section-title">Overview</p>
+        <div class="summary-card">\${renderExecSummary(r)}</div>
+        <div class="card">
+          <div class="kpi-grid">\${renderKpis(r)}</div>
         </div>
-        \${renderBarChart(r, "bounceRate", "bounceRateWarning", "bounceRateCritical", true)}
-      </div>
+      </section>
 
-      <div class="card">
-        <h2>Open rate by campaign</h2>
-        <div class="legend">
-          <span class="legend-item"><span class="dot good"></span>healthy (&gt; \${pct(r.thresholds.openRateWarning)})</span>
-          <span class="legend-item"><span class="dot warning"></span>warning (≤ \${pct(r.thresholds.openRateWarning)})</span>
-          <span class="legend-item"><span class="dot critical"></span>critical (≤ \${pct(r.thresholds.openRateCritical)})</span>
+      <section id="at-risk">
+        <p class="section-title">Where to focus</p>
+        <div class="card">
+          <h2>Campaigns needing attention</h2>
+          \${renderAtRiskTable(r)}
         </div>
-        \${renderBarChart(r, "openRate", "openRateWarning", "openRateCritical", false)}
-      </div>
+      </section>
 
-      <div class="card">
-        <h2>All campaigns</h2>
-        \${renderCampaignTable(r)}
-      </div>
+      <section id="performance">
+        <p class="section-title">Campaign performance</p>
+        <div class="card">
+          <h2>Bounce rate by campaign</h2>
+          <div class="legend">
+            <span class="legend-item"><span class="dot good"></span>healthy (&lt; \${pct(r.thresholds.bounceRateWarning)})</span>
+            <span class="legend-item"><span class="dot warning"></span>warning (≥ \${pct(r.thresholds.bounceRateWarning)})</span>
+            <span class="legend-item"><span class="dot critical"></span>critical (≥ \${pct(r.thresholds.bounceRateCritical)})</span>
+          </div>
+          \${renderBarChart(r, "bounceRate", "bounceRateWarning", "bounceRateCritical", true)}
+        </div>
 
-      \${renderLeadSections(r)}
+        <div class="card">
+          <h2>Open rate by campaign</h2>
+          <div class="legend">
+            <span class="legend-item"><span class="dot good"></span>healthy (&gt; \${pct(r.thresholds.openRateWarning)})</span>
+            <span class="legend-item"><span class="dot warning"></span>warning (≤ \${pct(r.thresholds.openRateWarning)})</span>
+            <span class="legend-item"><span class="dot critical"></span>critical (≤ \${pct(r.thresholds.openRateCritical)})</span>
+          </div>
+          \${renderBarChart(r, "openRate", "openRateWarning", "openRateCritical", false)}
+        </div>
 
-      <div class="card">
-        <h2>Sending inbox health</h2>
-        \${renderInboxHealth(r)}
-      </div>
+        <div class="card">
+          <h2>All campaigns</h2>
+          \${renderCampaignTable(r)}
+        </div>
+      </section>
+
+      <section id="targeting">
+        <p class="section-title">Targeting refinement opportunities</p>
+        \${renderLeadSections(r)}
+      </section>
+
+      <section id="inbox-health">
+        <p class="section-title">Sending infrastructure</p>
+        <div class="card">
+          <h2>Sending inbox health</h2>
+          \${renderInboxHealth(r)}
+        </div>
+      </section>
 
       <p class="footer-note">Thresholds: bounce warn/critical \${pct(r.thresholds.bounceRateWarning)}/\${pct(r.thresholds.bounceRateCritical)} &middot; open warn/critical \${pct(r.thresholds.openRateWarning)}/\${pct(r.thresholds.openRateCritical)} &middot; unsub warn/critical \${pct(r.thresholds.unsubRateWarning)}/\${pct(r.thresholds.unsubRateCritical)} &middot; non-opener flag at \${r.thresholds.minSendsForNonOpenerFlag}+ tracked sends with 0 opens (sends from tracking-disabled campaigns don't count toward that threshold). All tunable via CLI flags on campaign-analytics-report.mjs.\${r.global.campaignsWithOpenTrackingOff ? \` \${r.global.campaignsWithOpenTrackingOff} of \${r.campaigns.length} campaigns have open tracking disabled (Smartlead's "Don't track email opens" setting) — shown as "—" throughout.\` : ""}</p>
     \`;
