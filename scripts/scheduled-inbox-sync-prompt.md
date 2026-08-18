@@ -36,9 +36,16 @@ assign exactly one category:
 | Information Request | 5 | Wants more info, hasn't committed (docs call this "Follow Up" — use id 5301 "Follow Up" to match the production doc's exact label, not id 5) |
 | Out Of Office | 6 | Autoresponder / OOO message |
 | Wrong Person | 7 | Says they're not the right contact, no other contact given |
-| Unsure | 5271 | Ambiguous, can't tell intent |
+| Sender Originated Bounce | 9 | The "reply" is actually an NDR/bounce notice (e.g. Office 365/Gmail spam rejection) or other delivery-failure artifact misfiled as a reply — not a genuine message from the lead |
+| Unsure | 5271 | Ambiguous, can't tell intent — genuine human reply, just unclear |
 | Follow Up | 5301 | Wants more info, hasn't clearly committed |
 | Ignore | 4497 | Auto-generated, no human signal either way |
+
+Category 9 is SmartLead's own built-in bounce classifier — it sometimes auto-applies this before this
+script ever sees the reply (leave those alone, already handled). When a "reply" is clearly a bounce/NDR
+artifact and still shows `lead_category_id: null`, apply category 9 yourself rather than filing it under
+Unsure — no domain action either way (the block/Pipedrive tables below don't cover a bounce, since it
+isn't a real signal from the lead).
 
 Apply via: POST `${BASE}/campaigns/{campaignId}/leads/{leadId}/category?api_key=...`
 body `{"category_id": <id>, "pause_lead": <true if disqualifying/handled, false if OOO with no other action needed>}`
