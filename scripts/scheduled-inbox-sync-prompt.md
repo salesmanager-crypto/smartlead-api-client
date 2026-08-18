@@ -50,6 +50,15 @@ thread unread (that was the old "Ignore Reply" workaround from the production do
 `mark_master_inbox_lead_as_unread` tool; it doesn't apply to this category-based flow and isn't
 needed here).
 
+**Known limitation — the unread badge stays on after tagging.** `has_new_unread_email` does not
+flip to false when a category is applied via the API, and no REST endpoint for marking a thread
+read could be found (tested and confirmed 404 across every plausible path, including the
+single-lead message-history endpoint). This appears to be a UI-only side effect of opening a
+conversation in SmartLead's Master Inbox directly — not something reachable from this REST-only
+integration. Accepted as-is: Yoni reviews tagged leads manually in the SmartLead UI to confirm
+correct tagging, which also clears the unread badge as a side effect. Do not spend time trying to
+clear it programmatically.
+
 ## Step 3 — Category-specific action (Section 5 of the production doc)
 
 | Category | Pipedrive sync | Block domain |
