@@ -110,13 +110,21 @@ At least once a week, scan back through Unread Replies to the last confirmed che
 
 ## 6. Calendly Booking Flow (separate trigger, same destination)
 
-Calendly confirmations land in salesmanager@albertscott.com, separate from SmartLead replies, but resolve to the same Pipedrive sync pattern:
+Calendly confirmations land in **yoni@albertscott.com** (corrected 2026-08-19 — previously documented as
+salesmanager@albertscott.com, which was wrong; verified against real headers: `to: yoni@albertscott.com`),
+separate from SmartLead replies, but resolve to the same Pipedrive sync pattern:
 
-1. Detect new Calendly booking email (from notifications@calendly.com, "scheduled" in subject)
+1. Detect new Calendly booking email: `from:notifications@calendly.com`, subject starting with **"New
+   Event:"** (a reschedule instead shows **"Updated:"**). **Do not filter on "scheduled" in the subject —
+   that word only ever appears in the email body, never the subject; a subject-line search for it matches
+   zero emails.** (Corrected 2026-08-19 — this was silently returning no bookings every run.) The same
+   sender also sends password-reset and meeting-recap/action-item mail unrelated to bookings — the
+   "New Event:"/"Updated:" subject prefix is what distinguishes an actual booking notification.
 2. Extract: name, email, meeting date/time
 3. `searchPersons` by email → update if found, else `addOrganization` (if company known) + `addPerson`
-4. `addActivity`: type "Meeting", subject "Calendly Booking", date/time from the email, `participants` array (rule 5), owner_id 26939288
-5. Add email + domain to SmartLead's blocklist so no campaign re-contacts them
+4. **`addLead`** — `title`: `"Calendly Booking - {name}"`, `person_id` (from step 3), `organization_id` (if one was created/found), `owner_id: 26939288`. **This step must not be skipped:** steps 1–3 only get you a bare Person/Organization record; the booking doesn't become a Lead in Pipedrive's Leads Inbox until this call runs. (Fixed 2026-08-19 — this call was missing, so Calendly bookings were landing as contacts only, never as leads.)
+5. `addActivity`: type "Meeting", subject "Calendly Booking", date/time from the email, `participants` array (rule 5), owner_id 26939288 — link the activity to the **lead** from step 4 (`lead_id`), not just the person
+6. Add email + domain to SmartLead's blocklist so no campaign re-contacts them
 
 ---
 

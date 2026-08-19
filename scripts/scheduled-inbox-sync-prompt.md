@@ -72,15 +72,22 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
      the top level, it's read-only and 400s.
    - `owner_id`: 26939288
 
-## Step 5 — Calendly (best-effort — unverified as of this prompt's authoring)
-Search Gmail for messages from `notifications@calendly.com` with "scheduled" in the subject,
-received since the checkpoint. NOTE: the production doc says these land in
-`salesmanager@albertscott.com`, a mailbox that may not be the one connected to this session's
-Gmail tools — if a search against the connected account comes back empty, say so explicitly
-rather than reporting "no bookings," since that's ambiguous with "wrong mailbox." For any booking
-found: extract name/email/date/time, `searchPersons` → update or create person+org as in Step 4,
-`addActivity` type "Meeting" subject "Calendly Booking" with the date/time, then block that
-domain+email in Smartlead so no campaign re-contacts them.
+## Step 5 — Calendly (verified 2026-08-19)
+Search Gmail (`yoni@albertscott.com` — corrected 2026-08-19; previously documented as
+salesmanager@albertscott.com, which was wrong) for messages `from:notifications@calendly.com` whose
+subject starts with **"New Event:"** (a reschedule shows **"Updated:"** instead), received since the
+checkpoint. **Do not filter on "scheduled" in the subject** — that word only appears in the email
+body, never the subject; a subject search for it silently matches nothing, which is exactly the bug
+that made this step a no-op before. The same sender also sends password-reset and meeting-recap
+mail unrelated to bookings — the "New Event:"/"Updated:" subject prefix is the actual signal. For any
+booking found: extract name/email/date/time, `searchPersons` → update or create person+org as in Step 4,
+then **`addLead`** (`title`: `"Calendly Booking - {name}"`, `person_id`, `organization_id` if
+present, `owner_id: 26939288`) — **required, do not skip**: without this call the booking is just
+a bare contact, not a Lead, which is exactly the bug flagged in the Aug 18 meeting ("Fix
+Calendly→Pipedrive: create leads, not contacts", fixed 2026-08-19). Then `addActivity` type
+"Meeting" subject "Calendly Booking" with the date/time, linked via `lead_id` (from the `addLead`
+call) rather than just `person_id`. Finally block that domain+email in Smartlead so no campaign
+re-contacts them.
 
 ## Step 6 — Update checkpoint
 Write the max `last_reply_time` across everything you just processed (or now, if nothing new) to

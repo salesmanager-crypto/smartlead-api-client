@@ -15,14 +15,63 @@
  *   node src/cli.js inboxes:health
  *   node src/cli.js inboxes:warmup-stats <emailAccountId>
  *   node src/cli.js leads:add <campaignId> '[{"email":"a@b.com","first_name":"A"}]'
+ *   node src/cli.js qev:verify a@b.com
+ *   node src/cli.js qev:verify-list '["a@b.com","c@d.com"]'
+ *   node src/cli.js pi:workspaces
+ *   node src/cli.js pi:email-accounts <workspaceId>
+ *   node src/cli.js pi:orders <workspaceId>
+ *   node src/cli.js pi:subscriptions <workspaceId>
+ *   node src/cli.js pk:ping
+ *   node src/cli.js pk:domains
+ *   node src/cli.js pk:dns <domain>
+ *   node src/cli.js pk:nameservers <domain>
+ *   node src/cli.js nc:domains
+ *   node src/cli.js nc:dns-hosts <domain>
+ *   node src/cli.js fa:meetings
+ *   node src/cli.js gs:read <range>
+ *   node src/cli.js gs:append <range> '["col1","col2","col3"]'
+ *   node src/cli.js hr:check
+ *   node src/cli.js hr:campaigns
+ *   node src/cli.js hr:campaign <campaignId>
+ *   node src/cli.js hr:campaign-pause <campaignId>
+ *   node src/cli.js hr:campaign-resume <campaignId>
+ *   node src/cli.js hr:campaign-leads <campaignId>
+ *   node src/cli.js hr:workspaces
  *
  * Reads SMARTLEAD_API_KEY (and optional SMARTLEAD_BASE_URL) from the environment.
+ * qev: commands read QUICKEMAILVERIFICATION_API_KEY instead.
+ * pi: commands read PREMIUM_INBOXES_API_KEY instead. pi:orders and pi:subscriptions
+ * print the *summary* shape (no mailbox passwords) — see src/premiuminboxes.js if you
+ * genuinely need the raw provisioning payload.
+ * pk: commands read PORKBUN_API_KEY / PORKBUN_SECRET_API_KEY instead. pk:dns and
+ * pk:nameservers only work for domains with API access enabled in Porkbun's account
+ * settings — see src/porkbun.js.
+ * nc: commands read NAMECHEAP_API_USER / NAMECHEAP_API_KEY / NAMECHEAP_USERNAME /
+ * NAMECHEAP_CLIENT_IP instead. NAMECHEAP_CLIENT_IP must be whitelisted in the
+ * Namecheap account (Profile > Tools > API Access) or every nc: call fails — see
+ * src/namecheap.js.
+ * fa: commands read FATHOM_API_KEY instead. fa:meetings only ever returns meetings
+ * titled "Albert Scott" in some form — see src/fathom.js for why that's structural,
+ * not just a filter.
+ * gs: commands read GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY /
+ * GOOGLE_SHEETS_SPREADSHEET_ID instead, and need the sheet shared with that service
+ * account as an Editor — see src/googlesheets.js.
+ * hr: commands read HEYREACH_API_KEY (workspace-level: campaigns/leads/network) and/or
+ * HEYREACH_ORG_API_KEY (organization-level: hr:workspaces only) instead — the two are not
+ * interchangeable, see src/heyreach.js.
  * Loads a local .env file automatically if present (no dotenv dependency needed).
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import { SmartleadClient } from "./client.js";
+import { QuickEmailVerificationClient } from "./quickemailverification.js";
+import { PremiumInboxesClient } from "./premiuminboxes.js";
+import { PorkbunClient } from "./porkbun.js";
+import { NamecheapClient } from "./namecheap.js";
+import { FathomClient } from "./fathom.js";
+import { GoogleSheetsClient } from "./googlesheets.js";
+import { HeyReachClient } from "./heyreach.js";
 
 loadDotEnv();
 
@@ -31,6 +80,13 @@ const [, , cmd, ...args] = process.argv;
 // Built lazily inside main() so an unknown command or a `--help`-style call
 // doesn't blow up on a missing API key before we even validate the command.
 let client;
+let qevClient;
+let piClient;
+let pkClient;
+let ncClient;
+let faClient;
+let gsClient;
+let hrClient;
 
 const commands = {
   "campaigns:list": () => client.listCampaigns(),
@@ -59,6 +115,37 @@ const commands = {
   "leads:block-list": (filterEmailOrDomain) => client.getDomainBlockList({ filterEmailOrDomain }),
   "leads:block": (domainOrEmail) => client.blockDomainOrEmail({ domain_block_list: [domainOrEmail], client_id: null }),
   "leads:unblock": (id) => client.deleteDomainBlockListEntry(id),
+
+  "qev:verify": (email) => qevClient.verifyEmail(email),
+  "qev:verify-list": (jsonArray) => qevClient.verifyEmails(JSON.parse(jsonArray)),
+
+  "pi:workspaces": () => piClient.listWorkspaces(),
+  "pi:email-accounts": (workspaceId) => piClient.listEmailAccounts({ workspaceId }),
+  "pi:orders": (workspaceId) => piClient.getOrderSummaries({ workspaceId }),
+  "pi:subscriptions": (workspaceId) => piClient.getSubscriptionSummaries({ workspaceId }),
+
+  "pk:ping": () => pkClient.ping(),
+  "pk:domains": () => pkClient.listDomains(),
+  "pk:dns": (domain) => pkClient.getDnsRecords(domain),
+  "pk:nameservers": (domain) => pkClient.getNameservers(domain),
+
+  "nc:domains": () => ncClient.listDomains(),
+  "nc:dns-hosts": (domain) => ncClient.getDnsHosts(domain),
+
+  "fa:meetings": () => faClient.listAlbertScottMeetings(),
+
+  "gs:read": (range) => gsClient.getValues(range),
+  "gs:append": (range, jsonArray) => gsClient.appendRow(range, JSON.parse(jsonArray)),
+  "gs:clear": (range) => gsClient.clearRange(range),
+
+  "hr:check": () => hrClient.checkApiKey(),
+  "hr:campaigns": () => hrClient.listCampaigns(),
+  "hr:campaign": (campaignId) => hrClient.getCampaign(campaignId),
+  "hr:campaign-start": (campaignId) => hrClient.startCampaign(campaignId),
+  "hr:campaign-pause": (campaignId) => hrClient.pauseCampaign(campaignId),
+  "hr:campaign-resume": (campaignId) => hrClient.resumeCampaign(campaignId),
+  "hr:campaign-leads": (campaignId) => hrClient.getLeadsFromCampaign({ campaignId: Number(campaignId) }),
+  "hr:workspaces": () => hrClient.listWorkspaces(),
 };
 
 async function main() {
@@ -69,7 +156,23 @@ async function main() {
     process.exit(1);
   }
   try {
-    client = new SmartleadClient({});
+    if (cmd.startsWith("qev:")) {
+      qevClient = new QuickEmailVerificationClient({});
+    } else if (cmd.startsWith("pi:")) {
+      piClient = new PremiumInboxesClient({});
+    } else if (cmd.startsWith("pk:")) {
+      pkClient = new PorkbunClient({});
+    } else if (cmd.startsWith("nc:")) {
+      ncClient = new NamecheapClient({});
+    } else if (cmd.startsWith("fa:")) {
+      faClient = new FathomClient({});
+    } else if (cmd.startsWith("gs:")) {
+      gsClient = new GoogleSheetsClient({});
+    } else if (cmd.startsWith("hr:")) {
+      hrClient = new HeyReachClient({});
+    } else {
+      client = new SmartleadClient({});
+    }
     const result = await fn(...args);
     console.log(JSON.stringify(result, null, 2));
   } catch (err) {
