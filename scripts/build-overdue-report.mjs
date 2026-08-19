@@ -173,6 +173,7 @@ function renderCard(r, bucketClass) {
   const org = r.org_name ? esc(r.org_name) : null;
   const contact = r.contact_name ? esc(r.contact_name) : null;
   const sl = r.smartlead;
+  const isUnlinked = !contact && !org;
 
   const whoBits = [];
   if (contact) whoBits.push(`<span class="contact-name">${contact}</span>`);
@@ -242,7 +243,7 @@ function renderCard(r, bucketClass) {
     </div>`;
   }
 
-  return `<article class="card ${bucketClass}">
+  return `<article class="card ${bucketClass}${isUnlinked ? " unlinked" : ""}">
     <div class="card-top">
       <div class="who">${whoHtml}</div>
       <div class="due-pill ${bucketClass}">
@@ -290,6 +291,7 @@ const total = merged.length;
 const matched = merged.filter((r) => r.smartlead.status === "match").length;
 const noMatch = merged.filter((r) => r.smartlead.status === "no_match").length;
 const replied = merged.filter((r) => r.smartlead.replied).length;
+const unlinked = merged.filter((r) => !r.contact_name && !r.org_name).length;
 const oldest = merged.length ? Math.max(...merged.map((r) => r.days_overdue)) : 0;
 
 const html = `<title>Rachel's Overdue Desk</title>
@@ -352,10 +354,23 @@ const html = `<title>Rachel's Overdue Desk</title>
   .stat-num.stale-c { color: var(--stale); }
   .stat-num.pos-c { color: var(--pos); }
   .stat-label { display: block; margin-top: 6px; font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
-  nav.jump { display: flex; gap: 10px; flex-wrap: wrap; margin: 28px auto 0; max-width: 920px; }
+  nav.jump { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 28px auto 0; max-width: 920px; }
   nav.jump a { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; text-decoration: none; color: var(--ink-soft); border: 1px solid var(--line); padding: 7px 12px; border-radius: 999px; background: var(--surface); transition: border-color .15s ease, color .15s ease; }
   nav.jump a:hover, nav.jump a:focus-visible { border-color: var(--accent); color: var(--accent-ink); }
   nav.jump a .n { font-weight: 600; color: var(--ink); margin-left: 5px; }
+  .jump-sep { width: 1px; height: 16px; background: var(--line); margin: 0 2px; }
+  #filter-unlinked { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .filter-toggle { display: inline-flex; align-items: center; gap: 6px; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; cursor: pointer; color: var(--ink-soft); border: 1px solid var(--line); padding: 7px 12px; border-radius: 999px; background: var(--surface); transition: border-color .15s ease, color .15s ease, background .15s ease; user-select: none; }
+  .filter-toggle:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .filter-toggle .n { font-weight: 600; color: var(--ink); }
+  .filter-toggle::before { content: ""; width: 9px; height: 9px; border-radius: 3px; border: 1.5px solid var(--ink-faint); flex-shrink: 0; }
+  body:has(#filter-unlinked:checked) .filter-toggle { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+  body:has(#filter-unlinked:checked) .filter-toggle::before { background: var(--accent); border-color: var(--accent); }
+  body:has(#filter-unlinked:checked) .card:not(.unlinked) { display: none; }
+  body:has(#filter-unlinked:checked) .bucket:not(:has(.card.unlinked)) { display: none; }
+  body:has(#filter-unlinked:checked) .bucket-count { visibility: hidden; }
+  .filter-empty { display: none; margin-top: 24px; padding: 28px 20px; text-align: center; color: var(--ink-faint); font-size: 13.5px; border: 1px dashed var(--line); border-radius: var(--radius); }
+  body:has(#filter-unlinked:checked) .filter-empty { display: block; }
   section.bucket { margin-top: 52px; scroll-margin-top: 24px; }
   .bucket-head { display: grid; grid-template-columns: 1fr auto; align-items: baseline; column-gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 20px; }
   .bucket-head h2 { font-family: "Fraunces", serif; font-weight: 500; font-size: 24px; margin: 0; grid-column: 1; }
@@ -433,9 +448,13 @@ const html = `<title>Rachel's Overdue Desk</title>
     <a href="#stale">3+ weeks<span class="n">${buckets[0].rows.length}</span></a>
     <a href="#aging">1&ndash;3 weeks<span class="n">${buckets[1].rows.length}</span></a>
     <a href="#fresh">Under a week<span class="n">${buckets[2].rows.length}</span></a>
+    <span class="jump-sep"></span>
+    <input type="checkbox" id="filter-unlinked">
+    <label class="filter-toggle" for="filter-unlinked">Unlinked only<span class="n">${unlinked}</span></label>
   </nav>
 
   ${sectionsHtml}
+  ${unlinked === 0 ? '<div class="filter-empty">No unlinked activities right now &mdash; every overdue task has a contact or company attached.</div>' : ""}
 
   <footer class="note">
     Pulled from Pipedrive activities owned by Rachel (done = false, due date before today) and matched to Smartlead by contact email. "No Smartlead match" means the email wasn't found as a lead in Smartlead &mdash; it doesn't mean no outreach ever happened elsewhere. Reply snippets are truncated to the first ~400 characters of the raw message. Refreshes twice daily at 9am and 4pm ET.
