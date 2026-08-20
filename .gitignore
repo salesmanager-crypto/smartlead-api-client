@@ -5,6 +5,7 @@ node_modules/
 # runtime state / logs — machine-local, and some contain real business data
 .claude/settings.local.json
 .last-checkpoint
+.last-triage-checkpoint
 scripts/.deliverability-state.json
 scripts/*.log
 scripts/deliverability-log.txt
