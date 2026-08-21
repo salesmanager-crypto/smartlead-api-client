@@ -26,9 +26,12 @@
  *   gmail.json: {
  *     "range_start": "2026-02-20", "range_end": "2026-08-20",
  *     "my_email": "rachel.s@albertscott.com",
- *     "threads": [{ "thread_id":"...", "subject":"...",
+ *     "threads": [{ "thread_id":"...", "subject":"...", "label":"Pitti Immagine Uomo",
  *                   "messages": [{ "from":"a@b.com", "to":["rachel.s@albertscott.com"], "date":"2026-03-01T12:00:00Z" }] }]
  *   }
+ *
+ * `label` is the Gmail label the thread was pulled under (used to group the
+ * "unmatched Gmail" section below); omit it if unknown and it groups as "Unlabeled".
  *
  * Matching across all three tools is by lower-cased email address. Records that
  * don't match anything are never dropped — they show up in the "Unmatched"
@@ -214,7 +217,7 @@ const gmailThreads = (gm.threads || [])
     }
 
     return {
-      threadId: t.thread_id, subject: t.subject, otherEmail: other,
+      threadId: t.thread_id, subject: t.subject, otherEmail: other, label: t.label || null,
       lastDirection, lastDate: last?.date || null, sentCount, receivedCount,
       responseTimesMs, awaitingReply: lastDirection === "received",
     };
@@ -294,6 +297,15 @@ function fmtDuration(ms) {
   if (hours < 24) return `${hours.toFixed(1)}h`;
   return `${(hours / 24).toFixed(1)}d`;
 }
+function groupBy(items, keyFn) {
+  const map = new Map();
+  for (const item of items) {
+    const key = keyFn(item) || "Uncategorized";
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(item);
+  }
+  return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+}
 
 // ---- HTML rendering ------------------------------------------------------------
 
@@ -336,26 +348,52 @@ const stageRowsHtml = [...stageDist.entries()]
   )
   .join("\n");
 
-const unmatchedRepliesHtml = unmatchedReplies
-  .map(
-    (c) => `
-    <tr>
-      <td>${esc(c.email)}</td>
-      <td>${esc(c.latestCampaign || [...c.campaigns][0] || "")}</td>
-      <td>${fmtDate(c.replyAt) || "—"}</td>
-    </tr>`
-  )
+const unmatchedRepliesByCampaign = groupBy(
+  unmatchedReplies,
+  (c) => c.latestCampaign || [...c.campaigns][0] || null
+);
+const unmatchedRepliesHtml = unmatchedRepliesByCampaign
+  .map(([campaign, contacts]) => {
+    const rows = contacts
+      .slice()
+      .sort((a, b) => (b.replyAt || "").localeCompare(a.replyAt || ""))
+      .map(
+        (c) => `
+        <tr>
+          <td>${esc(c.email)}</td>
+          <td>${fmtDate(c.replyAt) || "—"}</td>
+        </tr>`
+      )
+      .join("\n");
+    return `
+    <details class="group">
+      <summary><span class="group-name">${esc(campaign)}</span><span class="group-count">${contacts.length}</span></summary>
+      <div class="table-scroll"><table class="data-table"><tr><th>Email</th><th>Last reply</th></tr>${rows}</table></div>
+    </details>`;
+  })
   .join("\n");
 
-const unmatchedGmailHtml = unmatchedGmailThreads
-  .map(
-    (t) => `
-    <tr>
-      <td>${esc(t.subject || "(no subject)")}</td>
-      <td>${esc(t.otherEmail)}</td>
-      <td>${fmtDate(t.lastDate) || "—"}</td>
-    </tr>`
-  )
+const unmatchedGmailByLabel = groupBy(unmatchedGmailThreads, (t) => t.label);
+const unmatchedGmailHtml = unmatchedGmailByLabel
+  .map(([label, threads]) => {
+    const rows = threads
+      .slice()
+      .sort((a, b) => (b.lastDate || "").localeCompare(a.lastDate || ""))
+      .map(
+        (t) => `
+        <tr>
+          <td>${esc(t.subject || "(no subject)")}</td>
+          <td>${esc(t.otherEmail)}</td>
+          <td>${fmtDate(t.lastDate) || "—"}</td>
+        </tr>`
+      )
+      .join("\n");
+    return `
+    <details class="group">
+      <summary><span class="group-name">${esc(label)}</span><span class="group-count">${threads.length}</span></summary>
+      <div class="table-scroll"><table class="data-table"><tr><th>Subject</th><th>Contact</th><th>Last message</th></tr>${rows}</table></div>
+    </details>`;
+  })
   .join("\n");
 
 const totalPersons = personById.size;
@@ -431,6 +469,17 @@ const html = `<title>Rachel's Funnel Dashboard</title>
   .stage-bar { background: var(--warn); height: 100%; }
   .stage-count { font-size: 12px; color: var(--ink-faint); font-family: "IBM Plex Mono", monospace; text-align: right; }
   .empty-note { padding: 16px; text-align: center; color: var(--ink-faint); font-size: 13px; border: 1px dashed var(--line); border-radius: var(--radius); }
+  .group-list { display: flex; flex-direction: column; gap: 8px; }
+  details.group { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  details.group[open] { padding-bottom: 12px; }
+  details.group summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); }
+  details.group summary::-webkit-details-marker { display: none; }
+  details.group summary::before { content: "▸"; font-size: 11px; color: var(--ink-faint); margin-right: 10px; transition: transform .15s ease; display: inline-block; }
+  details.group[open] summary::before { transform: rotate(90deg); }
+  details.group .group-name { flex: 1; }
+  details.group .group-count { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-faint); background: var(--surface-2); border-radius: 999px; padding: 2px 10px; }
+  details.group .table-scroll { padding: 0 16px 4px; border-radius: 0; }
+  details.group table.data-table { border: none; border-radius: 0; }
   footer.note { max-width: 960px; margin: 56px auto 0; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); }
   @media (max-width: 640px) {
     .funnel-row, .stage-row { grid-template-columns: 1fr; gap: 4px; }
@@ -489,14 +538,14 @@ ${gmailNote}
   <section class="block">
     <h2 class="block-title">Unmatched — Smartlead replies with no Pipedrive record (${unmatchedReplies.length})</h2>
     ${unmatchedReplies.length
-      ? `<div class="table-scroll"><table class="data-table"><tr><th>Email</th><th>Campaign</th><th>Last reply</th></tr>${unmatchedRepliesHtml}</table></div>`
+      ? `<div class="group-list">${unmatchedRepliesHtml}</div>`
       : `<div class="empty-note">Every Smartlead reply in range matches a Pipedrive lead or deal.</div>`}
   </section>
 
   <section class="block">
     <h2 class="block-title">Unmatched — Gmail threads with no Smartlead record (${unmatchedGmailThreads.length})</h2>
     ${unmatchedGmailThreads.length
-      ? `<div class="table-scroll"><table class="data-table"><tr><th>Subject</th><th>Contact</th><th>Last message</th></tr>${unmatchedGmailHtml}</table></div>`
+      ? `<div class="group-list">${unmatchedGmailHtml}</div>`
       : `<div class="empty-note">Every matched Gmail thread ties back to a Smartlead contact.</div>`}
   </section>
 
