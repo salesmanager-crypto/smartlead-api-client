@@ -76,6 +76,16 @@ clear it programmatically.
 | Wrong Person | ✗ | ✗ — never block, contact is still reachable |
 | Unsure | ✗ | use judgment — block only if clearly a dead end |
 
+**Pre-categorized leads (`lead_category_id` already non-null when fetched):** as of 2026-08-26,
+do NOT blanket-skip these. If the existing category is Interested, Follow Up, or Meeting Request,
+run Step 4 for it same as a freshly-classified one — first `searchOrganization`/`searchPersons` to
+check whether a Pipedrive record already exists (these leads are sometimes added manually before
+this script gets to them), and only create what's missing; always still check the activity history
+for a duplicate before adding a new one. Do not re-run category classification or touch the
+category/pause state on an already-categorized lead — that part of the old blanket-skip rule still
+applies. For every other pre-existing category (Not Interested, Do Not Contact, Ignore, OOO, Wrong
+Person, Unsure), the old behavior is unchanged: leave it alone, no action.
+
 **Before blocking**, always check first:
 GET `${BASE}/leads/get-domain-block-list?api_key=...&filter_email_or_domain=<domain>`
 If not already present, block the **entire domain** (not just the email):
@@ -87,12 +97,17 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
    name, email, `org_id`. **Omit `job_title`, `notes`, `postal_address`, `im`, `birthday`** — these
    403 on this account (contact sync isn't enabled). Put that context in the Activity note instead.
 3. `addActivity`:
-   - `type`: "Meeting" for Meeting Request, "Follow Up" otherwise
-   - `subject`: short description
-   - `note`: the full inbound reply text
+   - `type`: `"call"` (confirmed against existing production records — not "Meeting"/"Follow Up"
+     as earlier drafts of this doc said)
+   - `subject`: the category name verbatim ("Interested", "Follow Up", or "Meeting Request")
+   - `note`: `Smartlead reply — campaign "<email_campaign_name>" Reply <date> from <a
+     href="mailto:<email>"><email></a>: "<full inbound reply text>"` — use a real `<a href=...>`
+     tag (not HTML-escaped entities) so Pipedrive renders it as a clickable link, matching existing
+     notes.
    - `participants`: `[{ "person_id": <id>, "primary": true }]` — **never** pass `person_id` at
      the top level, it's read-only and 400s.
    - `owner_id`: 26939288
+   - `due_date`: today, ISO date
 
 ## Step 5 — Calendly (best-effort — unverified as of this prompt's authoring)
 Search Gmail for messages from `notifications@calendly.com` with "scheduled" in the subject,
