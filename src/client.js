@@ -121,7 +121,7 @@ export class SmartleadClient {
    * @param {"START"|"PAUSED"|"STOPPED"} status
    */
   updateCampaignStatus(campaignId, status) {
-    return this.patch(`/campaigns/${campaignId}/status`, { status });
+    return this.post(`/campaigns/${campaignId}/status`, { status });
   }
   startCampaign(campaignId) {
     return this.updateCampaignStatus(campaignId, "START");
