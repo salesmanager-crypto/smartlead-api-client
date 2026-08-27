@@ -8,16 +8,24 @@ import { relativeTime } from "../../lib/time.js";
 const TAG_COLOR = { Interested: "green", "Not Interested": "red", OutOfOffice: "yellow", "Wrong Person": "gray" };
 const STATUS_COLOR = { "Created Deal": "green", Failed: "red", Skipped: "gray", "Lost/Archived": "gray" };
 
+// Keep this to a glance on the main dashboard — a handful of the most recent runs,
+// not the whole log. "Show all" expands it inline for anyone who needs the full list.
+const VISIBLE_LIMIT = 5;
+
 export default function AutomationLogTable() {
   const { snapshot, openDrawer, reRunAutomations } = useDashboard();
   const [failuresOnly, setFailuresOnly] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [rerunning, setRerunning] = useState(false);
 
-  const rows = useMemo(() => {
+  const filteredRows = useMemo(() => {
     const all = snapshot?.automationLog || [];
     return failuresOnly ? all.filter((r) => r.pipedriveStatus === "Failed") : all;
   }, [snapshot, failuresOnly]);
+
+  const rows = expanded ? filteredRows : filteredRows.slice(0, VISIBLE_LIMIT);
+  const hiddenCount = filteredRows.length - rows.length;
 
   const selectedFailed = useMemo(() => {
     const all = snapshot?.automationLog || [];
@@ -51,9 +59,14 @@ export default function AutomationLogTable() {
     <section id="card-automation-log" className="mx-4 mb-6 mt-2 md:mx-6">
       <div className="overflow-hidden rounded-2xl border border-line/20 bg-white shadow-card dark:border-slate-800/60 dark:bg-slate-900 dark:shadow-card-dark">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line/15 px-3 py-2 dark:border-slate-800/60">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-charcoal/80 dark:text-slate-50">
-            Smartlead → Pipedrive Automation Log
-          </h2>
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-charcoal/80 dark:text-slate-50">
+              Smartlead → Pipedrive Automation Log
+            </h2>
+            <span className="text-[11px] font-medium text-charcoal/40 dark:text-slate-500">
+              {expanded ? filteredRows.length : `${rows.length} of ${filteredRows.length}`}
+            </span>
+          </div>
           <label className="focus-within:ring-2 focus-within:ring-signal/50 flex items-center gap-2 rounded text-xs font-medium">
             <input
               type="checkbox"
@@ -180,6 +193,17 @@ export default function AutomationLogTable() {
             <p className="p-6 text-center text-xs text-charcoal/40 dark:text-slate-500">No automation runs match this filter.</p>
           )}
         </div>
+
+        {(hiddenCount > 0 || expanded) && filteredRows.length > VISIBLE_LIMIT && (
+          <div className="border-t border-line/15 px-3 py-2 dark:border-slate-800/60">
+            <button
+              onClick={() => setExpanded((e) => !e)}
+              className="press focus-ring w-full rounded-lg py-1 text-center text-xs font-semibold text-charcoal/60 transition-colors hover:bg-mist/60 hover:text-charcoal dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
+            >
+              {expanded ? "Show fewer ↑" : `Show all ${filteredRows.length} runs ↓`}
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

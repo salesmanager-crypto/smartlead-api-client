@@ -77,9 +77,11 @@ Open http://localhost:5174.
   fallback and server both run the same sweep) — `Done` tasks older than 7 days flip
   `is_archived: true` and drop out of the active Kanban/List views, but stay searchable
   under the "Archived" tab.
-- **Automation log**: "Show failures only", multi-select + bulk "Re-Run N Failed
-  Automations", and row click opens the contextual sidebar drawer (resize it from its
-  left edge, 30–60vw).
+- **Automation log**: capped at 5 rows on the main dashboard ("Show all N runs" expands
+  it inline) so it stays a glance, not a full-page table. "Show failures only",
+  multi-select + bulk "Re-Run N Failed Automations", and row click opens the
+  contextual sidebar drawer (resize it from its left edge, 30–60vw) all still work
+  against the full filtered set regardless of how many rows are currently shown.
 
 ## Distinctive-design pass
 
