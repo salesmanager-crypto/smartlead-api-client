@@ -1,9 +1,16 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useDashboard } from "../../context/DashboardContext.jsx";
 
+// Single consolidated row instead of stacked blocks — deep, low-opacity tints and a
+// small dot indicator rather than heavy bordered bars or emoji (ui-ux-pro-max Style
+// Specification Override, section 3A: "anti-childish" alert restructuring).
 const SEVERITY_STYLE = {
-  critical: "border-signal/40 bg-signal/10 text-signal-deep dark:text-signal",
-  warning: "border-division-retail/50 bg-division-retail/10 text-charcoal dark:text-mist",
+  critical: "bg-red-500/10 text-red-600 dark:text-red-400",
+  warning: "bg-amber-500/5 text-amber-700 dark:text-amber-400",
+};
+const SEVERITY_DOT = {
+  critical: "bg-red-500",
+  warning: "bg-amber-500",
 };
 
 export default function AlertBanner() {
@@ -12,31 +19,35 @@ export default function AlertBanner() {
   if (!alerts.length) return null;
 
   return (
-    <div className="mx-5 mt-4 space-y-2 md:mx-8" id="alerts">
+    <div
+      id="alerts"
+      className="mx-5 mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 rounded-md border border-line/20 bg-white px-3 py-2 dark:border-slate-800/60 dark:bg-slate-900/60 md:mx-8"
+    >
       <AnimatePresence initial={false}>
-        {alerts.slice(0, 4).map((alert) => (
+        {alerts.slice(0, 6).map((alert) => (
           <motion.div
             key={alert.id}
             layout
-            initial={{ opacity: 0, y: -8, height: 0, marginBottom: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto", marginBottom: 8 }}
-            exit={{ opacity: 0, x: 24, height: 0, marginBottom: 0, transition: { duration: 0.18, ease: "easeIn" } }}
-            transition={{ duration: 0.24, ease: "easeOut" }}
-            className={`flex items-center justify-between gap-3 overflow-hidden rounded-xl border px-4 py-2.5 text-sm shadow-sm ${SEVERITY_STYLE[alert.severity] || SEVERITY_STYLE.warning}`}
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.15, ease: "easeIn" } }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className={`group inline-flex items-center gap-1.5 rounded-md py-1 pl-2 pr-1 text-xs ${SEVERITY_STYLE[alert.severity] || SEVERITY_STYLE.warning}`}
           >
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${SEVERITY_DOT[alert.severity] || SEVERITY_DOT.warning}`} aria-hidden />
             <button
-              className="focus-ring flex min-w-0 flex-1 items-center gap-2 rounded text-left"
+              className="focus-ring max-w-[20rem] truncate rounded text-left font-medium"
               onClick={() => openDrawer("alert", alert)}
+              title={alert.detail}
             >
-              <span aria-hidden>{alert.severity === "critical" ? "🚨" : "⚠️"}</span>
-              <span className="truncate font-semibold">{alert.title}</span>
-              <span className="hidden truncate text-xs opacity-70 sm:inline">— {alert.detail}</span>
+              {alert.title}
             </button>
             <button
               onClick={() => muteAlert(alert.id)}
-              className="press focus-ring shrink-0 rounded-md px-2 py-1 text-xs font-medium opacity-70 transition-colors hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
+              aria-label={`Mute alert: ${alert.title}`}
+              className="press focus-ring shrink-0 rounded px-1 text-[11px] leading-none opacity-40 transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-70"
             >
-              Mute
+              ✕
             </button>
           </motion.div>
         ))}

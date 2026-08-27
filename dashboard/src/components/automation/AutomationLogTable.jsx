@@ -49,9 +49,9 @@ export default function AutomationLogTable() {
 
   return (
     <section id="card-automation-log" className="mx-5 mb-8 mt-2 md:mx-8">
-      <div className="overflow-hidden rounded-2xl border border-line/20 bg-white shadow-card dark:border-white/10 dark:bg-white/[0.04] dark:shadow-card-dark">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line/15 px-4 py-3 dark:border-white/10">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-charcoal/80 dark:text-mist/90">
+      <div className="overflow-hidden rounded-2xl border border-line/20 bg-white shadow-card dark:border-slate-800/60 dark:bg-slate-900 dark:shadow-card-dark">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line/15 px-6 py-4 dark:border-slate-800/60">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-charcoal/80 dark:text-slate-50">
             Smartlead → Pipedrive Automation Log
           </h2>
           <label className="focus-within:ring-2 focus-within:ring-signal/50 flex items-center gap-2 rounded text-xs font-medium">
@@ -99,9 +99,9 @@ export default function AutomationLogTable() {
 
         <div className="thin-scroll overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-mist/60 text-left text-[11px] uppercase tracking-wide text-charcoal/50 dark:bg-white/[0.06] dark:text-mist/50">
+            <thead className="bg-mist/60 text-left text-[11px] uppercase tracking-wide text-charcoal/50 dark:bg-slate-800/50 dark:text-slate-400">
               <tr>
-                <th className="w-8 px-3 py-2">
+                <th className="w-8 px-4 py-3">
                   <input
                     type="checkbox"
                     checked={rows.length > 0 && selected.size === rows.length}
@@ -109,21 +109,21 @@ export default function AutomationLogTable() {
                     className="h-3.5 w-3.5 accent-signal"
                   />
                 </th>
-                <th className="px-3 py-2 font-semibold">Timestamp / Lead</th>
-                <th className="px-3 py-2 font-semibold">Smartlead Tag</th>
-                <th className="px-3 py-2 font-semibold">Rule Executed</th>
-                <th className="px-3 py-2 font-semibold">Pipedrive Status</th>
-                <th className="px-3 py-2 font-semibold">Action / Error Note</th>
+                <th className="px-4 py-3 font-semibold">Timestamp / Lead</th>
+                <th className="px-4 py-3 font-semibold">Smartlead Tag</th>
+                <th className="px-4 py-3 font-semibold">Rule Executed</th>
+                <th className="px-4 py-3 font-semibold">Pipedrive Status</th>
+                <th className="px-4 py-3 font-semibold">Action / Error Note</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line/10 dark:divide-white/5">
+            <tbody className="divide-y divide-line/10 dark:divide-slate-800/60">
               {rows.map((row) => (
                 <tr
                   key={row.id}
                   tabIndex={0}
                   role="button"
                   aria-label={`Open automation log entry for ${row.leadName}`}
-                  className={`focus-ring cursor-pointer transition-colors hover:bg-mist/50 dark:hover:bg-white/5 ${
+                  className={`focus-ring cursor-pointer transition-colors hover:bg-mist/50 dark:hover:bg-slate-800/40 ${
                     selected.has(row.id) ? "bg-signal/5" : ""
                   }`}
                   onClick={() => openDrawer("automation", row)}
@@ -134,7 +134,7 @@ export default function AutomationLogTable() {
                     }
                   }}
                 >
-                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selected.has(row.id)}
@@ -142,22 +142,22 @@ export default function AutomationLogTable() {
                       className="h-3.5 w-3.5 accent-signal"
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-3">
                     <p className="font-medium">{row.leadName}</p>
-                    <p className="text-[11px] text-charcoal/50 dark:text-mist/50">
+                    <p className="text-[11px] text-charcoal/50 dark:text-slate-400">
                       {row.company} · {relativeTime(row.timestamp)}
                     </p>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-3">
                     <Badge color={TAG_COLOR[row.smartleadTag] || "gray"}>{row.smartleadTag}</Badge>
                   </td>
-                  <td className="px-3 py-2 text-xs text-charcoal/70 dark:text-mist/70">{row.ruleExecuted}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-3 text-xs text-charcoal/70 dark:text-slate-400">{row.ruleExecuted}</td>
+                  <td className="px-4 py-3">
                     <Badge color={STATUS_COLOR[row.pipedriveStatus] || "gray"} dot>
                       {row.pipedriveStatus}
                     </Badge>
                   </td>
-                  <td className="max-w-[260px] px-3 py-2 font-mono text-[11px]">
+                  <td className="max-w-[260px] px-4 py-3 font-mono text-[11px]">
                     {row.pipedriveStatus === "Created Deal" && row.dealId ? (
                       <a
                         href={pipedriveDealUrl(row.dealId)}
@@ -169,7 +169,7 @@ export default function AutomationLogTable() {
                         Deal #{row.dealId}
                       </a>
                     ) : (
-                      <span className="line-clamp-2 text-charcoal/60 dark:text-mist/60">{row.note}</span>
+                      <span className="line-clamp-2 text-charcoal/60 dark:text-slate-400">{row.note}</span>
                     )}
                   </td>
                 </tr>
@@ -177,7 +177,7 @@ export default function AutomationLogTable() {
             </tbody>
           </table>
           {rows.length === 0 && (
-            <p className="p-6 text-center text-xs text-charcoal/40 dark:text-mist/40">No automation runs match this filter.</p>
+            <p className="p-6 text-center text-xs text-charcoal/40 dark:text-slate-500">No automation runs match this filter.</p>
           )}
         </div>
       </div>

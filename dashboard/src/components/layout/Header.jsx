@@ -71,14 +71,14 @@ export default function Header() {
     <header className="sticky top-0 z-30 border-b border-line/20 bg-paper/90 backdrop-blur dark:bg-canvas/90">
       <div className="flex items-center justify-between gap-4 px-5 py-3 md:px-8">
         <div className="min-w-0">
-          <h1 className="flex items-baseline gap-2 text-xl font-bold tracking-tight md:text-2xl">
+          <h1 className="flex items-baseline gap-2 text-xl font-semibold tracking-tight md:text-2xl">
             <span>{greeting.text}</span>
             <span aria-hidden>{greeting.emoji}</span>
           </h1>
           <button
             onClick={() => setSummaryOpen((o) => !o)}
             aria-expanded={summaryOpen}
-            className="focus-ring mt-1 max-w-3xl rounded text-left text-sm text-charcoal/70 transition-colors hover:text-signal dark:text-mist/70 dark:hover:text-signal"
+            className="focus-ring mt-1 max-w-3xl rounded text-left text-sm text-charcoal/70 transition-colors hover:text-signal dark:text-slate-400 dark:hover:text-signal"
           >
             Here is what you have today: <span className="font-medium underline decoration-dotted underline-offset-2">{summary}</span>
           </button>
@@ -92,8 +92,8 @@ export default function Header() {
                 transition={{ duration: 0.22, ease: "easeOut" }}
                 className="max-w-2xl overflow-hidden"
               >
-                <div className="mt-3 rounded-xl border border-line/30 bg-white p-3 shadow-card dark:border-white/10 dark:bg-white/5 dark:shadow-card-dark">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
+                <div className="mt-3 rounded-xl border border-line/30 bg-white p-3 shadow-card dark:border-slate-800/60 dark:bg-slate-800/40 dark:shadow-card-dark">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-slate-400">
                     Suggested next actions
                   </p>
                   <motion.ul variants={LIST_VARIANTS} initial="hidden" animate="show" className="space-y-2">
@@ -124,10 +124,10 @@ export default function Header() {
             role="switch"
             aria-checked={theme === "dark"}
             aria-label="Toggle dark mode"
-            className="press focus-ring relative h-7 w-14 shrink-0 rounded-full bg-mist transition-colors dark:bg-white/10"
+            className="press focus-ring relative h-7 w-14 shrink-0 rounded-full bg-mist transition-colors dark:bg-slate-800/60"
           >
             <span
-              className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs shadow transition-all duration-200 ease-out dark:bg-charcoal ${
+              className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs shadow transition-all duration-200 ease-out dark:bg-slate-700 ${
                 theme === "dark" ? "left-7" : "left-0.5"
               }`}
             >

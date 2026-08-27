@@ -47,7 +47,7 @@ function CodeBlock({ children }) {
 function Section({ label, children }) {
   return (
     <div>
-      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-charcoal/45 dark:text-mist/45">{label}</p>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-charcoal/45 dark:text-slate-500">{label}</p>
       {children}
     </div>
   );
@@ -83,10 +83,10 @@ function QuickReplyPanel({ row }) {
         onChange={(e) => setMessage(e.target.value)}
         placeholder={`Reply to ${row.leadName}, or paste a booking link…`}
         rows={3}
-        className="focus-ring w-full resize-none rounded-lg border border-line/25 bg-transparent p-2 text-sm transition-colors focus:border-signal dark:border-white/15"
+        className="focus-ring w-full resize-none rounded-lg border border-line/25 bg-transparent p-2 text-sm transition-colors focus:border-signal dark:border-slate-700/60"
       />
       <div className="mt-1.5 flex items-center justify-between">
-        <span aria-live="polite" className="text-[11px] text-charcoal/40 dark:text-mist/40">
+        <span aria-live="polite" className="text-[11px] text-charcoal/40 dark:text-slate-500">
           {status === "sent" ? "Sent ✓" : status === "error" ? "Failed to send" : status === "sending" ? "Sending…" : "Thread " + row.campaignId}
         </span>
         <button
@@ -113,11 +113,11 @@ function AutomationDetail({ row }) {
     <div className="space-y-4">
       <Section label="Lead">
         <p className="text-base font-semibold">{row.leadName}</p>
-        <p className="text-sm text-charcoal/60 dark:text-mist/60">{row.company}</p>
-        <p className="mt-1 font-mono text-xs text-charcoal/45 dark:text-mist/45">{row.leadEmail}</p>
+        <p className="text-sm text-charcoal/60 dark:text-slate-400">{row.company}</p>
+        <p className="mt-1 font-mono text-xs text-charcoal/45 dark:text-slate-500">{row.leadEmail}</p>
       </Section>
       <Section label="Reply snippet">
-        <p className="rounded-lg bg-mist/60 p-2.5 text-sm italic dark:bg-white/[0.06]">
+        <p className="rounded-lg bg-mist/60 p-2.5 text-sm italic dark:bg-slate-800/50">
           {row.smartleadTag === "Interested"
             ? "“This looks interesting, tell me more about US market entry.”"
             : row.smartleadTag === "OutOfOffice"
@@ -150,7 +150,7 @@ function AlertDetail({ alert }) {
     <div className="space-y-4">
       <Section label="Summary">
         <p className="text-base font-semibold">{alert.title}</p>
-        <p className="text-sm text-charcoal/60 dark:text-mist/60">{alert.detail}</p>
+        <p className="text-sm text-charcoal/60 dark:text-slate-400">{alert.detail}</p>
       </Section>
       {(domain || alert.type === "domain") && (
         <Section label="Infrastructure">
@@ -188,7 +188,7 @@ function DealRow({ deal, onOpen }) {
   return (
     <button
       onClick={() => onOpen(deal)}
-      className="press focus-ring flex w-full items-center justify-between gap-2 rounded-lg border border-line/15 px-3 py-2 text-left text-sm transition-colors hover:bg-mist/60 dark:border-white/10 dark:hover:bg-white/5"
+      className="press focus-ring flex w-full items-center justify-between gap-2 rounded-lg border border-line/15 px-3 py-2 text-left text-sm transition-colors hover:bg-mist/60 dark:border-slate-800/60 dark:hover:bg-slate-800/40"
     >
       <span className="min-w-0 flex-1 truncate">{deal.title}</span>
       <span className="shrink-0 font-semibold">${deal.value.toLocaleString()}</span>
@@ -211,17 +211,17 @@ function DealDetail({ deal, onBack }) {
       )}
       <Section label="Deal">
         <p className="text-base font-semibold">{deal.title}</p>
-        <p className="text-sm text-charcoal/60 dark:text-mist/60">Stage: {deal.stage}</p>
+        <p className="text-sm text-charcoal/60 dark:text-slate-400">Stage: {deal.stage}</p>
       </Section>
       <Section label="Expected close value">
-        <p className="text-2xl font-extrabold text-signal">${deal.value.toLocaleString()}</p>
+        <p className="text-2xl font-semibold text-signal">${deal.value.toLocaleString()}</p>
       </Section>
       <Section label="Activity">
         <p className="text-sm">Last touched {relativeTime(deal.lastActivity)}</p>
         {deal.staleHours >= 48 && <p className="mt-1 text-sm font-semibold text-signal">⚠ Unaddressed for {Math.floor(deal.staleHours)}h</p>}
       </Section>
       <Section label="Client diagnostics">
-        <p className="rounded-lg bg-mist/60 p-2.5 text-sm dark:bg-white/[0.06]">
+        <p className="rounded-lg bg-mist/60 p-2.5 text-sm dark:bg-slate-800/50">
           Domain health, SEO crawl status and outreach history for this account are available on the canvas view —
           cross-reference the Outbound Performance and SEO cards for the same client.
         </p>
@@ -241,7 +241,7 @@ function PipelineStageDetail({ data }) {
             {data.deals.map((d) => (
               <DealRow key={d.id} deal={d} onOpen={setSelectedDeal} />
             ))}
-            {data.deals.length === 0 && <p className="text-sm text-charcoal/40 dark:text-mist/40">No deals in this stage.</p>}
+            {data.deals.length === 0 && <p className="text-sm text-charcoal/40 dark:text-slate-500">No deals in this stage.</p>}
           </div>
         </Section>
       </div>
@@ -285,42 +285,42 @@ export default function SidebarDrawer() {
             animate={{ x: 0, transition: PANEL_ENTER }}
             exit={{ x: "100%", transition: PANEL_EXIT }}
             style={{ width: `${drawer.widthPct}vw` }}
-            className="fixed right-0 top-0 z-50 flex h-screen flex-col border-l border-line/20 bg-white shadow-2xl dark:border-white/10 dark:bg-canvas"
+            className="fixed right-0 top-0 z-50 flex h-screen flex-col border-l border-line/20 bg-white shadow-2xl dark:border-slate-800/60 dark:bg-slate-900"
           >
             <div
               onMouseDown={onHandleDown}
               className="absolute -left-1.5 top-0 h-full w-3 cursor-ew-resize"
               title="Drag to resize"
             />
-        <header className="flex shrink-0 items-center justify-between border-b border-line/15 px-5 py-3.5 dark:border-white/10">
+        <header className="flex shrink-0 items-center justify-between border-b border-line/15 px-6 py-5 dark:border-slate-800/60">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-charcoal/45 dark:text-mist/45">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-charcoal/45 dark:text-slate-500">
               {CONTEXT_LABEL[context]}
             </p>
           </div>
           <button
             onClick={closeDrawer}
-            className="press focus-ring rounded-lg px-2 py-1 text-lg leading-none text-charcoal/50 transition-colors hover:bg-mist dark:text-mist/50 dark:hover:bg-white/10"
+            className="press focus-ring rounded-lg px-2 py-1 text-lg leading-none text-charcoal/50 transition-colors hover:bg-mist dark:text-slate-400 dark:hover:bg-slate-800/60"
             aria-label="Close"
           >
             ✕
           </button>
         </header>
 
-        <div className="thin-scroll min-h-0 flex-1 overflow-auto px-5 py-4">
+        <div className="thin-scroll min-h-0 flex-1 overflow-auto px-6 py-6">
           {context === "automation" && <AutomationDetail row={data} />}
           {context === "alert" && <AlertDetail alert={data} />}
           {context === "deal" && <PipelineStageDetail data={data} />}
         </div>
 
-        <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line/15 px-5 py-3 dark:border-white/10">
+        <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line/15 px-6 py-4 dark:border-slate-800/60">
           {context === "alert" && (
             <button
               onClick={() => {
                 muteAlert(data.id);
                 closeDrawer();
               }}
-              className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-white/15 dark:hover:bg-white/10"
+              className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-slate-700/60 dark:hover:bg-slate-800/60"
             >
               Mute Alert
             </button>
@@ -336,12 +336,12 @@ export default function SidebarDrawer() {
             </a>
           )}
           {context === "automation" && (
-            <button className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
+            <button className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-slate-700/60 dark:hover:bg-slate-800/60">
               Override in Smartlead
             </button>
           )}
           {context === "alert" && data.type === "domain" && (
-            <button className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
+            <button className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-slate-700/60 dark:hover:bg-slate-800/60">
               Pause Domain
             </button>
           )}

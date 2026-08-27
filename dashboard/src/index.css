@@ -9,8 +9,9 @@ body,
 }
 
 body {
-  @apply bg-paper text-charcoal dark:bg-canvas dark:text-mist antialiased;
-  font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  @apply bg-paper text-charcoal dark:bg-slate-950 dark:text-slate-50 antialiased;
+  font-family: "Inter", "Geist Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-feature-settings: "cv11", "ss01";
 }
 
 ::selection {

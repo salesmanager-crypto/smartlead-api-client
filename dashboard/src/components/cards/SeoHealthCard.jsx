@@ -9,13 +9,13 @@ const CWV_LABEL = { good: "green", "needs-improvement": "yellow", poor: "red" };
 function DomainRow({ domain, onToggle, busy }) {
   const cooling = domain.coolingDown || domain.status === "warming";
   return (
-    <li className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-mist/60 dark:hover:bg-white/5">
+    <li className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-mist/60 dark:hover:bg-slate-800/40">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{domain.domain}</p>
         <div className="mt-0.5 flex items-center gap-1.5">
           <Badge color={STATUS_COLOR[domain.status]}>{domain.status}</Badge>
           <span
-            className={`text-[11px] font-semibold ${domain.deliverability < 95 ? "text-signal" : "text-charcoal/50 dark:text-mist/50"}`}
+            className={`text-[11px] font-semibold ${domain.deliverability < 95 ? "text-signal" : "text-charcoal/50 dark:text-slate-400"}`}
           >
             {domain.deliverability}% deliverable
           </span>
@@ -33,7 +33,7 @@ function DomainRow({ domain, onToggle, busy }) {
         title={cooling ? "Cooling down in warm-up mode" : "Toggle Cool-Down (pause + warm up)"}
         className={`press focus-ring relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-30 disabled:active:scale-100 ${
           busy ? "animate-pulse" : ""
-        } ${cooling ? "bg-division-listing" : "bg-line/40 dark:bg-white/15"}`}
+        } ${cooling ? "bg-division-listing" : "bg-line/40 dark:bg-slate-800/60"}`}
       >
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all duration-200 ease-out ${cooling ? "left-5" : "left-0.5"}`}
@@ -67,31 +67,31 @@ export default function SeoHealthCard() {
     <CardShell id="seo" title="Technical SEO & Asset Health" icon="🌐">
       <div className="flex h-full flex-col gap-4">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
-            SEO Diagnostics <span className="font-normal normal-case text-charcoal/30 dark:text-mist/30">(simulated — wire up Semrush)</span>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-slate-400">
+            SEO Diagnostics <span className="font-normal normal-case text-charcoal/30 dark:text-slate-500">(simulated — wire up Semrush)</span>
           </p>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-lg bg-mist/60 p-2 dark:bg-white/[0.06]">
-              <p className="text-lg font-extrabold">{seo.coreWebVitals.lcpMs}ms</p>
-              <p className="text-[11px] text-charcoal/50 dark:text-mist/50">
+            <div className="rounded-lg bg-mist/60 p-2 dark:bg-slate-800/50">
+              <p className="text-lg font-semibold">{seo.coreWebVitals.lcpMs}ms</p>
+              <p className="text-[11px] text-charcoal/50 dark:text-slate-400">
                 LCP <Badge color={CWV_LABEL[seo.coreWebVitals.status]}>{seo.coreWebVitals.status}</Badge>
               </p>
             </div>
-            <div className="rounded-lg bg-mist/60 p-2 dark:bg-white/[0.06]">
-              <p className="text-lg font-extrabold text-signal">{seo.brokenLinks}</p>
-              <p className="text-[11px] text-charcoal/50 dark:text-mist/50">Broken links</p>
+            <div className="rounded-lg bg-mist/60 p-2 dark:bg-slate-800/50">
+              <p className="text-lg font-semibold text-signal">{seo.brokenLinks}</p>
+              <p className="text-[11px] text-charcoal/50 dark:text-slate-400">Broken links</p>
             </div>
-            <div className="rounded-lg bg-mist/60 p-2 dark:bg-white/[0.06]">
-              <p className="text-lg font-extrabold text-signal">{seo.crawlErrors}</p>
-              <p className="text-[11px] text-charcoal/50 dark:text-mist/50">Crawl errors</p>
+            <div className="rounded-lg bg-mist/60 p-2 dark:bg-slate-800/50">
+              <p className="text-lg font-semibold text-signal">{seo.crawlErrors}</p>
+              <p className="text-[11px] text-charcoal/50 dark:text-slate-400">Crawl errors</p>
             </div>
           </div>
         </div>
 
         <div className="min-h-0 flex-1">
           <div className="mb-1 flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">Domain Asset Ledger</p>
-            <p className="text-[11px] text-charcoal/45 dark:text-mist/45">
+            <p className="text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-slate-400">Domain Asset Ledger</p>
+            <p className="text-[11px] text-charcoal/45 dark:text-slate-500">
               {counts.active} active · {counts.warming} warming · {counts.dormant} dormant
             </p>
           </div>

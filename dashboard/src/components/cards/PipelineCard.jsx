@@ -4,13 +4,16 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import CardShell from "./CardShell.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
 
-const STAGE_COLOR = {
-  "Deal Created": "#A6A6A6",
-  Discovery: "#7EC1EE",
-  Proposal: "#F5A3BC",
-  Negotiation: "#E51958",
-  "Closed Won": "#0F9D58",
-  "Closed Lost": "#0D0D0D",
+// Monochrome funnel ramp — neutral stages darken as a deal progresses (lightest at
+// creation, darkest at negotiation), with the accent budget spent on a single
+// semantic color reserved for the one outcome worth calling out: Closed Won.
+const STAGE_STYLE = {
+  "Deal Created": "bg-slate-300 dark:bg-slate-700",
+  Discovery: "bg-slate-400 dark:bg-slate-600",
+  Proposal: "bg-slate-500 dark:bg-slate-500",
+  Negotiation: "bg-slate-600 dark:bg-slate-400",
+  "Closed Won": "bg-emerald-500 dark:bg-emerald-500",
+  "Closed Lost": "bg-slate-700 dark:bg-slate-800",
 };
 
 export default function PipelineCard() {
@@ -40,7 +43,7 @@ export default function PipelineCard() {
       title="Pipedrive CRM Pipeline"
       icon="📊"
       headerRight={
-        <span className="text-xs font-medium text-charcoal/50 dark:text-mist/50">
+        <span className="text-xs font-medium text-charcoal/50 dark:text-slate-400">
           {byStage.reduce((s, x) => s + x.count, 0)} open + closed deals
         </span>
       }
@@ -51,17 +54,17 @@ export default function PipelineCard() {
           onMouseEnter={() => setHovering(true)}
           onMouseLeave={() => setHovering(false)}
         >
-          <div className="flex h-9 w-full overflow-hidden rounded-lg border border-line/20 dark:border-white/10">
+          <div className="flex h-9 w-full overflow-hidden rounded-lg border border-line/20 dark:border-slate-800/60">
             {byStage.map((s) => (
               <button
                 key={s.stage}
                 onClick={() => openDrawer("deal", { stage: s.stage, deals: deals.filter((d) => d.stage === s.stage) })}
                 title={`${s.stage}: ${s.count} deals, $${s.value.toLocaleString()}`}
-                style={{ width: `${(s.count / total) * 100}%`, background: STAGE_COLOR[s.stage] }}
-                className="press focus-ring group relative h-full min-w-[3%] transition-[filter,transform] duration-200 hover:brightness-110"
+                style={{ width: `${(s.count / total) * 100}%` }}
+                className={`press focus-ring group relative h-full min-w-[3%] transition-[filter,transform] duration-200 hover:brightness-110 ${STAGE_STYLE[s.stage]}`}
               >
                 {s.count > 0 && (
-                  <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white/90 mix-blend-difference">
+                  <span className="absolute inset-0 flex items-center justify-center text-[11px] font-medium text-white/90 mix-blend-difference">
                     {s.count}
                   </span>
                 )}
@@ -76,9 +79,9 @@ export default function PipelineCard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4, transition: { duration: 0.14, ease: "easeIn" } }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="absolute left-0 right-0 top-11 z-10 rounded-xl border border-line/20 bg-white/95 p-2 shadow-card backdrop-blur dark:border-white/10 dark:bg-canvas/95"
+                className="absolute left-0 right-0 top-11 z-10 rounded-xl border border-line/20 bg-white/95 p-2 shadow-card backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/95"
               >
-                <p className="mb-1 px-1 text-[11px] font-semibold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
+                <p className="mb-1 px-1 text-[11px] font-semibold uppercase tracking-wide text-charcoal/50 dark:text-slate-400">
                   Outreach input · trailing 14 days (funnel health correlation)
                 </p>
                 <div className="h-20 w-full">
@@ -115,13 +118,13 @@ export default function PipelineCard() {
             <li key={s.stage}>
               <button
                 onClick={() => openDrawer("deal", { stage: s.stage, deals: deals.filter((d) => d.stage === s.stage) })}
-                className="press focus-ring flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-mist dark:hover:bg-white/5"
+                className="press focus-ring flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-mist dark:hover:bg-slate-800/40"
               >
-                <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: STAGE_COLOR[s.stage] }} aria-hidden />
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-sm ${STAGE_STYLE[s.stage]}`} aria-hidden />
                 <span className="min-w-0 flex-1 truncate text-xs font-medium">{s.stage}</span>
-                <span className="shrink-0 text-xs font-bold tabular-nums">{s.count}</span>
+                <span className="shrink-0 text-xs font-medium tabular-nums">{s.count}</span>
               </button>
-              <p className="pl-4.5 ml-4 text-[11px] text-charcoal/45 dark:text-mist/45">${s.value.toLocaleString()}</p>
+              <p className="pl-4.5 ml-4 text-[11px] text-charcoal/45 dark:text-slate-500">${s.value.toLocaleString()}</p>
             </li>
           ))}
         </ul>

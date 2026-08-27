@@ -2,9 +2,17 @@
 
 A single-pane dashboard over Albert Scott's outbound stack: Smartlead campaigns, the
 Smartlead → Pipedrive automation (see [`../docs/Smartlead-Pipedrive-Automation-Workflow.md`](../docs/Smartlead-Pipedrive-Automation-Workflow.md)),
-HeyReach LinkedIn outreach, sending-domain health, technical SEO, and a task board —
-themed to Albert Scott's brand (charcoal/grey structure, hot magenta `#E51958` as the
-one signal color, Montserrat).
+HeyReach LinkedIn outreach, sending-domain health, technical SEO, and a task board.
+
+**Theme — Enterprise Growth Ops (dark-slate minimalist):** deep monochrome slate
+surfaces (canvas `slate-950`, cards `slate-900`, hairline `slate-800/60` borders,
+`slate-50`/`slate-400`/`slate-500` text hierarchy), Inter, generous `p-6`/`p-8` card
+padding, and restrained font weights — hot magenta `#E51958` is kept strictly as the
+Albert Scott brand's "one key signal" (primary CTAs, the drop-target/focus accent),
+never as decoration. Status/severity reads through standard muted Tailwind semantic
+hues (emerald/red/amber/sky/slate) as hollow, low-opacity badges instead of solid
+color blocks — see "Enterprise theme" below for the full breakdown. Light mode stays
+available via the header toggle and keeps the original soft-gray Albert Scott palette.
 
 ## What's live vs. simulated
 
@@ -69,6 +77,31 @@ Open http://localhost:5174.
 - **Automation log**: "Show failures only", multi-select + bulk "Re-Run N Failed
   Automations", and row click opens the contextual sidebar drawer (resize it from its
   left edge, 30–60vw).
+
+## Enterprise theme (dark-slate minimalist)
+
+Applied as a "Style Specification Override" pass on top of the original Albert Scott
+brand base — see `tailwind.config.js` for the token values:
+
+- **Surfaces** — three nested monochrome layers in dark mode: global canvas
+  (`slate-950`) < card/modal/drawer surface (`slate-900`) < inset tile (`slate-800/50`),
+  each separated by a whisper-thin `slate-800/60` or `slate-700/60` border instead of a
+  visible gray outline.
+- **Text hierarchy** — `slate-50` for titles/active data, `slate-400` for secondary
+  labels and metadata, `slate-500` for muted timestamps/subtext.
+- **Badges** — `Badge` (`src/components/Badge.jsx`) renders hollow, low-opacity pills
+  (`bg-{color}-500/10 text-{color}-400 border-{color}-500/20`) instead of solid color
+  blocks; `MicroTag` renders the even-lighter microscopic lowercase dot+text tags used
+  for Kanban/List priority and category.
+- **Alerts** — consolidated into a single-row container (`AlertBanner.jsx`) with tiny
+  muted colored chips instead of stacked full-width bars, `rounded-md` corners only.
+- **Pipeline funnel** — `PipelineCard.jsx`'s stage bar uses a monochrome slate ramp
+  (lighter → darker as a deal progresses) with the accent budget spent on exactly one
+  color: emerald for Closed Won.
+- **Status lights** — the active/dead inbox counters use a tiny pulsating 8px
+  `animate-pulse` dot rather than bold colored text.
+- **Kanban** — columns are transparent/bordered rather than filled; cards get a
+  `hover:border-slate-700` transition instead of relying on a heavy border by default.
 
 ## Motion & interaction polish
 

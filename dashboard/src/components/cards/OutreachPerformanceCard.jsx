@@ -6,13 +6,13 @@ function Stat({ label, value, accent }) {
   return (
     <div className="min-w-0">
       <p
-        className="truncate text-lg font-extrabold tabular-nums leading-tight sm:text-xl"
+        className="truncate text-lg font-semibold tabular-nums leading-tight sm:text-xl"
         style={accent ? { color: accent } : undefined}
         title={value}
       >
         {value}
       </p>
-      <p className="truncate text-[11px] text-charcoal/55 dark:text-mist/55">{label}</p>
+      <p className="truncate text-[11px] text-charcoal/55 dark:text-slate-400">{label}</p>
     </div>
   );
 }
@@ -35,8 +35,8 @@ function Sparkline({ data, dataKey, color }) {
 
 function Feed({ title, logo, children }) {
   return (
-    <div className="min-w-0 flex-1 rounded-xl border border-line/15 p-3 dark:border-white/10">
-      <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
+    <div className="min-w-0 flex-1 rounded-xl border border-line/15 p-3 dark:border-slate-800/60">
+      <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-slate-400">
         <span aria-hidden>{logo}</span> {title}
       </p>
       {children}
@@ -72,13 +72,19 @@ export default function OutreachPerformanceCard() {
           </Feed>
         </div>
 
-        <div className="flex shrink-0 items-center justify-between rounded-xl bg-mist/60 px-3 py-2 dark:bg-white/[0.06]">
-          <p className="text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
+        <div className="flex shrink-0 items-center justify-between rounded-xl bg-mist/60 px-3 py-2 dark:bg-slate-800/50">
+          <p className="text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-slate-400">
             Infrastructure
           </p>
-          <div className="flex gap-4 text-sm font-semibold">
-            <span className="text-emerald-700 dark:text-emerald-400">{inboxes.activeInboxes} active</span>
-            <span className="text-signal-deep dark:text-signal">{inboxes.deadInboxes} dead/disconnected</span>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <span className="inline-flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+              {inboxes.activeInboxes} active
+            </span>
+            <span className="inline-flex items-center gap-2 text-charcoal/50 dark:text-slate-500">
+              <span className="h-2 w-2 rounded-full bg-slate-400 dark:bg-slate-600" aria-hidden />
+              {inboxes.deadInboxes} dead/disconnected
+            </span>
           </div>
         </div>
       </div>
