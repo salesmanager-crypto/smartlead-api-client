@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-paper text-charcoal dark:bg-canvas dark:text-mist antialiased;
+  font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: #e5195833;
+}
+
+/* ---- react-grid-layout structural bits (kept minimal, styled via utilities below) ---- */
+.react-grid-item.react-grid-placeholder {
+  background: #e5195822 !important;
+  border: 1.5px dashed #e51958 !important;
+  border-radius: 0.75rem;
+  opacity: 1 !important;
+}
+
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  right: 2px;
+  bottom: 2px;
+  cursor: se-resize;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #a6a6a6;
+  border-bottom: 2px solid #a6a6a6;
+  border-radius: 1px;
+}
+
+.card-grab-handle {
+  cursor: grab;
+}
+.card-grab-handle:active {
+  cursor: grabbing;
+}
+
+/* thin scrollbars for internal card scroll areas */
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: #a6a6a666;
+  border-radius: 999px;
+}

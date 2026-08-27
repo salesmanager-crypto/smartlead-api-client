@@ -1,0 +1,318 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDashboard } from "../context/DashboardContext.jsx";
+import Badge from "./Badge.jsx";
+import { pipedriveDealUrl } from "../lib/constants.js";
+import { relativeTime } from "../lib/time.js";
+
+const CONTEXT_LABEL = { automation: "Automation Log", alert: "Alert", deal: "CRM Pipeline Deal" };
+
+function useDrawerResize(setDrawerWidth) {
+  const draggingRef = useRef(false);
+
+  const onMouseDown = useCallback(() => {
+    draggingRef.current = true;
+    document.body.style.cursor = "ew-resize";
+  }, []);
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!draggingRef.current) return;
+      const pct = ((window.innerWidth - e.clientX) / window.innerWidth) * 100;
+      setDrawerWidth(pct);
+    };
+    const onUp = () => {
+      draggingRef.current = false;
+      document.body.style.cursor = "";
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [setDrawerWidth]);
+
+  return onMouseDown;
+}
+
+function CodeBlock({ children }) {
+  return (
+    <pre className="thin-scroll max-h-40 overflow-auto rounded-lg bg-charcoal p-3 font-mono text-[11px] leading-relaxed text-mist">
+      {children}
+    </pre>
+  );
+}
+
+function Section({ label, children }) {
+  return (
+    <div>
+      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-charcoal/45 dark:text-mist/45">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+function QuickReplyPanel({ row }) {
+  const { sendQuickReply } = useDashboard();
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("idle");
+
+  const send = async () => {
+    if (!message.trim()) return;
+    setStatus("sending");
+    try {
+      await sendQuickReply({
+        channel: "smartlead",
+        campaignId: row.campaignId,
+        leadEmail: row.leadEmail,
+        message,
+      });
+      setStatus("sent");
+      setMessage("");
+      setTimeout(() => setStatus("idle"), 2500);
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <Section label="Quick reply · sends via Smartlead, no tab switch">
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder={`Reply to ${row.leadName}, or paste a booking link…`}
+        rows={3}
+        className="w-full resize-none rounded-lg border border-line/25 bg-transparent p-2 text-sm outline-none focus:border-signal dark:border-white/15"
+      />
+      <div className="mt-1.5 flex items-center justify-between">
+        <span className="text-[11px] text-charcoal/40 dark:text-mist/40">
+          {status === "sent" ? "Sent ✓" : status === "error" ? "Failed to send" : status === "sending" ? "Sending…" : "Thread " + row.campaignId}
+        </span>
+        <button
+          onClick={send}
+          disabled={status === "sending" || !message.trim()}
+          className="rounded-lg bg-signal px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+        >
+          Send Response
+        </button>
+      </div>
+    </Section>
+  );
+}
+
+function AutomationDetail({ row }) {
+  return (
+    <div className="space-y-4">
+      <Section label="Lead">
+        <p className="text-base font-semibold">{row.leadName}</p>
+        <p className="text-sm text-charcoal/60 dark:text-mist/60">{row.company}</p>
+        <p className="mt-1 font-mono text-xs text-charcoal/45 dark:text-mist/45">{row.leadEmail}</p>
+      </Section>
+      <Section label="Reply snippet">
+        <p className="rounded-lg bg-mist/60 p-2.5 text-sm italic dark:bg-white/[0.06]">
+          {row.smartleadTag === "Interested"
+            ? "“This looks interesting, tell me more about US market entry.”"
+            : row.smartleadTag === "OutOfOffice"
+              ? "“I'm currently out of office and will respond when I return.”"
+              : "“Not the right fit for us right now, please remove me from this list.”"}
+        </p>
+      </Section>
+      <Section label="Automation">
+        <div className="flex flex-wrap gap-1.5">
+          <Badge color="blue">Rule: {row.ruleExecuted}</Badge>
+          <Badge color={row.pipedriveStatus === "Failed" ? "red" : row.pipedriveStatus === "Created Deal" ? "green" : "gray"}>
+            {row.pipedriveStatus}
+          </Badge>
+          <Badge color="gray">Campaign #{row.campaignId}</Badge>
+        </div>
+      </Section>
+      {row.pipedriveStatus === "Failed" && (
+        <Section label="Raw CRM API failure payload">
+          <CodeBlock>{typeof row.note === "string" ? row.note : JSON.stringify(row.note, null, 2)}</CodeBlock>
+        </Section>
+      )}
+      <QuickReplyPanel row={row} />
+    </div>
+  );
+}
+
+function AlertDetail({ alert }) {
+  const domain = alert.data?.domain;
+  return (
+    <div className="space-y-4">
+      <Section label="Summary">
+        <p className="text-base font-semibold">{alert.title}</p>
+        <p className="text-sm text-charcoal/60 dark:text-mist/60">{alert.detail}</p>
+      </Section>
+      {(domain || alert.type === "domain") && (
+        <Section label="Infrastructure">
+          <div className="space-y-1 text-sm">
+            <p>
+              Blacklist hits:{" "}
+              <span className="font-semibold text-signal">{domain?.blacklists?.length ? domain.blacklists.join(", ") : "None detected"}</span>
+            </p>
+            <p>Deliverability: {domain?.deliverability ?? "—"}%</p>
+            <a
+              className="inline-block text-xs font-semibold text-signal underline hover:text-signal-deep"
+              href={`https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a${domain?.domain || ""}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Run blacklist check on MXToolbox ↗
+            </a>
+            <br />
+            <a
+              className="inline-block text-xs font-semibold text-signal underline hover:text-signal-deep"
+              href={`https://porkbun.com/account/domainsSpeedy`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open registrar (Porkbun) ↗
+            </a>
+          </div>
+        </Section>
+      )}
+    </div>
+  );
+}
+
+function DealRow({ deal, onOpen }) {
+  return (
+    <button
+      onClick={() => onOpen(deal)}
+      className="flex w-full items-center justify-between gap-2 rounded-lg border border-line/15 px-3 py-2 text-left text-sm hover:bg-mist/60 dark:border-white/10 dark:hover:bg-white/5"
+    >
+      <span className="min-w-0 flex-1 truncate">{deal.title}</span>
+      <span className="shrink-0 font-semibold">${deal.value.toLocaleString()}</span>
+    </button>
+  );
+}
+
+function DealDetail({ deal, onBack }) {
+  return (
+    <div className="space-y-4">
+      {onBack && (
+        <button onClick={onBack} className="text-xs font-semibold text-signal hover:text-signal-deep">
+          ← Back to stage list
+        </button>
+      )}
+      <Section label="Deal">
+        <p className="text-base font-semibold">{deal.title}</p>
+        <p className="text-sm text-charcoal/60 dark:text-mist/60">Stage: {deal.stage}</p>
+      </Section>
+      <Section label="Expected close value">
+        <p className="text-2xl font-extrabold text-signal">${deal.value.toLocaleString()}</p>
+      </Section>
+      <Section label="Activity">
+        <p className="text-sm">Last touched {relativeTime(deal.lastActivity)}</p>
+        {deal.staleHours >= 48 && <p className="mt-1 text-sm font-semibold text-signal">⚠ Unaddressed for {Math.floor(deal.staleHours)}h</p>}
+      </Section>
+      <Section label="Client diagnostics">
+        <p className="rounded-lg bg-mist/60 p-2.5 text-sm dark:bg-white/[0.06]">
+          Domain health, SEO crawl status and outreach history for this account are available on the canvas view —
+          cross-reference the Outbound Performance and SEO cards for the same client.
+        </p>
+      </Section>
+    </div>
+  );
+}
+
+function PipelineStageDetail({ data }) {
+  const [selectedDeal, setSelectedDeal] = useState(null);
+  if (data.deals && data.deals.length && !data.title) {
+    if (selectedDeal) return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} />;
+    return (
+      <div className="space-y-3">
+        <Section label={`${data.stage} · ${data.deals.length} deals`}>
+          <div className="space-y-1.5">
+            {data.deals.map((d) => (
+              <DealRow key={d.id} deal={d} onOpen={setSelectedDeal} />
+            ))}
+            {data.deals.length === 0 && <p className="text-sm text-charcoal/40 dark:text-mist/40">No deals in this stage.</p>}
+          </div>
+        </Section>
+      </div>
+    );
+  }
+  return <DealDetail deal={data} />;
+}
+
+export default function SidebarDrawer() {
+  const { drawer, closeDrawer, setDrawerWidth, muteAlert } = useDashboard();
+  const onHandleDown = useDrawerResize(setDrawerWidth);
+
+  if (!drawer.open) return null;
+  const { context, data } = drawer;
+  const dealIdForTray =
+    context === "automation" ? data?.dealId : context === "deal" ? data?.id || data?.deals?.[0]?.id : null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-charcoal/30 backdrop-blur-[1px]" onClick={closeDrawer} />
+      <aside
+        style={{ width: `${drawer.widthPct}vw` }}
+        className="fixed right-0 top-0 z-50 flex h-screen flex-col border-l border-line/20 bg-white shadow-2xl dark:border-white/10 dark:bg-canvas"
+      >
+        <div
+          onMouseDown={onHandleDown}
+          className="absolute -left-1.5 top-0 h-full w-3 cursor-ew-resize"
+          title="Drag to resize"
+        />
+        <header className="flex shrink-0 items-center justify-between border-b border-line/15 px-5 py-3.5 dark:border-white/10">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-charcoal/45 dark:text-mist/45">
+              {CONTEXT_LABEL[context]}
+            </p>
+          </div>
+          <button
+            onClick={closeDrawer}
+            className="rounded-lg px-2 py-1 text-lg leading-none text-charcoal/50 hover:bg-mist dark:text-mist/50 dark:hover:bg-white/10"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div className="thin-scroll min-h-0 flex-1 overflow-auto px-5 py-4">
+          {context === "automation" && <AutomationDetail row={data} />}
+          {context === "alert" && <AlertDetail alert={data} />}
+          {context === "deal" && <PipelineStageDetail data={data} />}
+        </div>
+
+        <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line/15 px-5 py-3 dark:border-white/10">
+          {context === "alert" && (
+            <button
+              onClick={() => {
+                muteAlert(data.id);
+                closeDrawer();
+              }}
+              className="rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold hover:bg-mist dark:border-white/15 dark:hover:bg-white/10"
+            >
+              Mute Alert
+            </button>
+          )}
+          {dealIdForTray && (
+            <a
+              href={pipedriveDealUrl(dealIdForTray)}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg bg-charcoal px-3 py-1.5 text-xs font-semibold text-white dark:bg-mist dark:text-charcoal"
+            >
+              Open in Pipedrive
+            </a>
+          )}
+          {context === "automation" && (
+            <button className="rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
+              Override in Smartlead
+            </button>
+          )}
+          {context === "alert" && data.type === "domain" && (
+            <button className="rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
+              Pause Domain
+            </button>
+          )}
+        </footer>
+      </aside>
+    </>
+  );
+}
