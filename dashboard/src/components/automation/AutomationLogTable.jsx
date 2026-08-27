@@ -48,9 +48,9 @@ export default function AutomationLogTable() {
   if (!snapshot) return null;
 
   return (
-    <section id="card-automation-log" className="mx-5 mb-8 mt-2 md:mx-8">
+    <section id="card-automation-log" className="mx-4 mb-6 mt-2 md:mx-6">
       <div className="overflow-hidden rounded-2xl border border-line/20 bg-white shadow-card dark:border-slate-800/60 dark:bg-slate-900 dark:shadow-card-dark">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line/15 px-6 py-4 dark:border-slate-800/60">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line/15 px-3 py-2 dark:border-slate-800/60">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-charcoal/80 dark:text-slate-50">
             Smartlead → Pipedrive Automation Log
           </h2>
@@ -101,7 +101,7 @@ export default function AutomationLogTable() {
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-mist/60 text-left text-[11px] uppercase tracking-wide text-charcoal/50 dark:bg-slate-800/50 dark:text-slate-400">
               <tr>
-                <th className="w-8 px-4 py-3">
+                <th className="w-8 px-3 py-2">
                   <input
                     type="checkbox"
                     checked={rows.length > 0 && selected.size === rows.length}
@@ -109,11 +109,11 @@ export default function AutomationLogTable() {
                     className="h-3.5 w-3.5 accent-signal"
                   />
                 </th>
-                <th className="px-4 py-3 font-semibold">Timestamp / Lead</th>
-                <th className="px-4 py-3 font-semibold">Smartlead Tag</th>
-                <th className="px-4 py-3 font-semibold">Rule Executed</th>
-                <th className="px-4 py-3 font-semibold">Pipedrive Status</th>
-                <th className="px-4 py-3 font-semibold">Action / Error Note</th>
+                <th className="px-3 py-2 font-semibold">Timestamp / Lead</th>
+                <th className="px-3 py-2 font-semibold">Smartlead Tag</th>
+                <th className="px-3 py-2 font-semibold">Rule Executed</th>
+                <th className="px-3 py-2 font-semibold">Pipedrive Status</th>
+                <th className="px-3 py-2 font-semibold">Action / Error Note</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line/10 dark:divide-slate-800/60">
@@ -134,7 +134,7 @@ export default function AutomationLogTable() {
                     }
                   }}
                 >
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selected.has(row.id)}
@@ -142,22 +142,22 @@ export default function AutomationLogTable() {
                       className="h-3.5 w-3.5 accent-signal"
                     />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <p className="font-medium">{row.leadName}</p>
                     <p className="text-[11px] text-charcoal/50 dark:text-slate-400">
                       {row.company} · {relativeTime(row.timestamp)}
                     </p>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <Badge color={TAG_COLOR[row.smartleadTag] || "gray"}>{row.smartleadTag}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-xs text-charcoal/70 dark:text-slate-400">{row.ruleExecuted}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2 text-xs text-charcoal/70 dark:text-slate-400">{row.ruleExecuted}</td>
+                  <td className="px-3 py-2">
                     <Badge color={STATUS_COLOR[row.pipedriveStatus] || "gray"} dot>
                       {row.pipedriveStatus}
                     </Badge>
                   </td>
-                  <td className="max-w-[260px] px-4 py-3 font-mono text-[11px]">
+                  <td className="max-w-[260px] px-3 py-2 font-mono text-[11px]">
                     {row.pipedriveStatus === "Created Deal" && row.dealId ? (
                       <a
                         href={pipedriveDealUrl(row.dealId)}

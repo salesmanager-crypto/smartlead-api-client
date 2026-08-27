@@ -7,15 +7,15 @@ function Block({ className = "" }) {
 
 export default function DashboardSkeleton() {
   return (
-    <div aria-busy="true" role="status" className="mx-5 my-4 md:mx-8">
+    <div aria-busy="true" role="status" className="mx-4 my-3 md:mx-6">
       <span className="sr-only">Loading Growth Ops dashboard data…</span>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Block className="h-[19rem]" />
-        <Block className="h-[19rem]" />
-        <Block className="h-[24rem]" />
-        <Block className="h-[24rem]" />
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <Block className="h-[17rem]" />
+        <Block className="h-[17rem]" />
+        <Block className="h-[22rem]" />
+        <Block className="h-[22rem]" />
       </div>
-      <Block className="mt-4 h-64" />
+      <Block className="mt-3 h-56" />
     </div>
   );
 }

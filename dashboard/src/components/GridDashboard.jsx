@@ -19,11 +19,11 @@ export default function GridDashboard() {
 
   return (
     <GridLayout
-      className="mx-5 my-4 md:mx-8"
+      className="mx-4 my-3 md:mx-6"
       layout={layout}
       cols={12}
-      rowHeight={28}
-      margin={[16, 16]}
+      rowHeight={26}
+      margin={[12, 12]}
       draggableHandle=".card-grab-handle"
       onLayoutChange={(next) => setLayout(next)}
       compactType="vertical"

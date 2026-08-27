@@ -78,6 +78,19 @@ Open http://localhost:5174.
   Automations", and row click opens the contextual sidebar drawer (resize it from its
   left edge, 30–60vw).
 
+## Layout density
+
+Pulled the transferable parts of [`leonxlnx/taste-skill`](https://github.com/leonxlnx/taste-skill)'s
+`VISUAL_DENSITY` dial reasoning and tactile-feedback guidance — its own header says
+it's built for landing pages/portfolios/redesigns, explicitly *not* dashboards or data
+tables, so the marketing-page rules (heroes, bento sections, testimonials, serif type,
+image sourcing) don't apply here. What does transfer: a "cockpit" reading of
+`VISUAL_DENSITY` (packed data, not art-gallery airiness) argues for less card chrome and
+tighter spacing than a marketing site would use. Card padding, the grid's row height and
+margins, and the automation table/drawer/modal padding were all pulled back down
+(`CardShell.jsx`, `GridDashboard.jsx`, `DashboardContext.jsx`'s `DEFAULT_LAYOUT`) — same
+information density, ~16% less vertical space for the same content at a 1440px viewport.
+
 ## Enterprise theme (dark-slate minimalist)
 
 Applied as a "Style Specification Override" pass on top of the original Albert Scott

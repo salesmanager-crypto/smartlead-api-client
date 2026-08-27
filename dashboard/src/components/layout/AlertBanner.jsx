@@ -21,7 +21,7 @@ export default function AlertBanner() {
   return (
     <div
       id="alerts"
-      className="mx-5 mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 rounded-md border border-line/20 bg-white px-3 py-2 dark:border-slate-800/60 dark:bg-slate-900/60 md:mx-8"
+      className="mx-4 mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 rounded-md border border-line/20 bg-white px-3 py-1.5 dark:border-slate-800/60 dark:bg-slate-900/60 md:mx-6"
     >
       <AnimatePresence initial={false}>
         {alerts.slice(0, 6).map((alert) => (

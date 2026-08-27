@@ -5,10 +5,10 @@ import * as api from "../lib/api.js";
 const DashboardContext = createContext(null);
 
 export const DEFAULT_LAYOUT = [
-  { i: "outreach", x: 0, y: 0, w: 6, h: 9, minW: 4, minH: 6 },
-  { i: "pipeline", x: 6, y: 0, w: 6, h: 9, minW: 4, minH: 6 },
-  { i: "tasks", x: 0, y: 9, w: 7, h: 11, minW: 4, minH: 7 },
-  { i: "seo", x: 7, y: 9, w: 5, h: 11, minW: 3, minH: 6 },
+  { i: "outreach", x: 0, y: 0, w: 6, h: 8, minW: 4, minH: 6 },
+  { i: "pipeline", x: 6, y: 0, w: 6, h: 8, minW: 4, minH: 6 },
+  { i: "tasks", x: 0, y: 8, w: 7, h: 10, minW: 4, minH: 7 },
+  { i: "seo", x: 7, y: 8, w: 5, h: 10, minW: 3, minH: 6 },
 ];
 
 const DEFAULT_PROFILE = {

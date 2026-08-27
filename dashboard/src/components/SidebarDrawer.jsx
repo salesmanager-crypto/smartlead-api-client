@@ -292,7 +292,7 @@ export default function SidebarDrawer() {
               className="absolute -left-1.5 top-0 h-full w-3 cursor-ew-resize"
               title="Drag to resize"
             />
-        <header className="flex shrink-0 items-center justify-between border-b border-line/15 px-6 py-5 dark:border-slate-800/60">
+        <header className="flex shrink-0 items-center justify-between border-b border-line/15 px-5 py-4 dark:border-slate-800/60">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-charcoal/45 dark:text-slate-500">
               {CONTEXT_LABEL[context]}
@@ -307,13 +307,13 @@ export default function SidebarDrawer() {
           </button>
         </header>
 
-        <div className="thin-scroll min-h-0 flex-1 overflow-auto px-6 py-6">
+        <div className="thin-scroll min-h-0 flex-1 overflow-auto px-5 py-4">
           {context === "automation" && <AutomationDetail row={data} />}
           {context === "alert" && <AlertDetail alert={data} />}
           {context === "deal" && <PipelineStageDetail data={data} />}
         </div>
 
-        <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line/15 px-6 py-4 dark:border-slate-800/60">
+        <footer className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line/15 px-5 py-3 dark:border-slate-800/60">
           {context === "alert" && (
             <button
               onClick={() => {

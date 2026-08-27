@@ -45,7 +45,7 @@ export default function ProfileModal() {
             exit={{ opacity: 0, scale: 0.97, y: 4, transition: { duration: 0.15, ease: "easeIn" } }}
             transition={{ type: "spring", stiffness: 420, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-2xl border border-line/20 bg-white p-8 shadow-2xl dark:border-slate-800/60 dark:bg-slate-900"
+            className="w-full max-w-md rounded-2xl border border-line/20 bg-white p-6 shadow-2xl dark:border-slate-800/60 dark:bg-slate-900"
           >
         <h2 className="mb-4 text-lg font-semibold">Profile & Settings</h2>
 
