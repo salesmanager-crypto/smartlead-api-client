@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Badge from "../Badge.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
 import { pipedriveDealUrl } from "../../lib/constants.js";
@@ -53,7 +54,7 @@ export default function AutomationLogTable() {
           <h2 className="text-sm font-bold uppercase tracking-wide text-charcoal/80 dark:text-mist/90">
             Smartlead → Pipedrive Automation Log
           </h2>
-          <label className="flex items-center gap-2 text-xs font-medium">
+          <label className="focus-within:ring-2 focus-within:ring-signal/50 flex items-center gap-2 rounded text-xs font-medium">
             <input
               type="checkbox"
               checked={failuresOnly}
@@ -64,20 +65,37 @@ export default function AutomationLogTable() {
           </label>
         </header>
 
-        {selectedFailed.length > 0 && (
-          <div className="flex items-center justify-between gap-3 bg-signal/10 px-4 py-2 text-sm">
-            <span className="font-semibold text-signal-deep dark:text-signal">
-              {selectedFailed.length} failed automation{selectedFailed.length > 1 ? "s" : ""} selected
-            </span>
-            <button
-              onClick={handleRerun}
-              disabled={rerunning}
-              className="rounded-lg bg-signal px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        <AnimatePresence initial={false}>
+          {selectedFailed.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0, transition: { duration: 0.15, ease: "easeIn" } }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="overflow-hidden"
             >
-              {rerunning ? "Re-running…" : `Re-Run ${selectedFailed.length} Failed Automation${selectedFailed.length > 1 ? "s" : ""}`}
-            </button>
-          </div>
-        )}
+              <div className="flex items-center justify-between gap-3 bg-signal/10 px-4 py-2 text-sm">
+                <span className="font-semibold text-signal-deep dark:text-signal">
+                  {selectedFailed.length} failed automation{selectedFailed.length > 1 ? "s" : ""} selected
+                </span>
+                <button
+                  onClick={handleRerun}
+                  disabled={rerunning}
+                  className="press focus-ring rounded-lg bg-signal px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
+                >
+                  {rerunning ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden />
+                      Re-running…
+                    </span>
+                  ) : (
+                    `Re-Run ${selectedFailed.length} Failed Automation${selectedFailed.length > 1 ? "s" : ""}`
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="thin-scroll overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
@@ -102,10 +120,19 @@ export default function AutomationLogTable() {
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`cursor-pointer hover:bg-mist/50 dark:hover:bg-white/5 ${
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Open automation log entry for ${row.leadName}`}
+                  className={`focus-ring cursor-pointer transition-colors hover:bg-mist/50 dark:hover:bg-white/5 ${
                     selected.has(row.id) ? "bg-signal/5" : ""
                   }`}
                   onClick={() => openDrawer("automation", row)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openDrawer("automation", row);
+                    }
+                  }}
                 >
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -137,7 +164,7 @@ export default function AutomationLogTable() {
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-signal underline hover:text-signal-deep"
+                        className="focus-ring rounded text-signal underline transition-colors hover:text-signal-deep"
                       >
                         Deal #{row.dealId}
                       </a>

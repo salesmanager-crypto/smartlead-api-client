@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useDashboard } from "../../context/DashboardContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { greetingFor, hourInTimezone } from "../../lib/time.js";
@@ -6,6 +7,12 @@ import { greetingFor, hourInTimezone } from "../../lib/time.js";
 function initials(profile) {
   return `${profile.firstName?.[0] || ""}${profile.lastName?.[0] || ""}`.toUpperCase() || "?";
 }
+
+const LIST_VARIANTS = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
+const ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: -4 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.18, ease: "easeOut" } },
+};
 
 export default function Header() {
   const { profile, snapshot, setProfileOpen, openDrawer } = useDashboard();
@@ -70,34 +77,45 @@ export default function Header() {
           </h1>
           <button
             onClick={() => setSummaryOpen((o) => !o)}
-            className="mt-1 max-w-3xl text-left text-sm text-charcoal/70 hover:text-signal dark:text-mist/70 dark:hover:text-signal"
+            aria-expanded={summaryOpen}
+            className="focus-ring mt-1 max-w-3xl rounded text-left text-sm text-charcoal/70 transition-colors hover:text-signal dark:text-mist/70 dark:hover:text-signal"
           >
             Here is what you have today: <span className="font-medium underline decoration-dotted underline-offset-2">{summary}</span>
           </button>
 
-          {summaryOpen && recommendations.length > 0 && (
-            <div className="mt-3 max-w-2xl rounded-xl border border-line/30 bg-white p-3 shadow-card dark:border-white/10 dark:bg-white/5 dark:shadow-card-dark">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
-                Suggested next actions
-              </p>
-              <ul className="space-y-2">
-                {recommendations.map((r) => (
-                  <li key={r.id} className="text-sm">
-                    <span>{r.text} </span>
-                    <button
-                      onClick={() => {
-                        r.action();
-                        setSummaryOpen(false);
-                      }}
-                      className="font-semibold text-signal hover:text-signal-deep"
-                    >
-                      [{r.cta}]
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <AnimatePresence initial={false}>
+            {summaryOpen && recommendations.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0, transition: { duration: 0.16, ease: "easeIn" } }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                className="max-w-2xl overflow-hidden"
+              >
+                <div className="mt-3 rounded-xl border border-line/30 bg-white p-3 shadow-card dark:border-white/10 dark:bg-white/5 dark:shadow-card-dark">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
+                    Suggested next actions
+                  </p>
+                  <motion.ul variants={LIST_VARIANTS} initial="hidden" animate="show" className="space-y-2">
+                    {recommendations.map((r) => (
+                      <motion.li key={r.id} variants={ITEM_VARIANTS} className="text-sm">
+                        <span>{r.text} </span>
+                        <button
+                          onClick={() => {
+                            r.action();
+                            setSummaryOpen(false);
+                          }}
+                          className="focus-ring rounded font-semibold text-signal transition-colors hover:text-signal-deep"
+                        >
+                          [{r.cta}]
+                        </button>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
@@ -106,10 +124,10 @@ export default function Header() {
             role="switch"
             aria-checked={theme === "dark"}
             aria-label="Toggle dark mode"
-            className="relative h-7 w-14 shrink-0 rounded-full bg-mist transition-colors dark:bg-white/10"
+            className="press focus-ring relative h-7 w-14 shrink-0 rounded-full bg-mist transition-colors dark:bg-white/10"
           >
             <span
-              className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs shadow transition-all dark:bg-charcoal ${
+              className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs shadow transition-all duration-200 ease-out dark:bg-charcoal ${
                 theme === "dark" ? "left-7" : "left-0.5"
               }`}
             >
@@ -119,7 +137,7 @@ export default function Header() {
 
           <button
             onClick={() => setProfileOpen(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-charcoal text-sm font-semibold text-white dark:bg-mist dark:text-charcoal"
+            className="press focus-ring flex h-9 w-9 items-center justify-center rounded-full bg-charcoal text-sm font-semibold text-white transition-opacity hover:opacity-90 dark:bg-mist dark:text-charcoal"
             title={`${profile.firstName} ${profile.lastName}`}
           >
             {profile.avatar ? (

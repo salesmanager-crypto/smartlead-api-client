@@ -17,6 +17,33 @@ body {
   background: #e5195833;
 }
 
+/* Motion tokens — deceleration on arrival, acceleration on exit, per the design
+ * system's animation guidance (ui-ux-pro-max: Easing Functions / Duration Timing).
+ * Reusable so every button/toggle/card gets the same feel instead of one-off values. */
+@layer components {
+  .press {
+    @apply transition-transform duration-150 ease-out active:scale-[0.96];
+  }
+  .focus-ring {
+    @apply outline-none transition-shadow duration-150 focus-visible:ring-2 focus-visible:ring-signal/50;
+  }
+}
+
+/* Respect the user's OS-level motion preference — collapse every transition/animation
+ * to effectively instant rather than ignoring the setting (ui-ux-pro-max: Reduced Motion,
+ * severity High). Framer Motion elements are covered separately via <MotionConfig
+ * reducedMotion="user"> in App.jsx; this catches the plain CSS/Tailwind transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ---- react-grid-layout structural bits (kept minimal, styled via utilities below) ---- */
 .react-grid-item.react-grid-placeholder {
   background: #e5195822 !important;
@@ -51,6 +78,18 @@ body {
 }
 .card-grab-handle:active {
   cursor: grabbing;
+}
+
+/* Lift feedback while a card is actively being dragged or resized (gesture-feedback:
+ * real-time visual response tracking the pointer, per ui-ux-pro-max Animation guidance). */
+.react-grid-item.react-draggable-dragging,
+.react-grid-item.resizing {
+  z-index: 20;
+  box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.28);
+  transition: box-shadow 150ms ease-out;
+}
+.react-grid-item {
+  transition: box-shadow 150ms ease-out;
 }
 
 /* thin scrollbars for internal card scroll areas */

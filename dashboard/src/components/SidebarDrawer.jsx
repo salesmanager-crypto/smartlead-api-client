@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useDashboard } from "../context/DashboardContext.jsx";
 import Badge from "./Badge.jsx";
 import { pipedriveDealUrl } from "../lib/constants.js";
@@ -82,18 +83,25 @@ function QuickReplyPanel({ row }) {
         onChange={(e) => setMessage(e.target.value)}
         placeholder={`Reply to ${row.leadName}, or paste a booking link…`}
         rows={3}
-        className="w-full resize-none rounded-lg border border-line/25 bg-transparent p-2 text-sm outline-none focus:border-signal dark:border-white/15"
+        className="focus-ring w-full resize-none rounded-lg border border-line/25 bg-transparent p-2 text-sm transition-colors focus:border-signal dark:border-white/15"
       />
       <div className="mt-1.5 flex items-center justify-between">
-        <span className="text-[11px] text-charcoal/40 dark:text-mist/40">
+        <span aria-live="polite" className="text-[11px] text-charcoal/40 dark:text-mist/40">
           {status === "sent" ? "Sent ✓" : status === "error" ? "Failed to send" : status === "sending" ? "Sending…" : "Thread " + row.campaignId}
         </span>
         <button
           onClick={send}
           disabled={status === "sending" || !message.trim()}
-          className="rounded-lg bg-signal px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+          className="press focus-ring rounded-lg bg-signal px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
         >
-          Send Response
+          {status === "sending" ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden />
+              Sending
+            </span>
+          ) : (
+            "Send Response"
+          )}
         </button>
       </div>
     </Section>
@@ -153,7 +161,7 @@ function AlertDetail({ alert }) {
             </p>
             <p>Deliverability: {domain?.deliverability ?? "—"}%</p>
             <a
-              className="inline-block text-xs font-semibold text-signal underline hover:text-signal-deep"
+              className="focus-ring inline-block rounded text-xs font-semibold text-signal underline transition-colors hover:text-signal-deep"
               href={`https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a${domain?.domain || ""}`}
               target="_blank"
               rel="noreferrer"
@@ -162,7 +170,7 @@ function AlertDetail({ alert }) {
             </a>
             <br />
             <a
-              className="inline-block text-xs font-semibold text-signal underline hover:text-signal-deep"
+              className="focus-ring inline-block rounded text-xs font-semibold text-signal underline transition-colors hover:text-signal-deep"
               href={`https://porkbun.com/account/domainsSpeedy`}
               target="_blank"
               rel="noreferrer"
@@ -180,7 +188,7 @@ function DealRow({ deal, onOpen }) {
   return (
     <button
       onClick={() => onOpen(deal)}
-      className="flex w-full items-center justify-between gap-2 rounded-lg border border-line/15 px-3 py-2 text-left text-sm hover:bg-mist/60 dark:border-white/10 dark:hover:bg-white/5"
+      className="press focus-ring flex w-full items-center justify-between gap-2 rounded-lg border border-line/15 px-3 py-2 text-left text-sm transition-colors hover:bg-mist/60 dark:border-white/10 dark:hover:bg-white/5"
     >
       <span className="min-w-0 flex-1 truncate">{deal.title}</span>
       <span className="shrink-0 font-semibold">${deal.value.toLocaleString()}</span>
@@ -190,9 +198,14 @@ function DealRow({ deal, onOpen }) {
 
 function DealDetail({ deal, onBack }) {
   return (
-    <div className="space-y-4">
+    <motion.div
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className="space-y-4"
+    >
       {onBack && (
-        <button onClick={onBack} className="text-xs font-semibold text-signal hover:text-signal-deep">
+        <button onClick={onBack} className="focus-ring rounded text-xs font-semibold text-signal transition-colors hover:text-signal-deep">
           ← Back to stage list
         </button>
       )}
@@ -213,7 +226,7 @@ function DealDetail({ deal, onBack }) {
           cross-reference the Outbound Performance and SEO cards for the same client.
         </p>
       </Section>
-    </div>
+    </motion.div>
   );
 }
 
@@ -237,27 +250,48 @@ function PipelineStageDetail({ data }) {
   return <DealDetail deal={data} />;
 }
 
+// Enter with a soft spring (spring-physics feels more natural than linear/cubic-bezier
+// per the design system's Animation guidance); exit noticeably faster than enter
+// (~65% of the perceived enter duration) so closing feels responsive, not sluggish.
+const PANEL_ENTER = { type: "spring", stiffness: 380, damping: 34, mass: 0.9 };
+const PANEL_EXIT = { type: "tween", duration: 0.18, ease: [0.4, 0, 1, 1] };
+const BACKDROP_ENTER = { duration: 0.22, ease: "easeOut" };
+const BACKDROP_EXIT = { duration: 0.15, ease: "easeIn" };
+
 export default function SidebarDrawer() {
   const { drawer, closeDrawer, setDrawerWidth, muteAlert } = useDashboard();
   const onHandleDown = useDrawerResize(setDrawerWidth);
 
-  if (!drawer.open) return null;
   const { context, data } = drawer;
   const dealIdForTray =
     context === "automation" ? data?.dealId : context === "deal" ? data?.id || data?.deals?.[0]?.id : null;
 
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-charcoal/30 backdrop-blur-[1px]" onClick={closeDrawer} />
-      <aside
-        style={{ width: `${drawer.widthPct}vw` }}
-        className="fixed right-0 top-0 z-50 flex h-screen flex-col border-l border-line/20 bg-white shadow-2xl dark:border-white/10 dark:bg-canvas"
-      >
-        <div
-          onMouseDown={onHandleDown}
-          className="absolute -left-1.5 top-0 h-full w-3 cursor-ew-resize"
-          title="Drag to resize"
-        />
+    <AnimatePresence>
+      {drawer.open && (
+        <>
+          <motion.div
+            key="drawer-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={BACKDROP_ENTER}
+            className="fixed inset-0 z-40 bg-charcoal/30 backdrop-blur-[1px]"
+            onClick={closeDrawer}
+          />
+          <motion.aside
+            key="drawer-panel"
+            initial={{ x: "100%" }}
+            animate={{ x: 0, transition: PANEL_ENTER }}
+            exit={{ x: "100%", transition: PANEL_EXIT }}
+            style={{ width: `${drawer.widthPct}vw` }}
+            className="fixed right-0 top-0 z-50 flex h-screen flex-col border-l border-line/20 bg-white shadow-2xl dark:border-white/10 dark:bg-canvas"
+          >
+            <div
+              onMouseDown={onHandleDown}
+              className="absolute -left-1.5 top-0 h-full w-3 cursor-ew-resize"
+              title="Drag to resize"
+            />
         <header className="flex shrink-0 items-center justify-between border-b border-line/15 px-5 py-3.5 dark:border-white/10">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wide text-charcoal/45 dark:text-mist/45">
@@ -266,7 +300,7 @@ export default function SidebarDrawer() {
           </div>
           <button
             onClick={closeDrawer}
-            className="rounded-lg px-2 py-1 text-lg leading-none text-charcoal/50 hover:bg-mist dark:text-mist/50 dark:hover:bg-white/10"
+            className="press focus-ring rounded-lg px-2 py-1 text-lg leading-none text-charcoal/50 transition-colors hover:bg-mist dark:text-mist/50 dark:hover:bg-white/10"
             aria-label="Close"
           >
             ✕
@@ -286,7 +320,7 @@ export default function SidebarDrawer() {
                 muteAlert(data.id);
                 closeDrawer();
               }}
-              className="rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold hover:bg-mist dark:border-white/15 dark:hover:bg-white/10"
+              className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-white/15 dark:hover:bg-white/10"
             >
               Mute Alert
             </button>
@@ -296,23 +330,25 @@ export default function SidebarDrawer() {
               href={pipedriveDealUrl(dealIdForTray)}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg bg-charcoal px-3 py-1.5 text-xs font-semibold text-white dark:bg-mist dark:text-charcoal"
+              className="press focus-ring rounded-lg bg-charcoal px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90 dark:bg-mist dark:text-charcoal"
             >
               Open in Pipedrive
             </a>
           )}
           {context === "automation" && (
-            <button className="rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
+            <button className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
               Override in Smartlead
             </button>
           )}
           {context === "alert" && data.type === "domain" && (
-            <button className="rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
+            <button className="press focus-ring rounded-lg border border-line/25 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-mist dark:border-white/15 dark:hover:bg-white/10">
               Pause Domain
             </button>
           )}
-        </footer>
-      </aside>
-    </>
+            </footer>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

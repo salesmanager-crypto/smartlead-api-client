@@ -9,7 +9,7 @@ const CWV_LABEL = { good: "green", "needs-improvement": "yellow", poor: "red" };
 function DomainRow({ domain, onToggle, busy }) {
   const cooling = domain.coolingDown || domain.status === "warming";
   return (
-    <li className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-mist/60 dark:hover:bg-white/5">
+    <li className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-mist/60 dark:hover:bg-white/5">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{domain.domain}</p>
         <div className="mt-0.5 flex items-center gap-1.5">
@@ -29,13 +29,14 @@ function DomainRow({ domain, onToggle, busy }) {
         disabled={busy || domain.status === "dormant"}
         role="switch"
         aria-checked={cooling}
+        aria-busy={busy}
         title={cooling ? "Cooling down in warm-up mode" : "Toggle Cool-Down (pause + warm up)"}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-30 ${
-          cooling ? "bg-division-listing" : "bg-line/40 dark:bg-white/15"
-        }`}
+        className={`press focus-ring relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-30 disabled:active:scale-100 ${
+          busy ? "animate-pulse" : ""
+        } ${cooling ? "bg-division-listing" : "bg-line/40 dark:bg-white/15"}`}
       >
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${cooling ? "left-5" : "left-0.5"}`}
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all duration-200 ease-out ${cooling ? "left-5" : "left-0.5"}`}
         />
       </button>
     </li>

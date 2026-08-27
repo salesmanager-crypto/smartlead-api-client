@@ -69,3 +69,26 @@ Open http://localhost:5174.
 - **Automation log**: "Show failures only", multi-select + bulk "Re-Run N Failed
   Automations", and row click opens the contextual sidebar drawer (resize it from its
   left edge, 30–60vw).
+
+## Motion & interaction polish
+
+Interaction details (durations, easing, press/hover feedback, reduced-motion handling)
+follow the `ui-ux-pro-max` design-intelligence skill's Animation and Touch & Interaction
+guidance rather than one-off values:
+
+- **Framer Motion** drives every enter/exit transition that needs to feel physical: the
+  sidebar drawer and profile modal spring in and fade/slide out ~35% faster than they
+  entered (`SidebarDrawer.jsx`, `ProfileModal.jsx`), the alert banner and bulk-action bar
+  animate in/out instead of popping, and the Kanban board uses shared `layoutId`s so a
+  card moving between columns animates its position instead of jump-cutting.
+- **`prefers-reduced-motion`** is honored globally — `<MotionConfig reducedMotion="user">`
+  in `App.jsx` collapses every Framer Motion animation automatically, and `index.css` has
+  a matching fallback for plain Tailwind transitions.
+- **Press/focus feedback**: the shared `.press` (active:scale-96) and `.focus-ring`
+  utility classes in `index.css` give every button consistent tap feedback and a visible
+  keyboard focus ring instead of the browser default outline being silently removed.
+- **Single-pointer alternative to drag**: Kanban cards get ▲/▼ move buttons (visible on
+  hover/focus) so reordering a task never depends on drag-and-drop alone — dragging is
+  still the primary interaction, but it's not the *only* one (WCAG 2.2 SC 2.5.7).
+- **Loading state**: the initial fetch shows a skeleton shaped like the real grid
+  (`DashboardSkeleton.jsx`) instead of a blank screen or a bare "Loading…" string.

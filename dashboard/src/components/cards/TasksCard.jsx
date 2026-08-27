@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import CardShell from "./CardShell.jsx";
 import Badge from "../Badge.jsx";
+import SegmentedToggle from "../SegmentedToggle.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
 import { TASK_CATEGORIES, TASK_PRIORITIES } from "../../lib/mockData.js";
 
@@ -37,7 +39,7 @@ function EditableTitle({ task, onCommit }) {
           setValue(task.title);
           setEditing(true);
         }}
-        className={`block w-full truncate text-left text-sm font-medium hover:text-signal ${
+        className={`focus-ring block w-full truncate rounded text-left text-sm font-medium transition-colors hover:text-signal ${
           task.status === "Done" ? "text-charcoal/40 line-through dark:text-mist/40" : ""
         }`}
         title="Click to edit"
@@ -51,6 +53,7 @@ function EditableTitle({ task, onCommit }) {
       autoFocus
       value={value}
       onChange={(e) => setValue(e.target.value)}
+      onFocus={(e) => e.currentTarget.select()}
       onBlur={() => {
         setEditing(false);
         if (value.trim() && value !== task.title) onCommit({ title: value.trim() });
@@ -59,7 +62,7 @@ function EditableTitle({ task, onCommit }) {
         if (e.key === "Enter") e.currentTarget.blur();
         if (e.key === "Escape") setEditing(false);
       }}
-      className="w-full rounded-md border border-signal/50 bg-white px-1.5 py-0.5 text-sm outline-none dark:bg-canvas"
+      className="focus-ring w-full rounded-md border border-signal/50 bg-white px-1.5 py-0.5 text-sm transition-shadow dark:bg-canvas"
     />
   );
 }
@@ -77,38 +80,98 @@ function TaskMeta({ task, isOverdueTask }) {
   );
 }
 
+function KanbanCard({ task, onUpdate, onDragStart, onDragEnd, dragging }) {
+  const colIndex = COLUMNS.indexOf(task.status);
+  return (
+    <motion.div
+      layout
+      layoutId={task.id}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: dragging ? 0.4 : 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ type: "spring", stiffness: 500, damping: 36 }}
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      className="group cursor-grab rounded-lg border border-line/15 bg-white p-2.5 shadow-sm active:cursor-grabbing dark:border-white/10 dark:bg-white/[0.06]"
+    >
+      <div className="flex items-start gap-1.5">
+        <div className="min-w-0 flex-1">
+          <EditableTitle task={task} onCommit={(patch) => onUpdate(task.id, patch)} />
+          <TaskMeta task={task} isOverdueTask={isOverdue(task)} />
+        </div>
+        {/* Single-pointer / keyboard alternative to dragging (WCAG 2.2 SC 2.5.7) —
+         * dragging is never the only way to move a card between columns. */}
+        <div className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+          <button
+            disabled={colIndex === 0}
+            onClick={() => onUpdate(task.id, { status: COLUMNS[colIndex - 1] })}
+            aria-label={`Move "${task.title}" to ${COLUMNS[colIndex - 1] || "previous column"}`}
+            title={`Move to ${COLUMNS[colIndex - 1] || "—"}`}
+            className="press focus-ring rounded text-charcoal/40 transition-colors hover:text-signal disabled:pointer-events-none disabled:opacity-0 dark:text-mist/40"
+          >
+            ▲
+          </button>
+          <button
+            disabled={colIndex === COLUMNS.length - 1}
+            onClick={() => onUpdate(task.id, { status: COLUMNS[colIndex + 1] })}
+            aria-label={`Move "${task.title}" to ${COLUMNS[colIndex + 1] || "next column"}`}
+            title={`Move to ${COLUMNS[colIndex + 1] || "—"}`}
+            className="press focus-ring rounded text-charcoal/40 transition-colors hover:text-signal disabled:pointer-events-none disabled:opacity-0 dark:text-mist/40"
+          >
+            ▼
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function KanbanBoard({ tasks, onUpdate }) {
   const [dragId, setDragId] = useState(null);
+  const [overCol, setOverCol] = useState(null);
 
   return (
     <div className="grid h-full grid-cols-1 gap-3 sm:grid-cols-3">
       {COLUMNS.map((col) => {
         const items = tasks.filter((t) => t.status === col);
+        const isOver = overCol === col && dragId;
         return (
           <div
             key={col}
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (overCol !== col) setOverCol(col);
+            }}
+            onDragLeave={() => setOverCol((c) => (c === col ? null : c))}
             onDrop={() => {
               if (dragId) onUpdate(dragId, { status: col });
               setDragId(null);
+              setOverCol(null);
             }}
-            className="flex min-h-[10rem] flex-col rounded-xl bg-mist/50 p-2 dark:bg-white/[0.04]"
+            className={`flex min-h-[10rem] flex-col rounded-xl p-2 transition-colors duration-150 ${
+              isOver ? "bg-signal/10 ring-2 ring-signal/40" : "bg-mist/50 dark:bg-white/[0.04]"
+            }`}
           >
             <p className="mb-2 flex items-center justify-between px-1 text-xs font-bold uppercase tracking-wide text-charcoal/50 dark:text-mist/50">
               {col} <span>{items.length}</span>
             </p>
             <div className="flex flex-1 flex-col gap-2">
-              {items.map((task) => (
-                <div
-                  key={task.id}
-                  draggable
-                  onDragStart={() => setDragId(task.id)}
-                  className="cursor-grab rounded-lg border border-line/15 bg-white p-2.5 shadow-sm active:cursor-grabbing dark:border-white/10 dark:bg-white/[0.06]"
-                >
-                  <EditableTitle task={task} onCommit={(patch) => onUpdate(task.id, patch)} />
-                  <TaskMeta task={task} isOverdueTask={isOverdue(task)} />
-                </div>
-              ))}
+              <AnimatePresence initial={false}>
+                {items.map((task) => (
+                  <KanbanCard
+                    key={task.id}
+                    task={task}
+                    onUpdate={onUpdate}
+                    dragging={dragId === task.id}
+                    onDragStart={() => setDragId(task.id)}
+                    onDragEnd={() => {
+                      setDragId(null);
+                      setOverCol(null);
+                    }}
+                  />
+                ))}
+              </AnimatePresence>
               {items.length === 0 && <p className="px-1 text-xs text-charcoal/35 dark:text-mist/35">Drop tasks here</p>}
             </div>
           </div>
@@ -133,7 +196,7 @@ function ListView({ tasks, onUpdate }) {
         </thead>
         <tbody className="divide-y divide-line/10 dark:divide-white/5">
           {tasks.map((task) => (
-            <tr key={task.id} className={isOverdue(task) ? "bg-signal/5" : ""}>
+            <tr key={task.id} className={`transition-colors hover:bg-mist/40 dark:hover:bg-white/5 ${isOverdue(task) ? "bg-signal/5" : ""}`}>
               <td className="px-3 py-2">
                 <EditableTitle task={task} onCommit={(patch) => onUpdate(task.id, patch)} />
               </td>
@@ -141,7 +204,7 @@ function ListView({ tasks, onUpdate }) {
                 <select
                   value={task.status}
                   onChange={(e) => onUpdate(task.id, { status: e.target.value })}
-                  className="rounded-md border border-line/25 bg-transparent px-1.5 py-0.5 text-xs dark:border-white/15"
+                  className="focus-ring rounded-md border border-line/25 bg-transparent px-1.5 py-0.5 text-xs transition-colors dark:border-white/15"
                 >
                   {COLUMNS.map((c) => (
                     <option key={c} value={c}>
@@ -191,44 +254,34 @@ export default function TasksCard() {
       title="Task Management"
       icon="✅"
       headerRight={
-        <div className="flex items-center gap-1 rounded-lg bg-mist p-0.5 text-xs font-semibold dark:bg-white/10">
-          <button
-            onClick={() => setShowArchived(false)}
-            className={`rounded-md px-2 py-1 ${!showArchived ? "bg-white shadow-sm dark:bg-charcoal" : "opacity-60"}`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setShowArchived(true)}
-            className={`rounded-md px-2 py-1 ${showArchived ? "bg-white shadow-sm dark:bg-charcoal" : "opacity-60"}`}
-          >
-            Archived
-          </button>
-        </div>
+        <SegmentedToggle
+          id="tasks-archive"
+          value={showArchived ? "archived" : "active"}
+          onChange={(v) => setShowArchived(v === "archived")}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "archived", label: "Archived" },
+          ]}
+        />
       }
     >
       <div className="flex h-full flex-col gap-3">
         {!showArchived && (
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg bg-mist p-0.5 text-xs font-semibold dark:bg-white/10">
-              <button
-                onClick={() => setTaskView("kanban")}
-                className={`rounded-md px-2.5 py-1 ${taskView === "kanban" ? "bg-white shadow-sm dark:bg-charcoal" : "opacity-60"}`}
-              >
-                Kanban
-              </button>
-              <button
-                onClick={() => setTaskView("list")}
-                className={`rounded-md px-2.5 py-1 ${taskView === "list" ? "bg-white shadow-sm dark:bg-charcoal" : "opacity-60"}`}
-              >
-                List
-              </button>
-            </div>
+            <SegmentedToggle
+              id="tasks-view"
+              value={taskView}
+              onChange={setTaskView}
+              options={[
+                { value: "kanban", label: "Kanban" },
+                { value: "list", label: "List" },
+              ]}
+            />
 
             <select
               value={taskFilters.priority}
               onChange={(e) => setTaskFilters((f) => ({ ...f, priority: e.target.value }))}
-              className="rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs dark:border-white/15"
+              className="focus-ring rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs transition-colors dark:border-white/15"
             >
               <option>All</option>
               {TASK_PRIORITIES.map((p) => (
@@ -238,7 +291,7 @@ export default function TasksCard() {
             <select
               value={taskFilters.category}
               onChange={(e) => setTaskFilters((f) => ({ ...f, category: e.target.value }))}
-              className="rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs dark:border-white/15"
+              className="focus-ring rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs transition-colors dark:border-white/15"
             >
               <option>All</option>
               {TASK_CATEGORIES.map((c) => (
@@ -248,7 +301,7 @@ export default function TasksCard() {
             <select
               value={taskFilters.dueDate}
               onChange={(e) => setTaskFilters((f) => ({ ...f, dueDate: e.target.value }))}
-              className="rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs dark:border-white/15"
+              className="focus-ring rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs transition-colors dark:border-white/15"
             >
               {["All", "Overdue", "Today", "This week"].map((d) => (
                 <option key={d}>{d}</option>
@@ -268,9 +321,9 @@ export default function TasksCard() {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Quick add task…"
-                className="w-36 rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs outline-none focus:border-signal dark:border-white/15"
+                className="focus-ring w-36 rounded-md border border-line/25 bg-transparent px-2 py-1 text-xs transition-colors focus:border-signal dark:border-white/15"
               />
-              <button type="submit" className="rounded-md bg-signal px-2 py-1 text-xs font-semibold text-white">
+              <button type="submit" className="press focus-ring rounded-md bg-signal px-2 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90">
                 Add
               </button>
             </form>
@@ -278,13 +331,21 @@ export default function TasksCard() {
         )}
 
         <div className="min-h-0 flex-1 overflow-auto">
-          {showArchived ? (
-            <ListView tasks={filtered} onUpdate={updateTask} />
-          ) : taskView === "kanban" ? (
-            <KanbanBoard tasks={filtered} onUpdate={updateTask} />
-          ) : (
-            <ListView tasks={filtered} onUpdate={updateTask} />
-          )}
+          <AnimatePresence mode="wait" initial={false}>
+            {showArchived ? (
+              <motion.div key="archived" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <ListView tasks={filtered} onUpdate={updateTask} />
+              </motion.div>
+            ) : taskView === "kanban" ? (
+              <motion.div key="kanban" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full">
+                <KanbanBoard tasks={filtered} onUpdate={updateTask} />
+              </motion.div>
+            ) : (
+              <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <ListView tasks={filtered} onUpdate={updateTask} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </CardShell>
