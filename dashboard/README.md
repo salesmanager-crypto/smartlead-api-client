@@ -6,13 +6,16 @@ HeyReach LinkedIn outreach, sending-domain health, technical SEO, and a task boa
 
 **Theme — Enterprise Growth Ops (dark-slate minimalist):** deep monochrome slate
 surfaces (canvas `slate-950`, cards `slate-900`, hairline `slate-800/60` borders,
-`slate-50`/`slate-400`/`slate-500` text hierarchy), Inter, generous `p-6`/`p-8` card
-padding, and restrained font weights — hot magenta `#E51958` is kept strictly as the
-Albert Scott brand's "one key signal" (primary CTAs, the drop-target/focus accent),
-never as decoration. Status/severity reads through standard muted Tailwind semantic
-hues (emerald/red/amber/sky/slate) as hollow, low-opacity badges instead of solid
-color blocks — see "Enterprise theme" below for the full breakdown. Light mode stays
-available via the header toggle and keeps the original soft-gray Albert Scott palette.
+`slate-50`/`slate-400`/`slate-500` text hierarchy), Inter, cockpit-tight card padding,
+and restrained font weights — hot magenta `#E51958` is kept strictly as the Albert
+Scott brand's "one key signal" (primary CTAs, the drop-target/focus accent), never as
+decoration. Status/severity reads through standard muted Tailwind semantic hues
+(emerald/red/amber/sky/slate) as hollow, low-opacity badges instead of solid color
+blocks — see "Enterprise theme" and "Layout density" below for the full breakdown.
+Light mode stays available via the header toggle and keeps the original soft-gray
+Albert Scott palette. The Pipeline card's win-rate ring is the one deliberate
+"signature" element (see "Distinctive-design pass" below); everything else stays quiet
+by design.
 
 ## What's live vs. simulated
 
@@ -77,6 +80,27 @@ Open http://localhost:5174.
 - **Automation log**: "Show failures only", multi-select + bulk "Re-Run N Failed
   Automations", and row click opens the contextual sidebar drawer (resize it from its
   left edge, 30–60vw).
+
+## Distinctive-design pass
+
+Applied Anthropic's [`frontend-design`](https://github.com/anthropics/claude-code/blob/main/plugins/frontend-design/skills/frontend-design/SKILL.md)
+skill as a self-critique pass — its core question is "does this read as templated, or
+as a choice made for this specific brief?":
+
+- **One signature element, spent deliberately.** `PipelineCard.jsx`'s win-rate ring
+  (`WinRateRing`) is the one place this dashboard takes a real visual risk — a compact
+  radial gauge (SVG `stroke-dasharray`, Closed Won vs. Closed Lost) instead of another
+  stat tile. It's real information sales ops actually reads as a headline number, not
+  decoration. Note: this is an original, generic progress-ring pattern, not a
+  reproduction of Albert Scott's proprietary "ring motif" / Marketplace Control Loop
+  mark — the brand skill explicitly bans hand-recreating that asset, so it wasn't used.
+- **Responsive down to mobile (quality floor).** The draggable 12-column grid
+  (`react-grid-layout`) turns unusably narrow on a phone; `useIsMobile.js` swaps it for
+  a plain stacked column below 768px, and `TasksCard` forces List view on mobile
+  (Kanban's 3 stacked columns don't fit a phone height) — no drag, no column math,
+  everything stays legible.
+- **Everything else stays quiet.** No new decorative elements were added elsewhere —
+  restraint is the point once one thing has taken the risk.
 
 ## Layout density
 

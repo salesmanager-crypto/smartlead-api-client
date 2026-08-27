@@ -16,6 +16,36 @@ const STAGE_STYLE = {
   "Closed Lost": "bg-slate-700 dark:bg-slate-800",
 };
 
+// Compact radial gauge for win rate — a real metric (decided deals only, Closed Won
+// vs. Closed Lost), not a decorative ring. Sales ops reads win rate as a headline
+// number; giving it its own shape earns the one "signature" this card gets.
+function WinRateRing({ percent, size = 38, stroke = 4 }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - percent / 100);
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }} aria-hidden>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-line/25 dark:stroke-slate-800" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+          className="stroke-emerald-500 transition-[stroke-dashoffset] duration-700 ease-out"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold tabular-nums text-charcoal/80 dark:text-slate-200">
+        {Math.round(percent)}%
+      </span>
+    </div>
+  );
+}
+
 export default function PipelineCard() {
   const { snapshot, openDrawer } = useDashboard();
   const [hovering, setHovering] = useState(false);
@@ -36,6 +66,10 @@ export default function PipelineCard() {
     1,
     byStage.reduce((s, x) => s + x.count, 0)
   );
+  const won = byStage.find((s) => s.stage === "Closed Won")?.count || 0;
+  const lost = byStage.find((s) => s.stage === "Closed Lost")?.count || 0;
+  const decided = won + lost;
+  const winRate = decided > 0 ? (won / decided) * 100 : 0;
 
   return (
     <CardShell
@@ -43,9 +77,13 @@ export default function PipelineCard() {
       title="Pipedrive CRM Pipeline"
       icon="📊"
       headerRight={
-        <span className="text-xs font-medium text-charcoal/50 dark:text-slate-400">
-          {byStage.reduce((s, x) => s + x.count, 0)} open + closed deals
-        </span>
+        <div className="flex items-center gap-2.5" title={`${won} won / ${lost} lost of ${decided} decided deals`}>
+          {decided > 0 && <WinRateRing percent={winRate} />}
+          <div className="text-right leading-tight">
+            {decided > 0 && <p className="text-xs font-semibold text-charcoal/80 dark:text-slate-200">win rate</p>}
+            <p className="text-[11px] text-charcoal/45 dark:text-slate-500">{total} deals</p>
+          </div>
+        </div>
       }
     >
       <div className="flex h-full flex-col gap-3">

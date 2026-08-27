@@ -4,6 +4,7 @@ import CardShell from "./CardShell.jsx";
 import { MicroTag } from "../Badge.jsx";
 import SegmentedToggle from "../SegmentedToggle.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
+import { useIsMobile } from "../../hooks/useIsMobile.js";
 import { TASK_CATEGORIES, TASK_PRIORITIES } from "../../lib/mockData.js";
 
 const COLUMNS = ["To Do", "In Progress", "Done"];
@@ -235,6 +236,10 @@ export default function TasksCard() {
   const { snapshot, taskView, setTaskView, taskFilters, setTaskFilters, showArchived, setShowArchived, updateTask, createTask } =
     useDashboard();
   const [newTitle, setNewTitle] = useState("");
+  // Kanban's 3 stacked columns need real estate a phone doesn't have — mobile always
+  // reads as List, which scrolls as one predictable column instead of three.
+  const isMobile = useIsMobile();
+  const effectiveView = isMobile ? "list" : taskView;
 
   const filtered = useMemo(() => {
     if (!snapshot) return [];
@@ -270,15 +275,17 @@ export default function TasksCard() {
       <div className="flex h-full flex-col gap-3">
         {!showArchived && (
           <div className="flex flex-wrap items-center gap-2">
-            <SegmentedToggle
-              id="tasks-view"
-              value={taskView}
-              onChange={setTaskView}
-              options={[
-                { value: "kanban", label: "Kanban" },
-                { value: "list", label: "List" },
-              ]}
-            />
+            {!isMobile && (
+              <SegmentedToggle
+                id="tasks-view"
+                value={taskView}
+                onChange={setTaskView}
+                options={[
+                  { value: "kanban", label: "Kanban" },
+                  { value: "list", label: "List" },
+                ]}
+              />
+            )}
 
             <select
               value={taskFilters.priority}
@@ -338,7 +345,7 @@ export default function TasksCard() {
               <motion.div key="archived" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
                 <ListView tasks={filtered} onUpdate={updateTask} />
               </motion.div>
-            ) : taskView === "kanban" ? (
+            ) : effectiveView === "kanban" ? (
               <motion.div key="kanban" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="h-full">
                 <KanbanBoard tasks={filtered} onUpdate={updateTask} />
               </motion.div>
