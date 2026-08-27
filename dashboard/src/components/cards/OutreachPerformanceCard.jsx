@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts";
 import CardShell from "./CardShell.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
@@ -44,15 +45,28 @@ function Feed({ title, logo, children }) {
   );
 }
 
+// This card has no internal interactive elements of its own (no buttons, toggles,
+// or click handlers besides the recharts hover tooltip), so — unlike Pipeline,
+// Tasks and SEO — its entire body can safely act as one click-through link to the
+// dedicated Inbox / Triaging Hub, matching the routing spec's "Card A" example.
 export default function OutreachPerformanceCard() {
   const { snapshot } = useDashboard();
+  const navigate = useNavigate();
   if (!snapshot) return <CardShell id="outreach" title="Outbound Performance">Loading…</CardShell>;
 
   const { smartlead, heyreach, inboxes } = snapshot;
+  const goToInbox = () => navigate("/inbox");
 
   return (
-    <CardShell id="outreach" title="Outbound Performance" icon="📨">
-      <div className="flex h-full flex-col gap-3">
+    <CardShell id="outreach" title="Outbound Performance" icon="📨" openTo="/inbox" openLabel="View Inbox ↗">
+      <div
+        role="link"
+        tabIndex={0}
+        onClick={goToInbox}
+        onKeyDown={(e) => (e.key === "Enter" ? goToInbox() : undefined)}
+        className="focus-ring flex h-full cursor-pointer flex-col gap-3 rounded-xl transition-colors"
+        title="Open the Smartlead → Pipedrive Triaging & Log Hub"
+      >
         <div className="flex flex-1 flex-col gap-3 sm:flex-row">
           <Feed title="Smartlead" logo="✉️">
             <div className="grid grid-cols-3 gap-1.5">

@@ -12,14 +12,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "framer-motion": "^11.11.17",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-grid-layout": "^1.5.0",
-    "recharts": "^2.13.0",
-    "framer-motion": "^11.11.17",
-    "express": "^4.21.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5"
+    "react-router-dom": "^6.30.6",
+    "recharts": "^2.13.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

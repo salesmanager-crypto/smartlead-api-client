@@ -83,6 +83,52 @@ Open http://localhost:5174.
   contextual sidebar drawer (resize it from its left edge, 30–60vw) all still work
   against the full filtered set regardless of how many rows are currently shown.
 
+## Routing architecture
+
+Multi-route SPA on `react-router-dom` v6 (this is a Vite app, not Next.js, so
+routing is client-side `<BrowserRouter>` rather than the App Router):
+
+| Route | Page | Purpose |
+| --- | --- | --- |
+| `/dashboard` | `pages/DashboardPage.jsx` | Executive Overview Matrix — the draggable card grid + a 5-row automation log preview |
+| `/inbox` | `pages/InboxPage.jsx` | Smartlead → Pipedrive Triaging & Log Hub — full log, master-detail, inline quick reply |
+| `/pipeline` | `pages/PipelinePage.jsx` | Pipedrive CRM Deals Workspace — expanded deal cards with an inline SEO Audit widget |
+| `/tasks` | `pages/TasksPage.jsx` | Advanced Task Center — the full-bleed Kanban/List board |
+| `/seo` | `pages/SeoPage.jsx` | Website Diagnostics & Asset Health — bigger diagnostics tiles + full domain ledger |
+
+`components/layout/Layout.jsx` renders the sidebar, header, alert banner, and —
+critically — the resizable **`SidebarDrawer`** and **`ProfileModal`** exactly once,
+outside `<Outlet/>`, so they act as a persistent "third layer" reachable from any
+route instead of being rebuilt per page. `DashboardProvider`/`ThemeProvider` wrap
+`<BrowserRouter>` in `main.jsx`, so profile, theme, dashboard layout, task
+filters/view, and the drawer's own state all survive navigation untouched.
+
+**Overview cards as click-through links** — each card on `/dashboard` deep-links
+into its dedicated page instead of duplicating it:
+
+- **Outreach Performance** has no internal interactive elements, so its entire
+  body is one click target → `/inbox`.
+- **Pipeline** — clicking a funnel segment or stage legend item now navigates to
+  `/pipeline?stage=<stage>` (pre-filtered) instead of opening the drawer; the
+  drawer is reserved for single-deal drill-down from inside the workspace.
+- **Tasks** stays fully interactive at a glance (drag, ▲▼ move, quick filters,
+  quick-add all still work in the overview card) — only a task's *title* click
+  is redirected, from "edit in place" to `/tasks?task=<id>` (highlighted on
+  arrival), via the shared `components/tasks/TasksBoard.jsx`'s `onNavigate` prop.
+  On `/tasks` itself, no `onNavigate` is passed, so title-click goes back to
+  editing in place — deep interaction lives on the dedicated page.
+- **SEO** keeps its cooldown toggle working locally (`stopPropagation`), and a
+  domain row click (outside the toggle) navigates to `/seo`.
+
+Every card also gets a small "Open ↗" link in its header (`CardShell`'s `openTo`
+prop) as an explicit, always-visible way in, independent of the click-through body.
+
+`/inbox`'s master-detail layout deliberately does **not** open the drawer on
+every row selection — the center reading pane covers the common case (lead info,
+reply content, inline `QuickReplyPanel`). The drawer opens only when you click
+"View raw API debug payload ↗" on a failed run, which is the concrete example
+from the routing spec: inspecting the raw CRM API error without leaving the page.
+
 ## Distinctive-design pass
 
 Applied Anthropic's [`frontend-design`](https://github.com/anthropics/claude-code/blob/main/plugins/frontend-design/skills/frontend-design/SKILL.md)

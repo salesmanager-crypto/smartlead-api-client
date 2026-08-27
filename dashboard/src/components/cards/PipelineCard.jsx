@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import CardShell from "./CardShell.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
@@ -7,7 +8,8 @@ import { useDashboard } from "../../context/DashboardContext.jsx";
 // Monochrome funnel ramp — neutral stages darken as a deal progresses (lightest at
 // creation, darkest at negotiation), with the accent budget spent on a single
 // semantic color reserved for the one outcome worth calling out: Closed Won.
-const STAGE_STYLE = {
+// Exported so the dedicated /pipeline workspace page can reuse the exact same ramp.
+export const STAGE_STYLE = {
   "Deal Created": "bg-slate-300 dark:bg-slate-700",
   Discovery: "bg-slate-400 dark:bg-slate-600",
   Proposal: "bg-slate-500 dark:bg-slate-500",
@@ -18,8 +20,9 @@ const STAGE_STYLE = {
 
 // Compact radial gauge for win rate — a real metric (decided deals only, Closed Won
 // vs. Closed Lost), not a decorative ring. Sales ops reads win rate as a headline
-// number; giving it its own shape earns the one "signature" this card gets.
-function WinRateRing({ percent, size = 38, stroke = 4 }) {
+// number; giving it its own shape earns the one "signature" this card gets. Exported
+// so the overview card and the full /pipeline page render the identical widget.
+export function WinRateRing({ percent, size = 38, stroke = 4 }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const offset = c * (1 - percent / 100);
@@ -47,7 +50,8 @@ function WinRateRing({ percent, size = 38, stroke = 4 }) {
 }
 
 export default function PipelineCard() {
-  const { snapshot, openDrawer } = useDashboard();
+  const { snapshot } = useDashboard();
+  const navigate = useNavigate();
   const [hovering, setHovering] = useState(false);
 
   const correlation = useMemo(() => {
@@ -61,7 +65,7 @@ export default function PipelineCard() {
 
   if (!snapshot) return <CardShell id="pipeline" title="Pipedrive CRM Pipeline">Loading…</CardShell>;
 
-  const { byStage, deals } = snapshot.pipeline;
+  const { byStage } = snapshot.pipeline;
   const total = Math.max(
     1,
     byStage.reduce((s, x) => s + x.count, 0)
@@ -71,11 +75,17 @@ export default function PipelineCard() {
   const decided = won + lost;
   const winRate = decided > 0 ? (won / decided) * 100 : 0;
 
+  // Clicking into a stage now deep-links to the dedicated CRM Deals Workspace
+  // (pre-filtered to that stage) instead of opening the drawer — the drawer stays
+  // reserved for single-deal drill-down from within that workspace.
+  const goToStage = (stage) => navigate(`/pipeline?stage=${encodeURIComponent(stage)}`);
+
   return (
     <CardShell
       id="pipeline"
       title="Pipedrive CRM Pipeline"
       icon="📊"
+      openTo="/pipeline"
       headerRight={
         <div className="flex items-center gap-2.5" title={`${won} won / ${lost} lost of ${decided} decided deals`}>
           {decided > 0 && <WinRateRing percent={winRate} />}
@@ -96,8 +106,8 @@ export default function PipelineCard() {
             {byStage.map((s) => (
               <button
                 key={s.stage}
-                onClick={() => openDrawer("deal", { stage: s.stage, deals: deals.filter((d) => d.stage === s.stage) })}
-                title={`${s.stage}: ${s.count} deals, $${s.value.toLocaleString()}`}
+                onClick={() => goToStage(s.stage)}
+                title={`${s.stage}: ${s.count} deals, $${s.value.toLocaleString()} — open in Pipeline Workspace`}
                 style={{ width: `${(s.count / total) * 100}%` }}
                 className={`press focus-ring group relative h-full min-w-[3%] transition-[filter,transform] duration-200 hover:brightness-110 ${STAGE_STYLE[s.stage]}`}
               >
@@ -155,7 +165,7 @@ export default function PipelineCard() {
           {byStage.map((s) => (
             <li key={s.stage}>
               <button
-                onClick={() => openDrawer("deal", { stage: s.stage, deals: deals.filter((d) => d.stage === s.stage) })}
+                onClick={() => goToStage(s.stage)}
                 className="press focus-ring flex w-full items-center gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-mist dark:hover:bg-slate-800/40"
               >
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-sm ${STAGE_STYLE[s.stage]}`} aria-hidden />

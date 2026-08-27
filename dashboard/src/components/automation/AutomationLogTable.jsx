@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Badge from "../Badge.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
 import { pipedriveDealUrl } from "../../lib/constants.js";
@@ -9,13 +10,15 @@ const TAG_COLOR = { Interested: "green", "Not Interested": "red", OutOfOffice: "
 const STATUS_COLOR = { "Created Deal": "green", Failed: "red", Skipped: "gray", "Lost/Archived": "gray" };
 
 // Keep this to a glance on the main dashboard — a handful of the most recent runs,
-// not the whole log. "Show all" expands it inline for anyone who needs the full list.
+// not the whole log. The full transactional database view now lives at /inbox
+// (the dedicated Triaging & Log Hub), so this table stays capped with a link
+// through instead of expanding inline.
 const VISIBLE_LIMIT = 5;
 
 export default function AutomationLogTable() {
   const { snapshot, openDrawer, reRunAutomations } = useDashboard();
+  const navigate = useNavigate();
   const [failuresOnly, setFailuresOnly] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [rerunning, setRerunning] = useState(false);
 
@@ -24,7 +27,7 @@ export default function AutomationLogTable() {
     return failuresOnly ? all.filter((r) => r.pipedriveStatus === "Failed") : all;
   }, [snapshot, failuresOnly]);
 
-  const rows = expanded ? filteredRows : filteredRows.slice(0, VISIBLE_LIMIT);
+  const rows = filteredRows.slice(0, VISIBLE_LIMIT);
   const hiddenCount = filteredRows.length - rows.length;
 
   const selectedFailed = useMemo(() => {
@@ -64,18 +67,26 @@ export default function AutomationLogTable() {
               Smartlead → Pipedrive Automation Log
             </h2>
             <span className="text-[11px] font-medium text-charcoal/40 dark:text-slate-500">
-              {expanded ? filteredRows.length : `${rows.length} of ${filteredRows.length}`}
+              {rows.length} of {filteredRows.length}
             </span>
           </div>
-          <label className="focus-within:ring-2 focus-within:ring-signal/50 flex items-center gap-2 rounded text-xs font-medium">
-            <input
-              type="checkbox"
-              checked={failuresOnly}
-              onChange={(e) => setFailuresOnly(e.target.checked)}
-              className="h-3.5 w-3.5 accent-signal"
-            />
-            Show failures only
-          </label>
+          <div className="flex items-center gap-3">
+            <label className="focus-within:ring-2 focus-within:ring-signal/50 flex items-center gap-2 rounded text-xs font-medium">
+              <input
+                type="checkbox"
+                checked={failuresOnly}
+                onChange={(e) => setFailuresOnly(e.target.checked)}
+                className="h-3.5 w-3.5 accent-signal"
+              />
+              Show failures only
+            </label>
+            <button
+              onClick={() => navigate("/inbox")}
+              className="press focus-ring rounded-md px-1.5 py-1 text-xs font-semibold text-signal transition-colors hover:text-signal-deep"
+            >
+              Full log ↗
+            </button>
+          </div>
         </header>
 
         <AnimatePresence initial={false}>
@@ -194,13 +205,13 @@ export default function AutomationLogTable() {
           )}
         </div>
 
-        {(hiddenCount > 0 || expanded) && filteredRows.length > VISIBLE_LIMIT && (
+        {hiddenCount > 0 && (
           <div className="border-t border-line/15 px-3 py-2 dark:border-slate-800/60">
             <button
-              onClick={() => setExpanded((e) => !e)}
+              onClick={() => navigate("/inbox")}
               className="press focus-ring w-full rounded-lg py-1 text-center text-xs font-semibold text-charcoal/60 transition-colors hover:bg-mist/60 hover:text-charcoal dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
             >
-              {expanded ? "Show fewer ↑" : `Show all ${filteredRows.length} runs ↓`}
+              View all {filteredRows.length} runs in Inbox ↓
             </button>
           </div>
         )}

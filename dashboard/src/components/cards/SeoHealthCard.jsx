@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CardShell from "./CardShell.jsx";
 import Badge from "../Badge.jsx";
 import { useDashboard } from "../../context/DashboardContext.jsx";
@@ -6,10 +7,20 @@ import { useDashboard } from "../../context/DashboardContext.jsx";
 const STATUS_COLOR = { active: "green", warming: "yellow", dormant: "gray" };
 const CWV_LABEL = { good: "green", "needs-improvement": "yellow", poor: "red" };
 
-function DomainRow({ domain, onToggle, busy }) {
+// Exported so the full /seo diagnostics page reuses the identical row instead of
+// duplicating the cooldown-toggle logic. `onOpen`, when passed (overview card
+// only), makes the row itself a click-through link to /seo — the toggle keeps its
+// own stopPropagation so pausing/warming a domain from the glance view still works.
+export function DomainRow({ domain, onToggle, busy, onOpen }) {
   const cooling = domain.coolingDown || domain.status === "warming";
   return (
-    <li className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-mist/60 dark:hover:bg-slate-800/40">
+    <li
+      onClick={onOpen}
+      role={onOpen ? "link" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onKeyDown={onOpen ? (e) => (e.key === "Enter" ? onOpen() : undefined) : undefined}
+      className={`flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-mist/60 dark:hover:bg-slate-800/40 ${onOpen ? "focus-ring cursor-pointer" : ""}`}
+    >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{domain.domain}</p>
         <div className="mt-0.5 flex items-center gap-1.5">
@@ -25,7 +36,10 @@ function DomainRow({ domain, onToggle, busy }) {
         </div>
       </div>
       <button
-        onClick={() => onToggle(domain.id, !cooling)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(domain.id, !cooling);
+        }}
         disabled={busy || domain.status === "dormant"}
         role="switch"
         aria-checked={cooling}
@@ -45,6 +59,7 @@ function DomainRow({ domain, onToggle, busy }) {
 
 export default function SeoHealthCard() {
   const { snapshot, setDomainCooldown } = useDashboard();
+  const navigate = useNavigate();
   const [busyId, setBusyId] = useState(null);
 
   if (!snapshot) return <CardShell id="seo" title="Technical SEO & Asset Health">Loading…</CardShell>;
@@ -64,7 +79,7 @@ export default function SeoHealthCard() {
   };
 
   return (
-    <CardShell id="seo" title="Technical SEO & Asset Health" icon="🌐">
+    <CardShell id="seo" title="Technical SEO & Asset Health" icon="🌐" openTo="/seo">
       <div className="flex h-full flex-col gap-4">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50 dark:text-slate-400">
@@ -97,7 +112,7 @@ export default function SeoHealthCard() {
           </div>
           <ul className="thin-scroll max-h-full space-y-0.5 overflow-auto">
             {domains.map((d) => (
-              <DomainRow key={d.id} domain={d} onToggle={handleToggle} busy={busyId === d.id} />
+              <DomainRow key={d.id} domain={d} onToggle={handleToggle} busy={busyId === d.id} onOpen={() => navigate("/seo")} />
             ))}
           </ul>
         </div>

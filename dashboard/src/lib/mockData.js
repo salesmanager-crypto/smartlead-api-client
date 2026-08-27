@@ -238,6 +238,41 @@ const TASK_SEED = [
   { title: "Sync Verdant Kitchenware deal notes into activity log", category: "Pipedrive", priority: "Medium", status: "Done", daysDue: -3, completedDaysAgo: 3 },
 ];
 
+// ---- Per-account technical SEO audit score --------------------------------
+// Feeds the "SEO Audit & Diagnostic Score" widget inline on each deal card in
+// the /pipeline workspace — deterministic per company name (not random per
+// render) so the same deal shows the same score/issues across polls.
+
+const AUDIT_ISSUES_POOL = [
+  "Missing meta descriptions on 4 product pages",
+  "Core Web Vitals: LCP above 2.5s on mobile",
+  "3 broken outbound links in blog content",
+  "No canonical tag on duplicate category pages",
+  "Sitemap missing 12 recently added URLs",
+  "robots.txt blocking a crawled asset directory",
+  "Thin content on 2 collection pages (<300 words)",
+  "Missing alt text on 9 product images",
+];
+
+function hashString(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+export function seoScoreFor(companyName) {
+  const h = hashString(companyName || "");
+  const score = 42 + (h % 57); // 42–98
+  const band = score >= 85 ? "good" : score >= 65 ? "needs-improvement" : "poor";
+  const issueCount = score >= 85 ? 1 : score >= 65 ? 2 : 3;
+  const start = h % AUDIT_ISSUES_POOL.length;
+  const issues = Array.from({ length: issueCount }, (_, i) => AUDIT_ISSUES_POOL[(start + i) % AUDIT_ISSUES_POOL.length]);
+  return { score, band, issues };
+}
+
 export function buildTasks() {
   return TASK_SEED.map((t, i) => {
     const completedAt = t.status === "Done" ? daysAgo(t.completedDaysAgo ?? 2) : null;

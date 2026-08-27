@@ -1,4 +1,7 @@
-export default function CardShell({ id, title, icon, headerRight, children, bodyClassName = "" }) {
+import { useNavigate } from "react-router-dom";
+
+export default function CardShell({ id, title, icon, headerRight, children, bodyClassName = "", openTo, openLabel = "Open ↗" }) {
+  const navigate = useNavigate();
   return (
     <section
       id={`card-${id}`}
@@ -13,6 +16,14 @@ export default function CardShell({ id, title, icon, headerRight, children, body
         </div>
         <div className="flex shrink-0 items-center gap-2" onMouseDown={(e) => e.stopPropagation()}>
           {headerRight}
+          {openTo && (
+            <button
+              onClick={() => navigate(openTo)}
+              className="press focus-ring rounded-md px-1.5 py-1 text-[11px] font-semibold text-charcoal/45 transition-colors hover:bg-mist hover:text-signal dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-signal"
+            >
+              {openLabel}
+            </button>
+          )}
         </div>
       </header>
       <div className={`thin-scroll min-h-0 flex-1 overflow-auto p-4 ${bodyClassName}`}>{children}</div>
