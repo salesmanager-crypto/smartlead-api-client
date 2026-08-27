@@ -85,3 +85,25 @@ const batch = await qev.verifyEmails(["a@example.com", "b@example.com"]);
 
 `result` is one of `valid`, `invalid`, or `unknown`. Treat `invalid` as a hard skip before adding a
 lead; `unknown`/`accept_all: true` domains can't be confirmed by SMTP and are a judgment call.
+
+## CRM (Pipedrive)
+
+A minimal client for [Pipedrive](https://developers.pipedrive.com/docs/api/v1) lives in
+`src/pipedrive.js` — pipelines/stages, deals, and the organization/person/activity flow
+used by `docs/Smartlead-Pipedrive-Automation-Workflow.md` (always search before creating).
+
+```js
+import { PipedriveClient } from "./src/pipedrive.js";
+
+const pipedrive = new PipedriveClient(); // reads PIPEDRIVE_API_TOKEN + PIPEDRIVE_COMPANY_DOMAIN from env
+const deals = await pipedrive.getDeals({ status: "open" });
+const stale = await pipedrive.getStaleOpenDeals({ hours: 48 });
+```
+
+## Growth Ops dashboard
+
+`dashboard/` is a standalone React + Express app — the Albert Scott-branded "Growth Ops
+Command Center": live outbound performance, Pipedrive pipeline, a Smartlead → Pipedrive
+automation log with bulk re-run, a task board, and domain/SEO health, all in one
+customizable, drag-and-drop dashboard. See [`dashboard/README.md`](dashboard/README.md)
+for setup and exactly which cards are backed by real API calls vs. mock data.
