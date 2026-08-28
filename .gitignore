@@ -7,6 +7,7 @@ node_modules/
 .last-checkpoint
 scripts/.deliverability-state.json
 scripts/*.log
+scripts/*-log.txt
 scripts/deliverability-log.txt
 logs/
 dist/
