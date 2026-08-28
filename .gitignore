@@ -10,3 +10,4 @@ scripts/*.log
 scripts/deliverability-log.txt
 logs/
 dist/
+__pycache__/
