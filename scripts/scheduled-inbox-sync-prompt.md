@@ -61,18 +61,29 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
 
 ## Step 4 — Pipedrive sync (only for Interested / Follow Up / Meeting Request)
 1. `searchOrganization` by company name → use `org_id` if found, else `addOrganization`.
-2. `searchPersons` by email → use `person_id` if found, else `addPerson` with first name, last
-   name, email, `org_id`. **Omit `job_title`, `notes`, `postal_address`, `im`, `birthday`** — these
-   403 on this account (contact sync isn't enabled). Put that context in the Activity note instead.
-3. `addActivity`:
+2. `searchPersons` by email → use `person_id` if found — this also catches a person already
+   created by the Calendly step (Step 5) if they booked before replying — else `addPerson` with
+   first name, last name, email, `org_id`. **Omit `job_title`, `notes`, `postal_address`, `im`,
+   `birthday`** — these 403 on this account (contact sync isn't enabled). Put that context in the
+   Activity note instead.
+3. **Dedup check (fixed 2026-08-28 — Rachel flagged duplicate Pipedrive entries between SmartLead
+   and Calendly): `searchLeads` by email/name before creating a Lead.** If this person already has
+   a Lead — from an earlier run of this step, or from a prior Calendly booking (Step 5) — reuse
+   that `lead_id` and skip straight to `addActivity` below; do not call `addLead` again. Otherwise
+   `addLead`: `title`: "<Category> - {name}", `person_id`, `organization_id` (if any),
+   `owner_id: 26939288`. One Person, one Lead per email address, regardless of which flow
+   (SmartLead or Calendly) got there first — SmartLead is the canonical source, so never create a
+   second Lead for someone who already has one.
+4. `addActivity`:
    - `type`: "Meeting" for Meeting Request, "Follow Up" otherwise
    - `subject`: short description
    - `note`: the full inbound reply text
    - `participants`: `[{ "person_id": <id>, "primary": true }]` — **never** pass `person_id` at
      the top level, it's read-only and 400s.
+   - `lead_id`: the id from step 3 above — link the activity to the **lead**, not just the person
    - `owner_id`: 26939288
 
-## Step 5 — Calendly (verified 2026-08-19)
+## Step 5 — Calendly (verified 2026-08-19; dedup fix 2026-08-28)
 Search Gmail (`yoni@albertscott.com` — corrected 2026-08-19; previously documented as
 salesmanager@albertscott.com, which was wrong) for messages `from:notifications@calendly.com` whose
 subject starts with **"New Event:"** (a reschedule shows **"Updated:"** instead), received since the
@@ -80,14 +91,24 @@ checkpoint. **Do not filter on "scheduled" in the subject** — that word only a
 body, never the subject; a subject search for it silently matches nothing, which is exactly the bug
 that made this step a no-op before. The same sender also sends password-reset and meeting-recap
 mail unrelated to bookings — the "New Event:"/"Updated:" subject prefix is the actual signal. For any
-booking found: extract name/email/date/time, `searchPersons` → update or create person+org as in Step 4,
-then **`addLead`** (`title`: `"Calendly Booking - {name}"`, `person_id`, `organization_id` if
-present, `owner_id: 26939288`) — **required, do not skip**: without this call the booking is just
-a bare contact, not a Lead, which is exactly the bug flagged in the Aug 18 meeting ("Fix
-Calendly→Pipedrive: create leads, not contacts", fixed 2026-08-19). Then `addActivity` type
-"Meeting" subject "Calendly Booking" with the date/time, linked via `lead_id` (from the `addLead`
-call) rather than just `person_id`. Finally block that domain+email in Smartlead so no campaign
-re-contacts them.
+booking found, extract name/email/date/time, then:
+
+1. `searchPersons` by email. If found — most often because this prospect already replied to a
+   SmartLead campaign and Step 4 created their record first — **reuse that `person_id`/`org_id`; do
+   not create a second Person or Organization.** If not found, create person+org as in Step 4.
+2. `searchLeads` by email/name. **If a Lead already exists for this person (from Step 4, or from an
+   earlier Calendly booking), reuse that `lead_id` and skip straight to the `addActivity` call below
+   — do not call `addLead` again.** This is the fix for the duplicate-entry issue Rachel flagged:
+   SmartLead is the canonical source, so someone who already has a SmartLead-sourced Lead must never
+   get a second `"Calendly Booking - {name}"` Lead just because they also booked a call.
+3. Only when step 2 found no existing Lead: **`addLead`** (`title`: `"Calendly Booking - {name}"`,
+   `person_id`, `organization_id` if present, `owner_id: 26939288`) — **required for a genuinely new
+   prospect, do not skip**: without this call the booking is just a bare contact, not a Lead, which
+   is exactly the bug flagged in the Aug 18 meeting ("Fix Calendly→Pipedrive: create leads, not
+   contacts", fixed 2026-08-19).
+4. `addActivity` type "Meeting" subject "Calendly Booking" with the date/time, linked via `lead_id`
+   (from step 2 or 3 above) rather than just `person_id`.
+5. Block that domain+email in Smartlead so no campaign re-contacts them.
 
 ## Step 6 — Update checkpoint
 Write the max `last_reply_time` across everything you just processed (or now, if nothing new) to
@@ -99,7 +120,10 @@ blocked) to `/home/user/smartlead-api-client/logs/inbox-sync-log.csv` (create it
 row if it doesn't exist yet). Columns, in order:
 `timestamp,campaign,lead_name,lead_email,category_applied,pipedrive_action,domain_blocked,reply_excerpt`
 - `timestamp`: now, ISO 8601
-- `pipedrive_action`: "created" / "updated" / "none"
+- `pipedrive_action`: "created" (new Person and/or Lead) / "updated" (existing Person updated) /
+  "reused-lead" (dedup check in Step 4/5 found an existing Lead from the other channel and attached
+  an Activity to it instead of creating a new one — log this distinctly so duplicate-prevention is
+  auditable) / "none"
 - `domain_blocked`: "yes" / "no"
 - `reply_excerpt`: the inbound reply body, HTML-stripped, collapsed to one line, truncated to 200
   chars. Escape commas/quotes properly for CSV (wrap the field in double quotes, double any
@@ -110,7 +134,10 @@ taken, not everything scanned.
 ## Step 8 — Report
 One-paragraph summary: replies pulled, how many skipped (Rachel campaigns), how many per category,
 deals/persons created or updated in Pipedrive, domains blocked, any Calendly bookings synced, any
-errors (403s, unexpected payload shapes, etc. — call these out, don't silently swallow them).
+errors (403s, unexpected payload shapes, etc. — call these out, don't silently swallow them). Also
+call out how many `reused-lead` dedup hits happened this run (a SmartLead reply and a Calendly
+booking resolving to the same existing Lead) — that's the duplicate-prevention check working, worth
+surfacing so it stays visible that it's active.
 
 ## Weekly backlog scan (only on the run tagged "weekly")
 Instead of using the checkpoint file, set the `replyTimeBetween` start to 8 days before now, to
