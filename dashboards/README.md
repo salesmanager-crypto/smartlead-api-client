@@ -11,6 +11,11 @@ The file is the page body only. The publisher wraps it in `<!doctype html>`, `<h
 
 ## Refreshing the data
 
+The scheduled procedure is `scripts/scheduled-command-center-refresh-prompt.md` (daily, 8:00 am
+Eastern). Manually: run the two pull scripts, save the Pipedrive connector responses under
+`dashboards/pull/out/pipedrive/` as that prompt describes, then run `build-constants.mjs` and
+`apply-constants.mjs`. Raw pulls under `dashboards/pull/out/` are gitignored.
+
 Only the constants block at the top of the `<script>` changes on a refresh: `DATA_DATE`, `TODAY`,
 `OVERDUE`, `DUE_TODAY`, `UPCOMING`, `CAMPAIGNS`, `DEALS`, `INBOX_LOG`, `YESTERDAY`, `LINKEDIN`,
 `PD_META`, `INBOXES`. Everything below it is render code and computes its captions from those.

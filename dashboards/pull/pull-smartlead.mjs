@@ -1,20 +1,51 @@
-// Pull everything the dashboard's SmartLead page needs. Output: smartlead-pull.json
+#!/usr/bin/env node
+// Pulls everything the command center's SmartLead page needs and writes
+// dashboards/pull/out/smartlead-pull.json. Dates are computed in America/New_York.
+//
+// Usage: node dashboards/pull/pull-smartlead.mjs [--today=YYYY-MM-DD]
+// Needs SMARTLEAD_API_KEY in the environment or in .env at the repo root.
+
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { SmartleadClient } from "../../src/client.js";
 
-for (const line of fs.readFileSync("../../.env", "utf8").split("\n")) {
-  const t = line.trim(); if (!t || t.startsWith("#")) continue;
-  const eq = t.indexOf("="); if (eq === -1) continue;
-  const k = t.slice(0, eq).trim(), v = t.slice(eq + 1).trim();
-  if (!(k in process.env)) process.env[k] = v;
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, "..", "..");
+const outDir = path.join(here, "out");
+fs.mkdirSync(outDir, { recursive: true });
+
+const envPath = path.join(root, ".env");
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+    const t = line.trim(); if (!t || t.startsWith("#")) continue;
+    const eq = t.indexOf("="); if (eq === -1) continue;
+    const k = t.slice(0, eq).trim(), v = t.slice(eq + 1).trim();
+    if (!(k in process.env)) process.env[k] = v;
+  }
 }
-const OUT = "./smartlead-pull.json";
-const YESTERDAY = "2026-09-01";
+if (!process.env.SMARTLEAD_API_KEY) { console.error("SMARTLEAD_API_KEY is not set"); process.exit(2); }
+
+const ET = "America/New_York";
+function etDate(d) { return new Intl.DateTimeFormat("en-CA", { timeZone: ET, year: "numeric", month: "2-digit", day: "2-digit" }).format(d); }
+function shiftDay(iso, n) { const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+// midnight in ET for a YYYY-MM-DD, as an ISO UTC string
+function etMidnightUtc(iso) {
+  const probe = new Date(iso + "T05:00:00Z"); // roughly midnight ET; correct for the exact offset below
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: ET, hour12: false, hour: "2-digit", minute: "2-digit" }).formatToParts(probe);
+  const h = Number(parts.find((p) => p.type === "hour").value) % 24, m = Number(parts.find((p) => p.type === "minute").value);
+  return new Date(probe.getTime() - (h * 60 + m) * 60000).toISOString();
+}
+
+const todayArg = process.argv.find((a) => a.startsWith("--today="));
+const TODAY = todayArg ? todayArg.split("=")[1] : etDate(new Date());
+const YESTERDAY = shiftDay(TODAY, -1);
+const WINDOW_START = shiftDay(TODAY, -7);
+
 const client = new SmartleadClient({});
 const log = (...a) => console.error(new Date().toISOString().slice(11, 19), ...a);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-const result = { pulledAt: new Date().toISOString(), errors: [] };
+const result = { pulledAt: new Date().toISOString(), today: TODAY, yesterday: YESTERDAY, windowStart: WINDOW_START, errors: [] };
 
 // 1. campaigns + all-time analytics per campaign
 const campaigns = await client.listCampaigns();
@@ -31,10 +62,11 @@ for (const c of campaigns) {
 }
 log("analytics done, errors:", result.errors.length);
 
-// 2. yesterday's sends per campaign (active + anything that could have sent)
+// 2. yesterday's sends per campaign: every ACTIVE campaign plus recent ones that have sent
 result.yesterdayByCampaign = [];
-const maybeSending = result.campaigns.filter((c) => ["ACTIVE", "PAUSED", "COMPLETED", "STOPPED"].includes(c.status) &&
-  (c.status === "ACTIVE" || (c.analytics && c.analytics.sent_count > 0 && new Date(c.created) > new Date("2026-06-01"))));
+const recent = shiftDay(TODAY, -90);
+const maybeSending = result.campaigns.filter((c) => c.status === "ACTIVE" ||
+  (c.analytics && Number(c.analytics.sent_count) > 0 && c.created && c.created.slice(0, 10) >= recent));
 log("checking yesterday for", maybeSending.length, "campaigns");
 for (const c of maybeSending) {
   try {
@@ -44,7 +76,7 @@ for (const c of maybeSending) {
   await sleep(120);
 }
 
-// 3. email accounts, fully paginated
+// 3. email accounts, fully paginated (the API caps a page at 100)
 result.emailAccounts = [];
 for (let offset = 0; ; offset += 100) {
   const page = await client.listEmailAccounts({ offset, limit: 100 });
@@ -54,31 +86,22 @@ for (let offset = 0; ; offset += 100) {
 }
 log("inboxes:", result.emailAccounts.length);
 
-// 4. last 7 days of replies from master inbox, with categories (feeds the daily inbox log)
-const cats = await client.getLeadCategories();
-result.categories = cats;
+// 4. Master Inbox replies for the trailing 7 days (ET midnight boundaries), with categories
+result.categories = await client.getLeadCategories();
 result.replies7d = [];
-result.replySampleKeys = null;
+const from = etMidnightUtc(WINDOW_START), to = new Date().toISOString();
 for (let offset = 0; ; offset += 20) {
-  const res = await client.getMasterInboxReplies({
-    offset, limit: 20, sortBy: "REPLY_TIME_DESC",
-    filters: { emailStatus: "Replied", replyTimeBetween: ["2026-08-26T00:00:00.000Z", "2026-09-02T23:59:59.999Z"] },
-  }, false);
+  const res = await client.getMasterInboxReplies({ offset, limit: 20, sortBy: "REPLY_TIME_DESC", filters: { emailStatus: "Replied", replyTimeBetween: [from, to] } }, false);
   const items = res.data || res.items || [];
-  if (!result.replySampleKeys && items[0]) result.replySampleKeys = Object.keys(items[0]);
   result.replies7d.push(...items.map((i) => ({
-    lead_email: i.lead_email, lead_name: i.lead_name, first_name: i.lead_first_name || i.first_name, last_name: i.lead_last_name || i.last_name,
-    campaign_id: i.campaign_id, campaign: i.campaign_name, category_id: i.lead_category_id, time: i.last_reply_time,
-    lead_id: i.lead_id, stats_id: i.stats_id, raw: i,
+    lead_email: i.lead_email, first_name: i.lead_first_name, last_name: i.lead_last_name,
+    campaign_id: i.email_campaign_id, campaign: i.email_campaign_name, category_id: i.lead_category_id, time: i.last_reply_time, lead_id: i.email_lead_id,
   })));
-  if (items.length < 20 || offset > 1000) break;
+  if (items.length < 20 || offset > 2000) break;
   await sleep(150);
 }
-log("replies 7d:", result.replies7d.length);
+log("replies in window:", result.replies7d.length);
 
-// 5. last-7-days overview
-try { result.overview7d = await client.getAnalyticsOverview({ start_date: "2026-08-26", end_date: "2026-09-02" }); }
-catch (e) { result.errors.push({ step: "overview", msg: e.message }); }
-
-fs.writeFileSync(OUT, JSON.stringify(result));
-log("written", OUT);
+const out = path.join(outDir, "smartlead-pull.json");
+fs.writeFileSync(out, JSON.stringify(result));
+log("written", out);

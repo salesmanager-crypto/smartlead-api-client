@@ -11,3 +11,6 @@ scripts/*-log.txt
 scripts/deliverability-log.txt
 logs/
 dist/
+
+# raw API pulls for the dashboard refresh
+dashboards/pull/out/
