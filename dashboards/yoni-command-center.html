@@ -1,0 +1,1202 @@
+<title>Yoni Sales & Marketing Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1D0000;
+    --crimson: #B10548;
+    --pink: #E51958;
+
+    --bg: #F2F2F2;
+    --surface: #FFFFFF;
+    --surface-alt: #FAFAFA;
+    --border: #E6E4E4;
+
+    --text: #1A1A1A;
+    --text-secondary: #5A5A5A;
+    --text-tertiary: #8A8A8A;
+    --accent-text: #B10548;
+
+    --inverse-bg: #1D0000;
+    --inverse-fg: #FFFFFF;
+
+    --success-fg: #137A4D; --success-bg: #E8F3ED;
+    --warning-fg: #B8860B; --warning-bg: #F8F1DF;
+    --danger-fg:  #CC3311; --danger-bg:  #FBEAE6;
+    --neutral-fg: #5A5A5A; --neutral-bg: #EFEFEF;
+
+    --chart-crimson: #B10548;
+    --chart-blue:    #1F6FEB;
+    --chart-amber:   #B26A00;
+    --chart-purple:  #7A3BD1;
+    --chart-green:   #4C7A1F;
+
+    --shadow: 0 1px 2px rgba(29,0,0,.045), 0 14px 30px -16px rgba(29,0,0,.14);
+
+    --r-card: 20px; --r-sub: 14px; --r-btn: 9px; --r-pill: 999px;
+    --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #150A0B; --surface: #201113; --surface-alt: #241417; --border: #34191C;
+      --text: #F2EDED; --text-secondary: #C9B9BA; --text-tertiary: #8F7A7C; --accent-text: #FF4D82;
+      --inverse-bg: #201113; --inverse-fg: #F2EDED;
+      --success-fg: #4ADE9A; --success-bg: #16261D;
+      --warning-fg: #F0C24B; --warning-bg: #2E2410;
+      --danger-fg:  #FF6B52; --danger-bg:  #331512;
+      --neutral-fg: #C9B9BA; --neutral-bg: #2A1A1C;
+      --chart-crimson: #E8447D; --chart-blue: #4C8EE8; --chart-amber: #B87A20; --chart-purple: #9868DE; --chart-green: #6B9A3A;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 34px -16px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #150A0B; --surface: #201113; --surface-alt: #241417; --border: #34191C;
+    --text: #F2EDED; --text-secondary: #C9B9BA; --text-tertiary: #8F7A7C; --accent-text: #FF4D82;
+    --inverse-bg: #201113; --inverse-fg: #F2EDED;
+    --success-fg: #4ADE9A; --success-bg: #16261D;
+    --warning-fg: #F0C24B; --warning-bg: #2E2410;
+    --danger-fg:  #FF6B52; --danger-bg:  #331512;
+    --neutral-fg: #C9B9BA; --neutral-bg: #2A1A1C;
+    --chart-crimson: #E8447D; --chart-blue: #4C8EE8; --chart-amber: #B87A20; --chart-purple: #9868DE; --chart-green: #6B9A3A;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 34px -16px rgba(0,0,0,.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-display); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+  ::selection { background: rgba(177,5,72,.22); }
+  a { color: inherit; text-decoration: none; }
+  button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: none; }
+  h1, h2, h3, p { margin: 0; }
+  ol, ul { margin: 0; padding: 0; list-style: none; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; border-radius: 4px; }
+  .thin-scroll::-webkit-scrollbar { width: 7px; height: 7px; }
+  .thin-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+  .thin-scroll::-webkit-scrollbar-track { background: transparent; }
+  @media (prefers-reduced-motion: reduce) { * { transition-duration: .001ms !important; animation-duration: .001ms !important; } }
+
+  /* shell */
+  .shell { display: flex; min-height: 100vh; }
+  .rail { width: 88px; flex-shrink: 0; background: var(--ink); border-radius: 0 20px 20px 0; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 16px 0 18px; position: sticky; top: 0; height: 100vh; }
+  @media (min-width: 780px) { .rail { display: flex; } }
+  .rail-logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(155deg, var(--crimson), var(--pink)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 12px; flex-shrink: 0; }
+  .rail-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 14px; }
+  .rail-btn { position: relative; width: 72px; height: 54px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: rgba(242,237,237,.5); transition: background .15s, color .15s; }
+  .rail-btn .lbl { font-size: 9px; font-weight: 700; letter-spacing: .2px; line-height: 1; white-space: nowrap; }
+  .rail-btn svg { width: 19px; height: 19px; }
+  .rail-btn:hover { color: rgba(242,237,237,.9); background: rgba(242,237,237,.08); }
+  .rail-btn.active { background: var(--inverse-fg); color: var(--ink); }
+  .rail-btn.disabled-ish { opacity: .55; }
+  .rail-badge { position: absolute; top: 4px; right: 8px; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 999px; background: var(--pink); color: #fff; font-size: 8.5px; font-weight: 800; line-height: 14px; text-align: center; }
+  .rail-foot { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: auto; }
+  .rail-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(242,237,237,.12); color: var(--inverse-fg); display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; border: 1px solid rgba(242,237,237,.18); }
+
+  .main { flex: 1; min-width: 0; }
+  .topbar { position: sticky; top: 0; z-index: 30; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .topbar-inner { max-width: 1360px; margin: 0 auto; padding: 13px 26px; display: flex; align-items: center; gap: 14px; }
+  @media (min-width: 700px) { .topbar-inner { padding: 13px 28px; } }
+  .search-pill { display: flex; align-items: center; gap: 8px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 8px 14px 8px 12px; flex: 1; max-width: 340px; transition: border-color .15s; }
+  .search-pill:focus-within { border-color: var(--accent-text); }
+  .search-pill svg { width: 15px; height: 15px; color: var(--text-tertiary); flex-shrink: 0; }
+  .search-pill input { border: none; background: none; outline: none; width: 100%; color: var(--text); font-size: 12.5px; }
+  .search-pill input::placeholder { color: var(--text-tertiary); }
+  .topbar-spacer { flex: 1; }
+  .date-pill { font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; display: none; }
+  @media (min-width: 900px) { .date-pill { display: block; } }
+  .user-chip { display: flex; align-items: center; gap: 9px; padding-left: 6px; }
+  .user-avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: var(--inverse-bg); color: var(--inverse-fg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+  .user-meta { display: none; line-height: 1.3; }
+  @media (min-width: 620px) { .user-meta { display: block; } }
+  .user-name { font-size: 12.5px; font-weight: 700; }
+  .user-role { font-size: 10.5px; color: var(--text-tertiary); }
+
+  .content { max-width: 1360px; margin: 0 auto; padding: 26px; }
+  @media (min-width: 700px) { .content { padding: 28px; } }
+  .page-head { margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .page-head h1 { font-size: 27px; font-weight: 800; letter-spacing: -.6px; }
+  .page-head p { margin-top: 5px; font-size: 13px; color: var(--text-secondary); max-width: 640px; }
+  .live-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--success-fg); background: var(--success-bg); border-radius: var(--r-pill); padding: 4px 11px; white-space: nowrap; }
+  .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .section { margin-bottom: 26px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-tertiary); margin-bottom: 12px; }
+
+  .info-note, .flag-note { display: flex; gap: 10px; align-items: flex-start; border-radius: var(--r-sub); padding: 12px 14px; font-size: 12.5px; line-height: 1.55; }
+  .info-note { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-secondary); }
+  .flag-note { background: var(--warning-bg); border: 1px solid transparent; color: var(--warning-fg); }
+  .danger-note { background: var(--danger-bg); color: var(--danger-fg); border: 1px solid transparent; }
+  .info-note svg, .flag-note svg, .danger-note svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+  .info-note strong, .flag-note strong, .danger-note strong { color: var(--text); font-weight: 700; }
+  .flag-note strong { color: var(--warning-fg); }
+  .danger-note strong { color: var(--danger-fg); }
+
+  .empty-page { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 30px; }
+  .empty-page h3 { font-size: 16.5px; font-weight: 700; margin-bottom: 8px; }
+  .empty-page p { font-size: 13px; color: var(--text-secondary); max-width: 620px; margin-bottom: 6px; }
+  .empty-page ul { margin: 12px 0 0; }
+  .empty-page li { font-size: 13px; color: var(--text-secondary); padding: 5px 0 5px 18px; position: relative; }
+  .empty-page li::before { content: ""; position: absolute; left: 2px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--text-tertiary); }
+
+  .kpi-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 620px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1080px) { .kpi-row.cols-4 { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 900px) { .kpi-row.cols-3 { grid-template-columns: repeat(3, 1fr); } }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; color: inherit; }
+  a.kpi-card { transition: transform .15s, border-color .15s; }
+  a.kpi-card:hover { transform: translateY(-1px); border-color: var(--accent-text); }
+  a.kpi-card.hero:hover { border-color: transparent; }
+  .kpi-card.hero { background: linear-gradient(150deg, var(--ink), var(--crimson)); border-color: transparent; color: #fff; }
+  .kpi-card.unavailable { background: var(--surface-alt); }
+  .kpi-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .55px; color: var(--text-tertiary); }
+  .kpi-card.hero .kpi-label { color: rgba(255,255,255,.72); }
+  .kpi-icon { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: var(--surface-alt); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; }
+  .kpi-icon svg { width: 16px; height: 16px; }
+  .kpi-card.hero .kpi-icon { background: rgba(255,255,255,.14); color: #fff; }
+  .kpi-value { font-size: 31px; font-weight: 800; letter-spacing: -.4px; }
+  .kpi-value.na { font-size: 18px; color: var(--text-tertiary); }
+  .kpi-caption { font-size: 12px; color: var(--text-secondary); margin-top: -6px; }
+  .kpi-card.hero .kpi-caption { color: rgba(255,255,255,.82); }
+  .pill { display: inline-flex; align-items: center; gap: 5px; border-radius: var(--r-pill); padding: 3px 10px; font-size: 11px; font-weight: 700; width: fit-content; }
+  .pill.success { background: var(--success-bg); color: var(--success-fg); }
+  .pill.warning { background: var(--warning-bg); color: var(--warning-fg); }
+  .pill.danger  { background: var(--danger-bg);  color: var(--danger-fg); }
+  .pill.neutral { background: var(--neutral-bg); color: var(--neutral-fg); }
+  .kpi-card.hero .pill { background: rgba(255,255,255,.16); color: #fff; }
+  .pill .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  .exception-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 900px) { .exception-row { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 900px) { .exception-row.cols-2 { grid-template-columns: repeat(2, 1fr); } }
+  .exc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .exc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .exc-head h3 { font-size: 14.5px; font-weight: 700; }
+  .exc-head .tag { font-size: 10.5px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .5px; }
+  .bar-list { display: flex; flex-direction: column; gap: 9px; }
+  .bar-list-row { display: flex; align-items: center; gap: 10px; }
+  .bar-list-label { font-size: 11.5px; color: var(--text-secondary); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-list-track { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-alt); overflow: hidden; }
+  .bar-list-fill { height: 100%; border-radius: 999px; background: var(--crimson); }
+  .bar-list-val { font-size: 12px; font-weight: 700; width: 34px; text-align: right; flex-shrink: 0; }
+  .stat-pair { display: flex; gap: 18px; flex-wrap: wrap; }
+  .stat-pair .s { flex: 1; min-width: 80px; }
+  .stat-pair .v { font-size: 22px; font-weight: 800; }
+  .stat-pair .l { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+  .list-preview { display: flex; flex-direction: column; }
+  .list-preview a { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .list-preview a:last-child { border-bottom: none; }
+  .list-preview .t { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-preview .m { color: var(--text-tertiary); flex-shrink: 0; }
+
+  .chart-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 900px) { .chart-row { grid-template-columns: 1.5fr 1fr; } }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 18px 20px 20px; }
+  .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .chart-head h3 { font-size: 16.5px; font-weight: 700; }
+  .chart-head p { font-size: 11.5px; color: var(--text-tertiary); margin-top: 3px; }
+  .toggle-link { font-size: 11px; font-weight: 700; color: var(--accent-text); border: 1px solid var(--border); border-radius: var(--r-btn); padding: 5px 9px; white-space: nowrap; flex-shrink: 0; }
+  .toggle-link:hover { border-color: var(--accent-text); }
+  .bars-wrap { display: flex; align-items: flex-end; gap: 14px; height: 170px; padding: 0 4px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar-shape-wrap { flex: 1; display: flex; align-items: flex-end; width: 100%; justify-content: center; }
+  .bar-shape { width: 36px; border-radius: 6px 6px 0 0; }
+  .bar-value { font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .bar-caption { font-size: 10.5px; font-weight: 700; color: var(--text-secondary); margin-top: 10px; text-align: center; }
+  .bar-sub { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
+  .donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; justify-content: center; }
+  .donut-ring { position: relative; width: 122px; height: 122px; flex-shrink: 0; }
+  .donut-ring .hole { position: absolute; inset: 18px; border-radius: 50%; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .donut-ring .hole .n { font-size: 18px; font-weight: 800; }
+  .donut-ring .hole .l { font-size: 9px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .4px; }
+  .legend { display: flex; flex-direction: column; gap: 7px; }
+  .legend-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .legend-name { color: var(--text-secondary); width: 76px; flex-shrink: 0; }
+  .legend-val { font-weight: 700; }
+  .legend-pct { color: var(--text-tertiary); font-size: 10.5px; }
+  .plain-table { width: 100%; border-collapse: collapse; font-size: 12.5px; display: none; }
+  .plain-table.shown { display: table; }
+  .plain-table th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-tertiary); font-weight: 700; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+  .plain-table td { padding: 8px 8px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+  .plain-table td.n { text-align: right; font-weight: 700; color: var(--text); }
+  .chart-visual.hidden { display: none; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { border-radius: var(--r-pill); background: var(--surface-alt); border: 1px solid var(--border); padding: 6px 13px; font-size: 12px; font-weight: 600; color: var(--text-secondary); transition: background .15s, color .15s, border-color .15s; }
+  .chip:hover { border-color: var(--accent-text); color: var(--accent-text); }
+  .chip.active { background: var(--inverse-bg); color: var(--inverse-fg); border-color: var(--inverse-bg); }
+
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+  .table-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 18px 20px 14px; }
+  .table-head h3 { font-size: 16.5px; font-weight: 700; }
+  .count-badge { font-family: var(--font-display); font-size: 11px; font-weight: 700; background: var(--surface-alt); color: var(--text-secondary); border-radius: var(--r-pill); padding: 2px 9px; }
+  .table-head-sub { font-size: 11.5px; color: var(--text-tertiary); flex-basis: 100%; margin-top: -6px; }
+  .table-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .btn-primary { background: var(--crimson); color: #fff; font-weight: 700; font-size: 12px; border-radius: var(--r-btn); padding: 8px 14px; white-space: nowrap; transition: background .15s; }
+  .btn-primary:hover { background: var(--pink); }
+  .chip-row.in-head { padding: 0 20px 14px; }
+  .table-scroll { overflow: auto; max-height: 560px; }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 680px; }
+  .data-table thead th { position: sticky; top: 0; z-index: 1; text-align: left; background: var(--surface-alt); font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; color: var(--text-tertiary); padding: 9px 18px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .data-table thead th button { display: inline-flex; align-items: center; gap: 4px; color: inherit; font: inherit; text-transform: inherit; letter-spacing: inherit; font-weight: inherit; padding: 0; }
+  .data-table thead th button:hover { color: var(--accent-text); }
+  .data-table thead th.sorted button { color: var(--accent-text); }
+  .data-table thead th svg { width: 9px; height: 9px; opacity: .55; }
+  .data-table tbody td { padding: 9px 18px; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: var(--surface-alt); }
+  .data-table td.n { font-weight: 700; color: var(--text); }
+  .data-table td.subject { color: var(--text); font-weight: 600; max-width: 260px; }
+  .data-table td.mono { font-size: 11.5px; color: var(--text-tertiary); }
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--text-tertiary); font-size: 12.5px; }
+
+  .reg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .reg-table th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-tertiary); font-weight: 700; padding: 9px 14px; border-bottom: 1px solid var(--border); background: var(--surface-alt); white-space: nowrap; }
+  .reg-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+  .reg-table td.n { text-align: right; font-weight: 700; color: var(--text); }
+  .reg-table td.name { color: var(--text); font-weight: 700; }
+  .reg-foot td { font-weight: 800; color: var(--text); border-top: 2px solid var(--border); border-bottom: none; }
+
+  footer.page-foot { text-align: center; padding: 8px 0 6px; font-size: 11px; color: var(--text-tertiary); }
+  footer.page-foot a { color: var(--accent-text); font-weight: 600; }
+
+  /* mobile nav: the rail is hidden under 780px, so pages need another way in */
+  .mobile-nav { display: flex; gap: 6px; overflow-x: auto; padding: 0 26px 10px; scrollbar-width: none; }
+  .mobile-nav::-webkit-scrollbar { display: none; }
+  @media (min-width: 780px) { .mobile-nav { display: none; } }
+  .mobile-nav a { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-pill); padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--surface-alt); border: 1px solid var(--border); }
+  .mobile-nav a.active { background: var(--inverse-bg); color: var(--inverse-fg); border-color: var(--inverse-bg); }
+  .mini-badge { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--pink); color: #fff; font-size: 9px; font-weight: 800; line-height: 16px; text-align: center; }
+  .mini-badge:empty { display: none; }
+
+  .data-table td a.ext { color: var(--text-secondary); border-bottom: 1px dotted var(--text-tertiary); }
+  .data-table td a.ext:hover { color: var(--accent-text); border-bottom-color: currentColor; }
+  a.pill:hover { filter: brightness(.95); }
+  .kpi-value small { font-size: 13px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 0; margin-left: 4px; }
+  .kpi-card.hero .kpi-value small { color: rgba(255,255,255,.72); }
+</style>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="rail-logo">YS</div>
+    <nav class="rail-nav" id="railNav">
+      <a class="rail-btn" href="#/" data-nav="overview" title="Main" aria-label="Main">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.6"/></svg>
+        <span class="lbl">Main</span>
+      </a>
+      <a class="rail-btn" href="#/smartlead" data-nav="smartlead" title="Smartlead" aria-label="Smartlead">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>
+        <span class="lbl">Smartlead</span>
+      </a>
+      <a class="rail-btn" href="#/pipedrive" data-nav="pipedrive" title="Pipedrive" aria-label="Pipedrive">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5h17L14 12.5v6l-4 2v-8z"/></svg>
+        <span class="lbl">Pipedrive</span>
+        <span class="rail-badge" id="railBadgePipedrive"></span>
+      </a>
+      <a class="rail-btn" href="#/linkedin" data-nav="linkedin" title="LinkedIn outreach" aria-label="LinkedIn outreach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><circle cx="8.2" cy="8.5" r="1.1" fill="currentColor" stroke="none"/><path d="M8.2 11.5v6"/><path d="M12.5 17.5v-4.2c0-1.4 1-2.1 2.1-2.1s2.1.9 2.1 2.3v4"/></svg>
+        <span class="lbl">Linkedin</span>
+      </a>
+      <a class="rail-btn" href="#/seo" data-nav="seo" title="SEO and GEO" aria-label="SEO and GEO">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.6 5.3 3.6 8.5s-1.2 6.2-3.6 8.5c-2.4-2.3-3.6-5.3-3.6-8.5S9.6 5.8 12 3.5z"/></svg>
+        <span class="lbl">SEO GEO</span>
+      </a>
+      <a class="rail-btn" href="#/smartscout" data-nav="smartscout" title="SmartScout" aria-label="SmartScout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-5-5"/></svg>
+        <span class="lbl">SmartScout</span>
+      </a>
+      <a class="rail-btn" href="#/general" data-nav="general" title="Resources: software and infrastructure" aria-label="Resources: software and infrastructure">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="6" rx="1.6"/><rect x="4" y="14" width="16" height="6" rx="1.6"/><path d="M7.5 7h.01M7.5 17h.01"/></svg>
+        <span class="lbl">Resources</span>
+      </a>
+    </nav>
+    <div class="rail-foot"><div class="rail-avatar">YL</div></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <label class="search-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="globalSearch" placeholder="Search campaigns, follow-ups, vendors">
+        </label>
+        <div class="topbar-spacer"></div>
+        <span class="date-pill">Data as of Aug 27, 2026</span>
+        <div class="user-chip">
+          <div class="user-avatar">YL</div>
+          <div class="user-meta"><div class="user-name">Yoni Lebovits</div><div class="user-role">Sales & Marketing</div></div>
+        </div>
+      </div>
+      <nav class="mobile-nav" id="mobileNav" aria-label="Pages">
+        <a href="#/" data-nav="overview">Main</a>
+        <a href="#/smartlead" data-nav="smartlead">Smartlead</a>
+        <a href="#/pipedrive" data-nav="pipedrive">Pipedrive <span class="mini-badge" id="mobileBadgePipedrive"></span></a>
+        <a href="#/linkedin" data-nav="linkedin">Linkedin</a>
+        <a href="#/seo" data-nav="seo">SEO GEO</a>
+        <a href="#/smartscout" data-nav="smartscout">SmartScout</a>
+        <a href="#/general" data-nav="general">Resources</a>
+      </nav>
+    </header>
+    <main class="content" id="page"></main>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ================= real data pulled live this session ================= */
+const OVERDUE = [
+  {id:553,subject:"followup",type:"call",due:"2026-06-02",days:86,person:875,personName:"Joe Zhao",org:490,orgName:"Zleo",owner:25102178},
+  {id:580,subject:"followup",type:"call",due:"2026-06-02",days:86,person:901,personName:"Ronald Pastor",org:514,orgName:"Global Beauty Care",owner:25102178},
+  {id:610,subject:"check in",type:"call",due:"2026-06-02",days:86,person:1514,personName:"Lucas",org:810,orgName:"Louis Tellier",owner:25102178},
+  {id:666,subject:"follow up",type:"call",due:"2026-06-02",days:86,person:1502,personName:"Prince Thomas",org:799,orgName:"MetaShot",owner:25102178},
+  {id:669,subject:"check in",type:"call",due:"2026-06-02",days:86,person:1492,personName:"Roni Varghese",org:707,orgName:"Funskool",owner:25102178},
+  {id:675,subject:"check in",type:"call",due:"2026-06-02",days:86,person:1529,personName:"Gigi Steinbarth",org:809,orgName:"La Preferida",owner:25102178},
+  {id:676,subject:"check in",type:"call",due:"2026-06-02",days:86,person:1524,personName:"Parker",org:820,orgName:"Wabash Valley Farms",owner:25102178},
+  {id:693,subject:"Call scheduled?",type:"call",due:"2026-06-02",days:86,person:1540,personName:"Justin Fourie",org:834,orgName:"Flavafil",owner:25102178},
+  {id:710,subject:"call scheduled? check in",type:"call",due:"2026-06-02",days:86,person:1500,personName:"Rolin Kostya (Kostiantyn)",org:797,orgName:"Fainotoys",owner:25102178},
+  {id:761,subject:"follow up",type:"call",due:"2026-06-02",days:86,person:1470,personName:"Linda Lee",org:774,orgName:"Pure Amor",owner:25102178},
+  {id:246,subject:"check in/how are things going",type:"call",due:"2026-06-03",days:85,person:863,personName:"Michael Mackey",org:479,orgName:"Beanhut",owner:25102178},
+  {id:696,subject:"Call scheduled?",type:"call",due:"2026-06-03",days:85,person:1544,personName:"Lucia Escalona Lopez",org:838,orgName:"Soweto",owner:25102178},
+  {id:879,subject:"follow up",type:"call",due:"2026-06-03",days:85,person:1480,personName:"Nicholas Monette",org:784,orgName:"Rozvelt",owner:25102178},
+  {id:215,subject:"Check in/see how amazon activity going",type:"call",due:"2026-06-23",days:65,person:634,personName:"Marc Brown",org:338,orgName:"ONOIN",owner:25102178},
+  {id:969,subject:"follow up",type:"call",due:"2026-06-23",days:65,person:1597,personName:"Jennifer Morey",org:892,orgName:"Yes Please Treats",owner:25102178},
+  {id:1017,subject:"reschedule call?",type:"call",due:"2026-06-25",days:63,person:1551,personName:"Boris Lu",org:845,orgName:"Solamex",owner:25102178},
+  {id:892,subject:"follow up",type:"call",due:"2026-06-29",days:59,person:885,personName:"Ken Schuffenhauer",org:500,orgName:"L&R Ultrasonics",owner:25102178},
+  {id:984,subject:"close loop",type:"call",due:"2026-06-29",days:59,person:1580,personName:"Benjamin Perisse",org:875,orgName:"1883 Maison Routin",owner:25102178},
+  {id:985,subject:"close loop",type:"call",due:"2026-06-29",days:59,person:1581,personName:"Adnan",org:876,orgName:"Hermanos Coffee",owner:25102178},
+  {id:986,subject:"close loop",type:"call",due:"2026-06-29",days:59,person:1584,personName:"Edy Piro",org:879,orgName:"Terrone & Co.",owner:25102178},
+  {id:1005,subject:"close loop",type:"call",due:"2026-06-29",days:59,person:1566,personName:"Karla Zuniga",org:860,orgName:"AdaWall USA",owner:25102178},
+  {id:983,subject:"Call",type:"call",due:"2026-07-01",days:57,person:1592,personName:"Will Penfold",org:887,orgName:"Routes Coffee",owner:25102178},
+  {id:844,subject:"Follow up Daniela Rodriguez",type:"call",due:"2026-07-14",days:44,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:980,subject:"follow up tyler@thetattoozoo.com",type:"call",due:"2026-07-14",days:44,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1078,subject:"Lead book a call: aorhan@targus.com",type:"call",due:"2026-07-14",days:44,person:1637,personName:"Ali Orhan",org:928,orgName:"Targus",owner:25109251},
+  {id:977,subject:"follow up",type:"call",due:"2026-07-15",days:43,person:1607,personName:"Lauren Rebar",org:901,orgName:"Naturally Home Grown Foods",owner:25109251},
+  {id:1087,subject:"follow up",type:"call",due:"2026-07-17",days:41,person:1646,personName:"Sabrina Tridico",org:937,orgName:"Aura Self Love",owner:25102178},
+  {id:1054,subject:"close loop",type:"call",due:"2026-07-20",days:38,person:1531,personName:"Chain Yu",org:827,orgName:"Dreame",owner:25102178},
+  {id:1055,subject:"close loop Sofia Cen /Kevin",type:"call",due:"2026-07-20",days:38,person:null,personName:null,org:null,orgName:null,owner:25102178},
+  {id:1056,subject:"close loop Braulio Jimenez (smartelad)",type:"call",due:"2026-07-20",days:38,person:null,personName:null,org:null,orgName:null,owner:25102178},
+  {id:1186,subject:"Calendly Schedule",type:"call",due:"2026-07-20",days:38,person:1704,personName:"Halima Bepo",org:null,orgName:null,owner:25109251},
+  {id:1189,subject:"Calendly Schedule",type:"call",due:"2026-07-20",days:38,person:1706,personName:"MICHELLE COMPO",org:null,orgName:null,owner:25109251},
+  {id:705,subject:"Follow up with Sunny Park (smartlead)",type:"call",due:"2026-07-21",days:37,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:739,subject:"Follow up",type:"call",due:"2026-07-21",days:37,person:1555,personName:"Hector",org:849,orgName:"CondoBugs",owner:25109251},
+  {id:819,subject:"schedule call for next",type:"call",due:"2026-07-21",days:37,person:1535,personName:"Raghav Agarwal",org:830,orgName:"FireUp",owner:25109251},
+  {id:864,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1528,personName:"Mario Aleksic",org:824,orgName:"Japan Mint",owner:25109251},
+  {id:972,subject:"follow up Susiana Dai",type:"call",due:"2026-07-21",days:37,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:973,subject:"follow up Anshul joshi",type:"call",due:"2026-07-21",days:37,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1088,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1647,personName:"Sean Yim",org:938,orgName:"Equlib",owner:25102178},
+  {id:1090,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1625,personName:"Ammer Iqbal",org:919,orgName:"Beauty Forever",owner:25102178},
+  {id:1091,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1629,personName:"The Cuticle Lab",org:null,orgName:null,owner:25102178},
+  {id:1092,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1630,personName:"Suzanne Cummins",org:923,orgName:"14 Day Mani",owner:25102178},
+  {id:1093,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1631,personName:"Nibi",org:924,orgName:"Kinky Apothecary",owner:25102178},
+  {id:1094,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1632,personName:"Tem Sulu",org:925,orgName:"Detangle Duette",owner:25102178},
+  {id:1096,subject:"follow up",type:"call",due:"2026-07-21",days:37,person:1627,personName:"M. Ahsan Javaid",org:921,orgName:"SJS International - Rivaj",owner:25102178},
+  {id:1106,subject:"follow up LI",type:"call",due:"2026-07-21",days:37,person:1649,personName:"Milos Ilic",org:940,orgName:"Orthomol pharmazeutische Vertriebs",owner:25102178},
+  {id:994,subject:"check in sergio soto",type:"call",due:"2026-07-22",days:36,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1097,subject:"call",type:"call",due:"2026-07-22",days:36,person:1626,personName:"Alwyn Stephen",org:920,orgName:"Oro Vento",owner:25109251},
+  {id:993,subject:"check in gabrijela",type:"call",due:"2026-07-23",days:35,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1184,subject:"Calendly Schedule",type:"call",due:"2026-07-23",days:35,person:1702,personName:"Arnie Demecillo",org:null,orgName:null,owner:25109251},
+  {id:981,subject:"call scheduled?",type:"call",due:"2026-07-27",days:31,person:1609,personName:"Esther Foo",org:903,orgName:"Haw Par Healthcare Limited",owner:25109251},
+  {id:1006,subject:"close loop steve luhrs",type:"call",due:"2026-07-28",days:30,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1074,subject:"Follow up for book appointment - AOrhan@targus.com",type:"call",due:"2026-07-28",days:30,person:1637,personName:"Ali Orhan",org:928,orgName:"Targus",owner:25109251},
+  {id:1128,subject:"try to give him a call",type:"call",due:"2026-07-28",days:30,person:1622,personName:"Carlos Bahamonde Cruz",org:916,orgName:"Joma Sport",owner:25102178},
+  {id:1179,subject:"Calendly Schedule",type:"call",due:"2026-07-29",days:29,person:1698,personName:"ZAKARIA AHMED",org:null,orgName:null,owner:25109251},
+  {id:1121,subject:"Call",type:"call",due:"2026-07-30",days:28,person:1652,personName:"Simonne Solarsh",org:943,orgName:"IntrinsiCurly Me",owner:25109251},
+  {id:1178,subject:"Calendly Schedule",type:"call",due:"2026-07-30",days:28,person:1656,personName:"Jack Hartmann",org:946,orgName:"Kubo Tea",owner:25109251},
+  {id:1140,subject:"Interested",type:"call",due:"2026-07-31",days:27,person:1662,personName:"Ben Kim",org:953,orgName:"Daehan Flour Mills Co., Ltd.'",owner:25109251},
+  {id:1141,subject:"Interested",type:"call",due:"2026-07-31",days:27,person:1663,personName:"Sainatee Boonfun",org:954,orgName:"The Kin Dee",owner:25109251},
+  {id:1193,subject:"Calendly Schedule",type:"call",due:"2026-08-05",days:22,person:1709,personName:"Karen Cursham",org:989,orgName:"Btinterne",owner:25109251},
+  {id:1205,subject:"Follow Up",type:"task",due:"2026-08-07",days:20,person:1719,personName:"Ronald Goenawan",org:998,orgName:"Bukit Sari Organic Plantation",owner:25109251},
+  {id:1206,subject:"Meeting Request - Schedule Call",type:"call",due:"2026-08-07",days:20,person:1720,personName:"Vladimir",org:999,orgName:"crEATive PEA",owner:25109251},
+  {id:1197,subject:"Interested",type:"call",due:"2026-08-08",days:19,person:1713,personName:"Test User",org:993,orgName:"Test Company",owner:25109251},
+  {id:1198,subject:"Interested",type:"call",due:"2026-08-08",days:19,person:1714,personName:"Sarah Johnson",org:994,orgName:"ACME Corporation",owner:25109251},
+  {id:1199,subject:"Interested",type:"call",due:"2026-08-08",days:19,person:1715,personName:"Test User",org:null,orgName:null,owner:25109251},
+  {id:1200,subject:"Interested",type:"call",due:"2026-08-08",days:19,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1201,subject:"Interested",type:"call",due:"2026-08-08",days:19,person:1716,personName:"John Doe",org:995,orgName:"ACME Inc",owner:25109251},
+  {id:1172,subject:"Calendly Scheduled",type:"call",due:"2026-08-10",days:17,person:1696,personName:"Matt sisk",org:null,orgName:null,owner:25109251},
+  {id:1176,subject:"Calendly Schedule",type:"call",due:"2026-08-10",days:17,person:1697,personName:"Sonto Pooe",org:null,orgName:null,owner:25109251},
+  {id:1151,subject:"Follow Up",type:"call",due:"2026-08-11",days:16,person:1673,personName:"Elena",org:964,orgName:"CASA OLEARIA TAGGIASCA",owner:25109251},
+  {id:1196,subject:"Calendly Schedule",type:"call",due:"2026-08-11",days:16,person:1712,personName:"Wouter Morsink",org:992,orgName:"Imbarro",owner:25109251},
+  {id:1213,subject:"Calendly Booked",type:"call",due:"2026-08-11",days:16,person:1726,personName:"Andy Donahue",org:null,orgName:null,owner:25109251},
+  {id:1163,subject:"Call",type:"call",due:"2026-08-12",days:15,person:1686,personName:"Jono Clark",org:977,orgName:"Extreme Lounging",owner:25109251},
+  {id:1167,subject:"Follow Up",type:"call",due:"2026-08-12",days:15,person:1690,personName:"Kaz\u0131m Palaz",org:981,orgName:"Eris Group",owner:25109251},
+  {id:1177,subject:"Calendly Schedule",type:"call",due:"2026-08-12",days:15,person:1686,personName:"Jono Clark",org:977,orgName:"Extreme Lounging",owner:25109251},
+  {id:1214,subject:"Calendly Booked",type:"call",due:"2026-08-12",days:15,person:1712,personName:"Wouter Morsink",org:992,orgName:"Imbarro",owner:25109251},
+  {id:1220,subject:"Follow Up",type:"call",due:"2026-08-14",days:13,person:1727,personName:"Arif Hassan",org:1003,orgName:"Pistafood",owner:25109251},
+  {id:1237,subject:"Calendly Booking",type:"meeting",due:"2026-08-17",days:10,person:1729,personName:"Cristian",org:1004,orgName:"Clyde Candles",owner:25109251},
+  {id:1224,subject:"Triage Jun 2 overdue call batch (11 leads)",type:"task",due:"2026-08-18",days:9,person:null,personName:null,org:null,orgName:null,owner:25102178},
+  {id:1225,subject:"Follow up: Perry Fishing USA \u2014 asked about Amazon cost/pricing",type:"task",due:"2026-08-18",days:9,person:1730,personName:"Jesse",org:null,orgName:null,owner:25109251},
+  {id:1236,subject:"Calendly Booking",type:"meeting",due:"2026-08-18",days:9,person:1740,personName:"Slava",org:950,orgName:"Snack Unity LLC",owner:25109251},
+  {id:1238,subject:"Calendly Booking",type:"meeting",due:"2026-08-18",days:9,person:1619,personName:"Chlo\u00e9 Denomm\u00e9",org:913,orgName:"Caran d'Ache",owner:25109251},
+  {id:577,subject:"follow up",type:"call",due:"2026-08-19",days:8,person:898,personName:"Matt Soreco",org:513,orgName:"Mr Bar-b-q",owner:25109251},
+  {id:1250,subject:"Follow up: Alumacart \u2014 agreed to review case study",type:"task",due:"2026-08-21",days:6,person:1743,personName:"Jennifer",org:null,orgName:null,owner:26939288},
+  {id:1210,subject:"Interested",type:"call",due:"2026-08-24",days:3,person:1723,personName:"Alex Joseph",org:1001,orgName:"SensIQ",owner:25109251},
+  {id:1269,subject:"Calendly Booking",type:"meeting",due:"2026-08-24",days:3,person:1745,personName:"Jon Knowles",org:null,orgName:null,owner:26939288},
+  {id:723,subject:"check in",type:"call",due:"2026-08-25",days:2,person:1509,personName:"Katia Barga",org:805,orgName:"CREACIONES SELENE S.L.",owner:25109251},
+  {id:1134,subject:"Interested",type:"call",due:"2026-08-25",days:2,person:1656,personName:"Jack Hartmann",org:946,orgName:"Kubo Tea",owner:25109251},
+  {id:1170,subject:"Interested",type:"call",due:"2026-08-25",days:2,person:1693,personName:"Kimberly Thomson",org:984,orgName:"Poppleton Pantry",owner:25109251},
+  {id:1221,subject:"Meeting Scheduled",type:"call",due:"2026-08-25",days:2,person:1728,personName:"Joshua Friedman",org:null,orgName:null,owner:25109251},
+  {id:1252,subject:"Interested",type:"call",due:"2026-08-25",days:2,person:1746,personName:"Alisa Barry",org:1020,orgName:"Bella Cucina",owner:25109251},
+  {id:308,subject:"check in",type:"task",due:"2026-08-26",days:1,person:890,personName:"Bryce Gipson",org:505,orgName:"Aji Pepper Sauce",owner:25109251},
+  {id:954,subject:"call",type:"call",due:"2026-08-26",days:1,person:1590,personName:"Marc Bouthillier",org:885,orgName:"Agility",owner:25109251},
+  {id:1025,subject:"Call",type:"call",due:"2026-08-26",days:1,person:1616,personName:"Isa Ozdemir",org:910,orgName:"Mate Snacks",owner:25109251},
+  {id:1036,subject:"Iza book a call for Last June 24th, 2026",type:"call",due:"2026-08-26",days:1,person:1616,personName:"Isa Ozdemir",org:910,orgName:"Mate Snacks",owner:25109251},
+  {id:1052,subject:"Calendar Book Call - Chlo\u00e9 Denomm\u00e9",type:"call",due:"2026-08-26",days:1,person:1619,personName:"Chlo\u00e9 Denomm\u00e9",org:913,orgName:"Caran d'Ache",owner:25109251},
+  {id:1060,subject:"follow up",type:"call",due:"2026-08-26",days:1,person:1586,personName:"Paul Newbold",org:881,orgName:"Alex Global Products",owner:25109251},
+  {id:1142,subject:"Interested",type:"call",due:"2026-08-26",days:1,person:1664,personName:"Kamal Hadidi",org:955,orgName:"Amnay Foods LLC",owner:25109251},
+  {id:1175,subject:"Calendly Schedule",type:"call",due:"2026-08-26",days:1,person:1694,personName:"Emre Tekinalp",org:985,orgName:"PeaKaPop",owner:25109251},
+  {id:1182,subject:"Calendly Schedule",type:"call",due:"2026-08-26",days:1,person:1700,personName:"Abhimanyu Jain",org:null,orgName:null,owner:25109251},
+  {id:1183,subject:"Calendly Schedule",type:"call",due:"2026-08-26",days:1,person:1701,personName:"Laxmi Nayak",org:null,orgName:null,owner:25109251},
+  {id:1253,subject:"Interested",type:"call",due:"2026-08-26",days:1,person:1747,personName:"Neal Mehra",org:1021,orgName:"Airloons",owner:25109251},
+  {id:1254,subject:"Interested",type:"call",due:"2026-08-26",days:1,person:1748,personName:"Ella.B",org:1022,orgName:"OVMENT",owner:25109251},
+  {id:1266,subject:"Interested",type:"call",due:"2026-08-26",days:1,person:1750,personName:"Nick Kim",org:1024,orgName:"Unicoa",owner:26939288},
+  {id:1268,subject:"Calendly Booking",type:"meeting",due:"2026-08-26",days:1,person:1749,personName:"Gareth Till",org:null,orgName:null,owner:26939288},
+];
+const DUE_TODAY = [
+  {id:956,subject:"check in/build business model",type:"call",due:"2026-08-27",inDays:0,person:1602,personName:null,org:897,orgName:"Berrada Reda",owner:25109251},
+  {id:1075,subject:"Asking for Case Study - Kajal Purani - admin@thespicedrops.comk",type:"call",due:"2026-08-27",inDays:0,person:1638,personName:null,org:929,orgName:"THE SPICE DROPS",owner:25109251},
+  {id:1152,subject:"Follow Up",type:"call",due:"2026-08-27",inDays:0,person:1674,personName:null,org:965,orgName:"Humanwell",owner:25109251},
+  {id:1171,subject:"Interested",type:"call",due:"2026-08-27",inDays:0,person:1694,personName:null,org:985,orgName:"PeaKaPop",owner:25109251},
+  {id:1218,subject:"Calendly Booked",type:"call",due:"2026-08-27",inDays:0,person:1619,personName:null,org:913,orgName:"Caran d'Ache",owner:25109251},
+  {id:1240,subject:"Call",type:"call",due:"2026-08-27",inDays:0,person:1732,personName:null,org:1006,orgName:"Flash Cg",owner:25102178},
+  {id:1241,subject:"Schedule call - Danielle Brami",type:"call",due:"2026-08-27",inDays:0,person:1608,personName:null,org:902,orgName:"Estelle Beauty",owner:25102178},
+  {id:1242,subject:"Schedule call - Katelyn (Spearmint Love)",type:"call",due:"2026-08-27",inDays:0,person:1611,personName:null,org:905,orgName:"Spearmint Love",owner:25102178},
+  {id:1243,subject:"Schedule call - Sargis Vardumyan (Original Natural Sweets)",type:"call",due:"2026-08-27",inDays:0,person:1613,personName:null,org:907,orgName:"Original Natural Sweets",owner:25102178},
+  {id:1244,subject:"close loop",type:"call",due:"2026-08-27",inDays:0,person:1547,personName:null,org:841,orgName:"Heybo Pet",owner:25102178},
+  {id:1247,subject:"follow up",type:"call",due:"2026-08-27",inDays:0,person:1651,personName:null,org:942,orgName:"Neuhaus",owner:25102178},
+  {id:1251,subject:"Interested",type:"call",due:"2026-08-27",inDays:0,person:1744,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1255,subject:"Call",type:"call",due:"2026-08-27",inDays:0,person:1503,personName:null,org:800,orgName:"Airloons",owner:25109251},
+  {id:1267,subject:"Calendly Booking",type:"meeting",due:"2026-08-27",inDays:0,person:1747,personName:null,org:null,orgName:null,owner:26939288},
+  {id:1270,subject:"Calendly Booking",type:"meeting",due:"2026-08-27",inDays:0,person:1732,personName:null,org:null,orgName:null,owner:26939288},
+];
+const UPCOMING = [
+  {id:804,subject:"share revised plan",type:"call",due:"2026-08-31",inDays:4,person:904,personName:"Ayush Mathur",org:517,orgName:"Hamilton Sciences",owner:25109251},
+  {id:825,subject:"call scheduled for this week?",type:"call",due:"2026-08-31",inDays:4,person:1507,personName:null,org:478,orgName:"Organic California",owner:25109251},
+  {id:949,subject:"follow up?",type:"call",due:"2026-08-31",inDays:4,person:1585,personName:null,org:880,orgName:"Avohass",owner:25109251},
+  {id:974,subject:"follow up",type:"call",due:"2026-08-31",inDays:4,person:1596,personName:null,org:891,orgName:"Gratt Baits",owner:25109251},
+  {id:1084,subject:"Call",type:"call",due:"2026-08-31",inDays:4,person:1643,personName:null,org:934,orgName:"Empacados",owner:25109251},
+  {id:1190,subject:"Calendly Schedule",type:"call",due:"2026-08-31",inDays:4,person:1707,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1195,subject:"Interested",type:"call",due:"2026-08-31",inDays:4,person:1711,personName:null,org:991,orgName:"Colorful Solution",owner:25109251},
+  {id:1248,subject:"follow up",type:"call",due:"2026-08-31",inDays:4,person:1733,personName:null,org:1007,orgName:"Belkorn",owner:25102178},
+  {id:681,subject:"check in",type:"call",due:"2026-09-01",inDays:5,person:1484,personName:null,org:788,orgName:"Clementoni",owner:25109251},
+  {id:758,subject:"check in",type:"call",due:"2026-09-01",inDays:5,person:1322,personName:null,org:704,orgName:"Green Pig Solutions",owner:25109251},
+  {id:808,subject:"follow up",type:"call",due:"2026-09-01",inDays:5,person:1573,personName:null,org:867,orgName:"Profeel",owner:25109251},
+  {id:823,subject:"follow up after her replies",type:"call",due:"2026-09-01",inDays:5,person:1498,personName:null,org:795,orgName:"Digo",owner:25109251},
+  {id:835,subject:"Follow up/ set up call with ceo",type:"call",due:"2026-09-01",inDays:5,person:1563,personName:null,org:857,orgName:"Accvent",owner:25109251},
+  {id:851,subject:"follow up",type:"call",due:"2026-09-01",inDays:5,person:1579,personName:null,org:874,orgName:"AXNY",owner:25109251},
+  {id:887,subject:"Follow up Jen Weil",type:"call",due:"2026-09-01",inDays:5,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:965,subject:"Call",type:"call",due:"2026-09-01",inDays:5,person:1603,personName:null,org:898,orgName:"Fat & Weird",owner:25109251},
+  {id:1033,subject:"Lead Book to Calendly - Ayush Patel",type:"call",due:"2026-09-01",inDays:5,person:1620,personName:null,org:915,orgName:"Urb",owner:25109251},
+  {id:1136,subject:"Interested",type:"call",due:"2026-09-01",inDays:5,person:1658,personName:null,org:949,orgName:"The Fine Co., Ltd",owner:25109251},
+  {id:1138,subject:"Interested",type:"call",due:"2026-09-01",inDays:5,person:1660,personName:null,org:951,orgName:"GIANT FOODSYSTEM",owner:25109251},
+  {id:1181,subject:"Calendly Schedule",type:"call",due:"2026-09-01",inDays:5,person:1695,personName:null,org:986,orgName:"Reglow",owner:25109251},
+  {id:1187,subject:"Calendly Schedule",type:"call",due:"2026-09-01",inDays:5,person:1705,personName:null,org:null,orgName:null,owner:25109251},
+  {id:1246,subject:"follow up",type:"call",due:"2026-09-01",inDays:5,person:1653,personName:null,org:944,orgName:"QPC Global",owner:25102178},
+  {id:1256,subject:"follow up",type:"call",due:"2026-09-01",inDays:5,person:null,personName:null,org:1010,orgName:"Handelshouse",owner:25102178},
+  {id:1204,subject:"Follow Up",type:"call",due:"2026-09-02",inDays:6,person:1718,personName:null,org:997,orgName:"TINTARK",owner:25109251},
+  {id:1245,subject:"if no response, close loop",type:"call",due:"2026-09-02",inDays:6,person:1481,personName:null,org:785,orgName:"MDT Sporting Goods",owner:25102178},
+  {id:1257,subject:"follow up",type:"call",due:"2026-09-02",inDays:6,person:1742,personName:null,org:1017,orgName:"No More Lids",owner:25102178},
+  {id:1260,subject:"follow up Eva Luo",type:"call",due:"2026-09-02",inDays:6,person:null,personName:null,org:null,orgName:null,owner:25102178},
+  {id:939,subject:"Thomas Mitchell",type:"call",due:"2026-09-03",inDays:7,person:null,personName:null,org:null,orgName:null,owner:25109251},
+  {id:951,subject:"call",type:"call",due:"2026-09-03",inDays:7,person:1600,personName:null,org:895,orgName:"Soleil Foods",owner:25109251},
+  {id:1150,subject:"Follow Up",type:"call",due:"2026-09-03",inDays:7,person:1672,personName:null,org:963,orgName:"ISOV",owner:25109251},
+  {id:1207,subject:"Interested",type:"call",due:"2026-09-03",inDays:7,person:1721,personName:null,org:1000,orgName:"Bukit Sari Organic Plantation",owner:25109251},
+  {id:1261,subject:"check in",type:"call",due:"2026-09-03",inDays:7,person:1734,personName:null,org:1008,orgName:"Patatasrubio",owner:25102178},
+];
+const CAMPAIGNS = [
+  {id:252205,name:"PGA Show - Template - March 2024",status:"COMPLETED",created:"2024-02-29",sent:699,reply:14,bounce:6,leads:699,interested:1,replyRate:2.0,bounceRate:0.9,rep:null},
+  {id:252108,name:"ASD - Template - March 2024",status:"COMPLETED",created:"2024-02-29",sent:868,reply:14,bounce:25,leads:868,interested:2,replyRate:1.6,bounceRate:2.9,rep:null},
+  {id:258732,name:"Food Expo Greece Campaign - March 2024",status:"COMPLETED",created:"2024-03-05",sent:2017,reply:15,bounce:62,leads:2017,interested:4,replyRate:0.7,bounceRate:3.1,rep:null},
+  {id:269742,name:"Toy Fair Campaign March 2024 (No Name)",status:"COMPLETED",created:"2024-03-12",sent:1977,reply:77,bounce:29,leads:1977,interested:7,replyRate:3.9,bounceRate:1.5,rep:null},
+  {id:269734,name:"Toy Fair Campaign March 2024 (Name)",status:"COMPLETED",created:"2024-03-12",sent:757,reply:36,bounce:22,leads:757,interested:2,replyRate:4.8,bounceRate:2.9,rep:null},
+  {id:287331,name:"IHA Campaign March 2024",status:"COMPLETED",created:"2024-03-22",sent:505,reply:18,bounce:4,leads:505,interested:5,replyRate:3.6,bounceRate:0.8,rep:null},
+  {id:287082,name:"NY Now Campaign March 2024 (No Name)",status:"STOPPED",created:"2024-03-22",sent:83,reply:1,bounce:0,leads:83,interested:0,replyRate:1.2,bounceRate:0.0,rep:null},
+  {id:287078,name:"NY Now Campaign March 2024 (Name)",status:"COMPLETED",created:"2024-03-22",sent:211,reply:6,bounce:2,leads:211,interested:0,replyRate:2.8,bounceRate:0.9,rep:null},
+  {id:287043,name:"Magic Campaign March 2024 (Name)",status:"COMPLETED",created:"2024-03-22",sent:883,reply:28,bounce:41,leads:883,interested:4,replyRate:3.2,bounceRate:4.6,rep:null},
+  {id:293094,name:"Natural Products Expo Campaign March 2024 (No Name)",status:"COMPLETED",created:"2024-03-26",sent:2921,reply:100,bounce:61,leads:2921,interested:6,replyRate:3.4,bounceRate:2.1,rep:null},
+  {id:293073,name:"Natural Products Expo Campaign March 2024 (Name)",status:"COMPLETED",created:"2024-03-26",sent:3202,reply:98,bounce:128,leads:3202,interested:2,replyRate:3.1,bounceRate:4.0,rep:null},
+  {id:319271,name:"Global Pet Expo Campaign - April 2024",status:"COMPLETED",created:"2024-04-11",sent:2427,reply:35,bounce:14,leads:2427,interested:5,replyRate:1.4,bounceRate:0.6,rep:null},
+  {id:319259,name:"SuperZoo Campaign - April 2024",status:"COMPLETED",created:"2024-04-11",sent:1470,reply:19,bounce:7,leads:1470,interested:4,replyRate:1.3,bounceRate:0.5,rep:null},
+  {id:320843,name:"National Hardware Show Campaign - April 2024 (Name)",status:"COMPLETED",created:"2024-04-12",sent:556,reply:4,bounce:6,leads:556,interested:1,replyRate:0.7,bounceRate:1.1,rep:null},
+  {id:373489,name:"Liscensing - Expo Meetings With Name",status:"PAUSED",created:"2024-05-13",sent:331,reply:15,bounce:27,leads:617,interested:1,replyRate:4.5,bounceRate:8.2,rep:null},
+  {id:373083,name:"Liscensing - Expo Meetings No Name",status:"PAUSED",created:"2024-05-13",sent:199,reply:9,bounce:16,leads:308,interested:2,replyRate:4.5,bounceRate:8.0,rep:null},
+  {id:379781,name:"Resturant Expo Meetings",status:"PAUSED",created:"2024-05-15",sent:1718,reply:32,bounce:18,leads:2837,interested:5,replyRate:1.9,bounceRate:1.0,rep:null},
+  {id:389555,name:"SmartScout SportsNOutdoors Unknown (50 day)",status:"COMPLETED",created:"2024-05-21",sent:1534,reply:17,bounce:71,leads:1535,interested:1,replyRate:1.1,bounceRate:4.6,rep:null},
+  {id:389521,name:"SmartScout SportsNOutdoors SC <87% BuyBox (100 day)",status:"COMPLETED",created:"2024-05-21",sent:2983,reply:37,bounce:158,leads:2984,interested:1,replyRate:1.2,bounceRate:5.3,rep:null},
+  {id:389447,name:"SmartScout SportsNOutdoors SC 87%+ BuyBox (100 day)",status:"COMPLETED",created:"2024-05-21",sent:3434,reply:9,bounce:177,leads:3434,interested:0,replyRate:0.3,bounceRate:5.2,rep:null},
+  {id:389380,name:"SmartScout SportsNOutdoors VC <87% BuyBox (100 Day)",status:"COMPLETED",created:"2024-05-21",sent:1704,reply:17,bounce:96,leads:1705,interested:0,replyRate:1.0,bounceRate:5.6,rep:null},
+  {id:389299,name:"SmartScout SportsNOutdoors VC 87%+ BuyBox (100 day)",status:"COMPLETED",created:"2024-05-21",sent:948,reply:15,bounce:66,leads:948,interested:0,replyRate:1.6,bounceRate:7.0,rep:null},
+  {id:405679,name:"Hardware EXpo (500day)",status:"COMPLETED",created:"2024-05-30",sent:4485,reply:23,bounce:44,leads:4485,interested:3,replyRate:0.5,bounceRate:1.0,rep:null},
+  {id:414649,name:"Outdoor Retailer Expo Outreach",status:"PAUSED",created:"2024-06-04",sent:3530,reply:73,bounce:71,leads:3763,interested:7,replyRate:2.1,bounceRate:2.0,rep:null},
+  {id:435442,name:"Summer Fancy Foods Expo Outreach W names",status:"COMPLETED",created:"2024-06-14",sent:1192,reply:10,bounce:14,leads:1192,interested:1,replyRate:0.8,bounceRate:1.2,rep:null},
+  {id:435409,name:"Summer Fancy Foods Expo Outreach W/O names",status:"PAUSED",created:"2024-06-14",sent:5517,reply:38,bounce:39,leads:7056,interested:12,replyRate:0.7,bounceRate:0.7,rep:null},
+  {id:451494,name:"h+h Expo",status:"COMPLETED",created:"2024-06-24",sent:610,reply:9,bounce:4,leads:617,interested:2,replyRate:1.5,bounceRate:0.7,rep:null},
+  {id:470944,name:"VC Beayty +",status:"COMPLETED",created:"2024-07-03",sent:637,reply:3,bounce:8,leads:637,interested:0,replyRate:0.5,bounceRate:1.3,rep:null},
+  {id:470875,name:"SmartScout Beauty SC 85%+",status:"COMPLETED",created:"2024-07-03",sent:2160,reply:25,bounce:34,leads:2160,interested:0,replyRate:1.2,bounceRate:1.6,rep:null},
+  {id:493477,name:"Cosmopor meetings wo names - copy",status:"COMPLETED",created:"2024-07-16",sent:904,reply:8,bounce:25,leads:904,interested:2,replyRate:0.9,bounceRate:2.8,rep:null},
+  {id:493316,name:"Cosmopor meetings w names",status:"COMPLETED",created:"2024-07-16",sent:2407,reply:86,bounce:36,leads:2407,interested:21,replyRate:3.6,bounceRate:1.5,rep:null},
+  {id:496369,name:"Cosmopor meetings w names - apollo",status:"COMPLETED",created:"2024-07-17",sent:514,reply:17,bounce:20,leads:514,interested:2,replyRate:3.3,bounceRate:3.9,rep:null},
+  {id:504766,name:"NRA (rifle) Expo Reach out",status:"COMPLETED",created:"2024-07-22",sent:863,reply:28,bounce:18,leads:864,interested:6,replyRate:3.2,bounceRate:2.1,rep:null},
+  {id:524530,name:"Cosmoprof Follow Up",status:"COMPLETED",created:"2024-07-31",sent:167,reply:11,bounce:16,leads:167,interested:2,replyRate:6.6,bounceRate:9.6,rep:"Yoni"},
+  {id:540609,name:"SuperZoo Meetings",status:"COMPLETED",created:"2024-08-07",sent:3070,reply:97,bounce:19,leads:3070,interested:23,replyRate:3.2,bounceRate:0.6,rep:null},
+  {id:540403,name:"Yoni - Smart Scout PATI, PET, TOYS",status:"COMPLETED",created:"2024-08-07",sent:9635,reply:86,bounce:1097,leads:9644,interested:0,replyRate:0.9,bounceRate:11.4,rep:"Yoni"},
+  {id:539883,name:"Revisting Full List WN",status:"COMPLETED",created:"2024-08-07",sent:25075,reply:196,bounce:5057,leads:25083,interested:16,replyRate:0.8,bounceRate:20.2,rep:"Yoni"},
+  {id:539739,name:"Revisting Full List NN",status:"PAUSED",created:"2024-08-07",sent:53435,reply:329,bounce:7197,leads:55364,interested:54,replyRate:0.6,bounceRate:13.5,rep:"Yoni"},
+  {id:556528,name:"industrial scientific smartlead 10",status:"COMPLETED",created:"2024-08-14",sent:409,reply:7,bounce:31,leads:409,interested:0,replyRate:1.7,bounceRate:7.6,rep:null},
+  {id:585410,name:"Automechanika 10-14 sept",status:"STOPPED",created:"2024-08-27",sent:3136,reply:109,bounce:44,leads:8290,interested:44,replyRate:3.5,bounceRate:1.4,rep:null},
+  {id:588070,name:"Revisting Working Leads - V2",status:"COMPLETED",created:"2024-08-28",sent:442,reply:16,bounce:29,leads:442,interested:9,replyRate:3.6,bounceRate:6.6,rep:"Yoni"},
+  {id:612717,name:"Chinese sellers from seller directory",status:"STOPPED",created:"2024-09-09",sent:1012,reply:12,bounce:145,leads:1415,interested:0,replyRate:1.2,bounceRate:14.3,rep:null},
+  {id:611936,name:"tools 2.0 smartlead 13",status:"COMPLETED",created:"2024-09-09",sent:187,reply:0,bounce:1,leads:187,interested:0,replyRate:0.0,bounceRate:0.5,rep:null},
+  {id:611879,name:"baby 1 to 50k smartlead 12",status:"COMPLETED",created:"2024-09-09",sent:1006,reply:15,bounce:44,leads:1006,interested:1,replyRate:1.5,bounceRate:4.4,rep:null},
+  {id:611838,name:"automotive 1 to 50k revenue smartlead 11",status:"COMPLETED",created:"2024-09-09",sent:672,reply:6,bounce:4,leads:672,interested:0,replyRate:0.9,bounceRate:0.6,rep:null},
+  {id:631093,name:"Batimat France tradeshow ",status:"STOPPED",created:"2024-09-17",sent:2804,reply:19,bounce:22,leads:3321,interested:5,replyRate:0.7,bounceRate:0.8,rep:null},
+  {id:646631,name:"vc to sc campaign",status:"COMPLETED",created:"2024-09-24",sent:656,reply:8,bounce:18,leads:656,interested:0,replyRate:1.2,bounceRate:2.7,rep:null},
+  {id:677448,name:"vc to sc campaign - copy",status:"COMPLETED",created:"2024-10-07",sent:7738,reply:91,bounce:376,leads:7753,interested:4,replyRate:1.2,bounceRate:4.9,rep:null},
+  {id:681245,name:"auto manual scrape 0 to 50k",status:"COMPLETED",created:"2024-10-08",sent:1109,reply:11,bounce:28,leads:1109,interested:1,replyRate:1.0,bounceRate:2.5,rep:null},
+  {id:975106,name:"AAPEX @$ F24 follow up",status:"COMPLETED",created:"2024-11-25",sent:73,reply:2,bounce:11,leads:73,interested:0,replyRate:2.7,bounceRate:15.1,rep:"Yoni"},
+  {id:981476,name:"AAPEX @$ F24 follow up - copy",status:"COMPLETED",created:"2024-11-26",sent:466,reply:10,bounce:16,leads:466,interested:1,replyRate:2.1,bounceRate:3.4,rep:null},
+  {id:1124423,name:"resellers 30k to 1M monthly STEV",status:"COMPLETED",created:"2024-12-17",sent:2758,reply:20,bounce:178,leads:2758,interested:2,replyRate:0.7,bounceRate:6.5,rep:null},
+  {id:1137342,name:"PAX Campaign",status:"COMPLETED",created:"2024-12-19",sent:237,reply:1,bounce:10,leads:237,interested:0,replyRate:0.4,bounceRate:4.2,rep:null},
+  {id:1196649,name:"CES Outreach",status:"PAUSED",created:"2024-12-30",sent:1728,reply:38,bounce:53,leads:2050,interested:8,replyRate:2.2,bounceRate:3.1,rep:null},
+  {id:1224127,name:"CES Outreach - copy",status:"COMPLETED",created:"2025-01-03",sent:618,reply:21,bounce:4,leads:618,interested:1,replyRate:3.4,bounceRate:0.6,rep:null},
+  {id:1245518,name:"Misc Campaign",status:"COMPLETED",created:"2025-01-06",sent:3668,reply:31,bounce:17,leads:3668,interested:1,replyRate:0.8,bounceRate:0.5,rep:null},
+  {id:1253699,name:"Revisiting Interested Campaign",status:"COMPLETED",created:"2025-01-07",sent:1905,reply:49,bounce:20,leads:1905,interested:17,replyRate:2.6,bounceRate:1.0,rep:null},
+  {id:1358390,name:"Expo West - free analysis offer",status:"STOPPED",created:"2025-01-21",sent:3146,reply:70,bounce:152,leads:4429,interested:1,replyRate:2.2,bounceRate:4.8,rep:null},
+  {id:1402672,name:"AAPEX Followup",status:"COMPLETED",created:"2025-01-27",sent:398,reply:2,bounce:6,leads:398,interested:0,replyRate:0.5,bounceRate:1.5,rep:null},
+  {id:1410336,name:"inspired home - free analysis offer ",status:"STOPPED",created:"2025-01-28",sent:2452,reply:27,bounce:152,leads:3116,interested:2,replyRate:1.1,bounceRate:6.2,rep:null},
+  {id:1416500,name:"Great American Outdoors Outreach",status:"COMPLETED",created:"2025-01-29",sent:254,reply:4,bounce:10,leads:254,interested:2,replyRate:1.6,bounceRate:3.9,rep:null},
+  {id:1419914,name:"Fancy Foods follows Follow Up",status:"COMPLETED",created:"2025-01-30",sent:205,reply:8,bounce:1,leads:205,interested:0,replyRate:3.9,bounceRate:0.5,rep:null},
+  {id:1426471,name:"Fancy Foods follows Follow Up - copy",status:"PAUSED",created:"2025-01-31",sent:6130,reply:74,bounce:180,leads:44672,interested:3,replyRate:1.2,bounceRate:2.9,rep:null},
+  {id:1475937,name:"Beauty 75% Growth Final",status:"COMPLETED",created:"2025-02-10",sent:8095,reply:82,bounce:96,leads:8095,interested:1,replyRate:1.0,bounceRate:1.2,rep:null},
+  {id:1539130,name:"Inspired Home coming up",status:"COMPLETED",created:"2025-02-20",sent:2029,reply:48,bounce:6,leads:2029,interested:13,replyRate:2.4,bounceRate:0.3,rep:null},
+  {id:1538937,name:"Expo west - coming up",status:"STOPPED",created:"2025-02-20",sent:4891,reply:75,bounce:23,leads:7011,interested:9,replyRate:1.5,bounceRate:0.5,rep:null},
+  {id:1538912,name:"Hardware - Brokers",status:"COMPLETED",created:"2025-02-20",sent:5698,reply:32,bounce:71,leads:5698,interested:3,replyRate:0.6,bounceRate:1.2,rep:null},
+  {id:1566122,name:"CES Outreach - Yoni",status:"COMPLETED",created:"2025-02-24",sent:2660,reply:26,bounce:122,leads:2660,interested:2,replyRate:1.0,bounceRate:4.6,rep:null},
+  {id:1594342,name:"Inspired Home - Yoni Campaign",status:"COMPLETED",created:"2025-02-28",sent:970,reply:13,bounce:0,leads:970,interested:4,replyRate:1.3,bounceRate:0.0,rep:null},
+  {id:1652275,name:"Inspired Home cards follow up",status:"COMPLETED",created:"2025-03-13",sent:54,reply:2,bounce:7,leads:54,interested:0,replyRate:3.7,bounceRate:13.0,rep:null},
+  {id:1695798,name:"Prosper Outreach - final version  - for real ",status:"COMPLETED",created:"2025-03-21",sent:396,reply:2,bounce:11,leads:396,interested:0,replyRate:0.5,bounceRate:2.8,rep:null},
+  {id:1773023,name:"Experiment BOUGHT leads emails Helium10",status:"STOPPED",created:"2025-04-09",sent:4735,reply:17,bounce:742,leads:6746,interested:1,replyRate:0.4,bounceRate:15.7,rep:null},
+  {id:1824649,name:"Old Interested Leads",status:"COMPLETED",created:"2025-04-23",sent:1510,reply:10,bounce:57,leads:1510,interested:5,replyRate:0.7,bounceRate:3.8,rep:"Yoni"},
+  {id:1864870,name:"Natural Products Expo Campaign",status:"PAUSED",created:"2025-05-02",sent:8507,reply:43,bounce:492,leads:13531,interested:0,replyRate:0.5,bounceRate:5.8,rep:null},
+  {id:1864745,name:"Fancy Foods Revisiting Campaign",status:"PAUSED",created:"2025-05-02",sent:4555,reply:13,bounce:170,leads:6747,interested:2,replyRate:0.3,bounceRate:3.7,rep:null},
+  {id:1905307,name:"Sweets and Snacks Reach Out",status:"PAUSED",created:"2025-05-08",sent:1609,reply:6,bounce:110,leads:1609,interested:1,replyRate:0.4,bounceRate:6.8,rep:null},
+  {id:2000675,name:"Sweets and Snacks Follow Up",status:"PAUSED",created:"2025-05-21",sent:3588,reply:37,bounce:264,leads:6097,interested:0,replyRate:1.0,bounceRate:7.4,rep:null},
+  {id:2128595,name:"AAPEX - Campaign",status:"PAUSED",created:"2025-06-09",sent:2642,reply:28,bounce:54,leads:5250,interested:0,replyRate:1.1,bounceRate:2.0,rep:null},
+  {id:2128102,name:"Health and Household - 20K- 3M",status:"PAUSED",created:"2025-06-09",sent:2662,reply:6,bounce:123,leads:5665,interested:0,replyRate:0.2,bounceRate:4.6,rep:null},
+  {id:2137278,name:"Loom Grocery Campaign Active",status:"PAUSED",created:"2025-06-10",sent:826,reply:4,bounce:148,leads:856,interested:0,replyRate:0.5,bounceRate:17.9,rep:null},
+  {id:2144156,name:"IHS - Campaign - copy",status:"PAUSED",created:"2025-06-11",sent:2350,reply:13,bounce:27,leads:5559,interested:0,replyRate:0.6,bounceRate:1.1,rep:null},
+  {id:2152314,name:"Loom Grocery Campaign Active - copy",status:"PAUSED",created:"2025-06-12",sent:1246,reply:7,bounce:68,leads:1625,interested:1,replyRate:0.6,bounceRate:5.5,rep:null},
+  {id:2195684,name:"Fancy Foods 2025",status:"PAUSED",created:"2025-06-19",sent:3674,reply:57,bounce:61,leads:4017,interested:12,replyRate:1.6,bounceRate:1.7,rep:null},
+  {id:2218400,name:"VC AUDITING",status:"PAUSED",created:"2025-06-25",sent:4198,reply:58,bounce:143,leads:6932,interested:1,replyRate:1.4,bounceRate:3.4,rep:null},
+  {id:2259330,name:"Category job Post Final",status:"PAUSED",created:"2025-07-08",sent:2295,reply:1,bounce:31,leads:4751,interested:1,replyRate:0.0,bounceRate:1.4,rep:null},
+  {id:2263869,name:"Cosmo prof Outreach",status:"COMPLETED",created:"2025-07-09",sent:933,reply:7,bounce:17,leads:933,interested:1,replyRate:0.8,bounceRate:1.8,rep:null},
+  {id:2302690,name:"Cosmoprof Follow up",status:"ACTIVE",created:"2025-07-22",sent:4214,reply:54,bounce:127,leads:4254,interested:10,replyRate:1.3,bounceRate:3.0,rep:null},
+  {id:2327080,name:"Fancy Foods 2025 Follow Up",status:"COMPLETED",created:"2025-07-30",sent:7817,reply:97,bounce:132,leads:11482,interested:9,replyRate:1.2,bounceRate:1.7,rep:null},
+  {id:2393956,name:"ASD Cards",status:"COMPLETED",created:"2025-08-18",sent:1287,reply:19,bounce:73,leads:1288,interested:6,replyRate:1.5,bounceRate:5.7,rep:null},
+  {id:2403364,name:"Natural Products Expo 8/20/25",status:"COMPLETED",created:"2025-08-20",sent:9619,reply:72,bounce:85,leads:9619,interested:4,replyRate:0.7,bounceRate:0.9,rep:null},
+  {id:2423223,name:"SuperZoo Cards",status:"COMPLETED",created:"2025-08-27",sent:1782,reply:35,bounce:102,leads:1782,interested:7,replyRate:2.0,bounceRate:5.7,rep:null},
+  {id:2444782,name:"MAGIC Cards",status:"COMPLETED",created:"2025-09-04",sent:1024,reply:17,bounce:75,leads:1024,interested:3,replyRate:1.7,bounceRate:7.3,rep:null},
+  {id:2457916,name:"Sweets and Snacks Follow Up",status:"COMPLETED",created:"2025-09-09",sent:2977,reply:22,bounce:13,leads:2977,interested:0,replyRate:0.7,bounceRate:0.4,rep:null},
+  {id:2477695,name:"Coffee Expo",status:"COMPLETED",created:"2025-09-16",sent:189,reply:5,bounce:7,leads:189,interested:0,replyRate:2.6,bounceRate:3.7,rep:null},
+  {id:2482177,name:"Old Leads",status:"COMPLETED",created:"2025-09-17",sent:1369,reply:36,bounce:45,leads:1369,interested:12,replyRate:2.6,bounceRate:3.3,rep:null},
+  {id:2525439,name:"Harware Expo 2025",status:"COMPLETED",created:"2025-10-01",sent:2887,reply:28,bounce:27,leads:2887,interested:1,replyRate:1.0,bounceRate:0.9,rep:null},
+  {id:2525335,name:"Global Pet Expo",status:"COMPLETED",created:"2025-10-01",sent:1063,reply:13,bounce:6,leads:1063,interested:0,replyRate:1.2,bounceRate:0.6,rep:null},
+  {id:2590227,name:"AAPEX - 2025 show outreach",status:"COMPLETED",created:"2025-10-21",sent:3856,reply:33,bounce:28,leads:5723,interested:6,replyRate:0.9,bounceRate:0.7,rep:null},
+  {id:2643319,name:"30% referall fe",status:"COMPLETED",created:"2025-11-03",sent:4766,reply:13,bounce:172,leads:4766,interested:1,replyRate:0.3,bounceRate:3.6,rep:null},
+  {id:2698863,name:"AAPEX 2025 Followup ",status:"COMPLETED",created:"2025-11-20",sent:2893,reply:50,bounce:199,leads:2893,interested:7,replyRate:1.7,bounceRate:6.9,rep:null},
+  {id:2712287,name:"q4 checkin intrested brands - copy",status:"COMPLETED",created:"2025-11-25",sent:1340,reply:14,bounce:59,leads:1340,interested:2,replyRate:1.0,bounceRate:4.4,rep:null},
+  {id:2715035,name:"Broken VC Verified",status:"COMPLETED",created:"2025-11-26",sent:3967,reply:40,bounce:87,leads:3969,interested:0,replyRate:1.0,bounceRate:2.2,rep:null},
+  {id:2720758,name:"Natural Products Expo Q4",status:"COMPLETED",created:"2025-11-28",sent:12867,reply:94,bounce:115,leads:15897,interested:0,replyRate:0.7,bounceRate:0.9,rep:null},
+  {id:2735206,name:"Dominant Seller < 35% - copy",status:"COMPLETED",created:"2025-12-02",sent:188,reply:0,bounce:5,leads:188,interested:0,replyRate:0.0,bounceRate:2.7,rep:null},
+  {id:2764360,name:"Sweets and Snacks q4 strategy",status:"COMPLETED",created:"2025-12-11",sent:6977,reply:22,bounce:100,leads:7351,interested:0,replyRate:0.3,bounceRate:1.4,rep:null},
+  {id:2763648,name:"Cosmoprof q4 strategy",status:"COMPLETED",created:"2025-12-11",sent:5260,reply:16,bounce:158,leads:5260,interested:0,replyRate:0.3,bounceRate:3.0,rep:null},
+  {id:2791019,name:"Fancy Foods q4 strategy",status:"COMPLETED",created:"2025-12-22",sent:15610,reply:62,bounce:182,leads:15610,interested:5,replyRate:0.4,bounceRate:1.2,rep:null},
+  {id:2819452,name:"Global Pet q1",status:"COMPLETED",created:"2026-01-07",sent:3055,reply:10,bounce:78,leads:3055,interested:0,replyRate:0.3,bounceRate:2.6,rep:null},
+  {id:2819436,name:"SuperZoo q1",status:"COMPLETED",created:"2026-01-07",sent:5998,reply:34,bounce:147,leads:5998,interested:3,replyRate:0.6,bounceRate:2.5,rep:null},
+  {id:2874120,name:"Surf Expo 2025",status:"COMPLETED",created:"2026-01-26",sent:1848,reply:28,bounce:151,leads:1848,interested:6,replyRate:1.5,bounceRate:8.2,rep:null},
+  {id:2873879,name:"Winter Fancy Fair (people Yoni met at the show)",status:"COMPLETED",created:"2026-01-26",sent:86,reply:0,bounce:2,leads:86,interested:0,replyRate:0.0,bounceRate:2.3,rep:null},
+  {id:2882061,name:"WFF",status:"COMPLETED",created:"2026-01-28",sent:3823,reply:60,bounce:292,leads:3826,interested:21,replyRate:1.6,bounceRate:7.6,rep:null},
+  {id:2903489,name:"ShotShow Cards",status:"COMPLETED",created:"2026-02-04",sent:2308,reply:70,bounce:164,leads:4429,interested:11,replyRate:3.0,bounceRate:7.1,rep:null},
+  {id:2903447,name:"National Hardware Show old ",status:"COMPLETED",created:"2026-02-04",sent:4006,reply:28,bounce:243,leads:8207,interested:3,replyRate:0.7,bounceRate:6.1,rep:null},
+  {id:2903351,name:"Magic",status:"COMPLETED",created:"2026-02-04",sent:4779,reply:31,bounce:315,leads:9483,interested:3,replyRate:0.6,bounceRate:6.6,rep:null},
+  {id:2918176,name:"Coffee Fest",status:"COMPLETED",created:"2026-02-09",sent:478,reply:11,bounce:17,leads:763,interested:0,replyRate:2.3,bounceRate:3.6,rep:null},
+  {id:2918136,name:"ASD",status:"COMPLETED",created:"2026-02-09",sent:1151,reply:5,bounce:73,leads:1851,interested:0,replyRate:0.4,bounceRate:6.3,rep:null},
+  {id:2922456,name:"Cosmoprof 2026",status:"COMPLETED",created:"2026-02-10",sent:1377,reply:34,bounce:231,leads:2670,interested:10,replyRate:2.5,bounceRate:16.8,rep:null},
+  {id:2934766,name:"Toy Fair (intro before the show)",status:"COMPLETED",created:"2026-02-13",sent:403,reply:12,bounce:47,leads:403,interested:1,replyRate:3.0,bounceRate:11.7,rep:null},
+  {id:2948193,name:"AHR",status:"COMPLETED",created:"2026-02-18",sent:3589,reply:35,bounce:208,leads:8917,interested:1,replyRate:1.0,bounceRate:5.8,rep:null},
+  {id:2971319,name:"Expo West (intro before the show)",status:"COMPLETED",created:"2026-02-25",sent:5737,reply:98,bounce:1016,leads:11893,interested:1,replyRate:1.7,bounceRate:17.7,rep:null},
+  {id:2985960,name:"Toy Fair Cards 2026",status:"COMPLETED",created:"2026-03-02",sent:2478,reply:75,bounce:163,leads:2655,interested:11,replyRate:3.0,bounceRate:6.6,rep:null},
+  {id:3012660,name:"Inspired Home Show (intro before the show)",status:"COMPLETED",created:"2026-03-09",sent:5232,reply:68,bounce:293,leads:6324,interested:4,replyRate:1.3,bounceRate:5.6,rep:null},
+  {id:3011073,name:"Kbis Cards 2026",status:"COMPLETED",created:"2026-03-09",sent:2501,reply:41,bounce:77,leads:2686,interested:2,replyRate:1.6,bounceRate:3.1,rep:null},
+  {id:3073321,name:"EXPO West Cards 2026",status:"COMPLETED",created:"2026-03-23",sent:5344,reply:79,bounce:73,leads:5347,interested:8,replyRate:1.5,bounceRate:1.4,rep:null},
+  {id:3105272,name:"IHS Cards 2026",status:"COMPLETED",created:"2026-03-30",sent:1506,reply:41,bounce:7,leads:1507,interested:2,replyRate:2.7,bounceRate:0.5,rep:null},
+  {id:3187339,name:"Global Pet Cards 2026",status:"COMPLETED",created:"2026-04-16",sent:1635,reply:40,bounce:15,leads:1635,interested:5,replyRate:2.4,bounceRate:0.9,rep:null},
+  {id:3187075,name:"National Hardware Show cards 2026",status:"COMPLETED",created:"2026-04-16",sent:1168,reply:32,bounce:6,leads:1168,interested:8,replyRate:2.7,bounceRate:0.5,rep:null},
+  {id:3240437,name:"Cosmoprof 2026 2nd batch",status:"COMPLETED",created:"2026-04-27",sent:1684,reply:19,bounce:66,leads:1684,interested:1,replyRate:1.1,bounceRate:3.9,rep:null},
+  {id:3240402,name:"ASD 2nd batch",status:"COMPLETED",created:"2026-04-27",sent:897,reply:5,bounce:30,leads:897,interested:0,replyRate:0.6,bounceRate:3.3,rep:null},
+  {id:3240393,name:"Magic 2nd batch",status:"COMPLETED",created:"2026-04-27",sent:4603,reply:30,bounce:147,leads:4603,interested:0,replyRate:0.7,bounceRate:3.2,rep:null},
+  {id:3240177,name:"World of Coffee Cards 2026",status:"COMPLETED",created:"2026-04-27",sent:1160,reply:31,bounce:28,leads:1160,interested:4,replyRate:2.7,bounceRate:2.4,rep:null},
+  {id:3255551,name:"Coffee Fest 2nd batch",status:"COMPLETED",created:"2026-04-29",sent:380,reply:3,bounce:8,leads:380,interested:0,replyRate:0.8,bounceRate:2.1,rep:null},
+  {id:3255446,name:"AHR 2nd batch",status:"COMPLETED",created:"2026-04-29",sent:3796,reply:20,bounce:85,leads:3796,interested:0,replyRate:0.5,bounceRate:2.2,rep:null},
+  {id:3255418,name:"ShotShow Cards 2nd Batch",status:"COMPLETED",created:"2026-04-29",sent:2197,reply:30,bounce:66,leads:2197,interested:0,replyRate:1.4,bounceRate:3.0,rep:null},
+  {id:3255393,name:"National Hardware Show old  2nd batch",status:"COMPLETED",created:"2026-04-29",sent:4133,reply:16,bounce:100,leads:4133,interested:0,replyRate:0.4,bounceRate:2.4,rep:null},
+  {id:3292731,name:"IHS Cards 2026 2nd batch",status:"COMPLETED",created:"2026-05-06",sent:1432,reply:15,bounce:40,leads:1432,interested:1,replyRate:1.0,bounceRate:2.8,rep:null},
+  {id:3292655,name:"EXPO West Cards 2026 2nd batch",status:"COMPLETED",created:"2026-05-06",sent:4996,reply:83,bounce:141,leads:4996,interested:3,replyRate:1.7,bounceRate:2.8,rep:null},
+  {id:3352422,name:"Rachel - London Coffee Festival from LI",status:"COMPLETED",created:"2026-05-18",sent:2250,reply:23,bounce:109,leads:2250,interested:1,replyRate:1.0,bounceRate:4.8,rep:"RACHEL"},
+  {id:3351281,name:"ABC Kids Expo Cards 2026",status:"COMPLETED",created:"2026-05-18",sent:712,reply:25,bounce:22,leads:712,interested:2,replyRate:3.5,bounceRate:3.1,rep:null},
+  {id:3350245,name:"World of Coffee Cards 2026 2nd batch",status:"COMPLETED",created:"2026-05-18",sent:1122,reply:15,bounce:23,leads:1122,interested:2,replyRate:1.3,bounceRate:2.0,rep:null},
+  {id:3350189,name:"Global Pet Cards 2026 2nd batch",status:"COMPLETED",created:"2026-05-18",sent:1512,reply:20,bounce:46,leads:1513,interested:0,replyRate:1.3,bounceRate:3.0,rep:null},
+  {id:3397504,name:"AAPEX old leads",status:"COMPLETED",created:"2026-05-25",sent:12590,reply:89,bounce:358,leads:12590,interested:1,replyRate:0.7,bounceRate:2.8,rep:null},
+  {id:3400528,name:"2-5M <40% - no storefront",status:"COMPLETED",created:"2026-05-26",sent:404,reply:0,bounce:14,leads:404,interested:0,replyRate:0.0,bounceRate:3.5,rep:null},
+  {id:3437052,name:"Reengagement Leads",status:"COMPLETED",created:"2026-06-01",sent:531,reply:9,bounce:20,leads:531,interested:1,replyRate:1.7,bounceRate:3.8,rep:null},
+  {id:3436978,name:"Food Matters Live (intro before the show)",status:"COMPLETED",created:"2026-06-01",sent:1213,reply:13,bounce:18,leads:1213,interested:0,replyRate:1.1,bounceRate:1.5,rep:null},
+  {id:3436520,name:"Sweets & Snacks 2026 Cards",status:"COMPLETED",created:"2026-06-01",sent:1998,reply:54,bounce:23,leads:1998,interested:11,replyRate:2.7,bounceRate:1.2,rep:null},
+  {id:3441999,name:"ICAST old leads ",status:"COMPLETED",created:"2026-06-02",sent:1735,reply:19,bounce:19,leads:1735,interested:1,replyRate:1.1,bounceRate:1.1,rep:null},
+  {id:3441494,name:"CES old leads",status:"COMPLETED",created:"2026-06-02",sent:4083,reply:20,bounce:58,leads:4083,interested:1,replyRate:0.5,bounceRate:1.4,rep:null},
+  {id:3478503,name:"Toy Fair old leads",status:"COMPLETED",created:"2026-06-10",sent:2202,reply:18,bounce:25,leads:2202,interested:0,replyRate:0.8,bounceRate:1.1,rep:null},
+  {id:3478367,name:"National Rifle Association old leads",status:"COMPLETED",created:"2026-06-10",sent:797,reply:11,bounce:7,leads:797,interested:0,replyRate:1.4,bounceRate:0.9,rep:null},
+  {id:3478311,name:"HH America old leads",status:"COMPLETED",created:"2026-06-10",sent:378,reply:8,bounce:1,leads:378,interested:1,replyRate:2.1,bounceRate:0.3,rep:null},
+  {id:3478198,name:"NY Now old leads",status:"COMPLETED",created:"2026-06-10",sent:213,reply:3,bounce:2,leads:213,interested:0,replyRate:1.4,bounceRate:0.9,rep:null},
+  {id:3478046,name:"Outdoor Retailer old leads",status:"COMPLETED",created:"2026-06-10",sent:1968,reply:23,bounce:21,leads:1968,interested:1,replyRate:1.2,bounceRate:1.1,rep:null},
+  {id:3485415,name:"paul newbold",status:"COMPLETED",created:"2026-06-11",sent:1,reply:0,bounce:0,leads:1,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3487286,name:"JCK Cards 2026",status:"COMPLETED",created:"2026-06-12",sent:765,reply:8,bounce:12,leads:765,interested:2,replyRate:1.0,bounceRate:1.6,rep:null},
+  {id:3486862,name:"Premiere Cards 2026",status:"COMPLETED",created:"2026-06-12",sent:738,reply:29,bounce:7,leads:738,interested:2,replyRate:3.9,bounceRate:0.9,rep:null},
+  {id:3513381,name:"Rachel - Global Brands 3",status:"ACTIVE",created:"2026-06-18",sent:4076,reply:28,bounce:156,leads:4207,interested:0,replyRate:0.7,bounceRate:3.8,rep:"RACHEL"},
+  {id:3531501,name:"Rachel - Global Brands 1",status:"COMPLETED",created:"2026-06-22",sent:798,reply:1,bounce:5,leads:798,interested:0,replyRate:0.1,bounceRate:0.6,rep:"RACHEL"},
+  {id:3539296,name:"Rachel - Global Brands 2",status:"COMPLETED",created:"2026-06-23",sent:561,reply:2,bounce:6,leads:561,interested:0,replyRate:0.4,bounceRate:1.1,rep:"RACHEL"},
+  {id:3538354,name:"Rachel - Global Brands 4",status:"COMPLETED",created:"2026-06-23",sent:2007,reply:19,bounce:88,leads:2007,interested:1,replyRate:0.9,bounceRate:4.4,rep:"RACHEL"},
+  {id:3552348,name:"InfoComm",status:"COMPLETED",created:"2026-06-25",sent:426,reply:5,bounce:1,leads:426,interested:0,replyRate:1.2,bounceRate:0.2,rep:null},
+  {id:3572893,name:"EXPO WEST - June 30 2026",status:"COMPLETED",created:"2026-06-30",sent:14746,reply:115,bounce:448,leads:14746,interested:0,replyRate:0.8,bounceRate:3.0,rep:null},
+  {id:3569097,name:"Rachel - Tones of Beauty (intro before the show)",status:"COMPLETED",created:"2026-06-30",sent:1089,reply:1,bounce:51,leads:1089,interested:0,replyRate:0.1,bounceRate:4.7,rep:"RACHEL"},
+  {id:3602596,name:"Rachel - Tones of Beauty 2026",status:"COMPLETED",created:"2026-07-07",sent:194,reply:13,bounce:5,leads:194,interested:7,replyRate:6.7,bounceRate:2.6,rep:"RACHEL"},
+  {id:3610190,name:"John - Fancy Foods",status:"COMPLETED",created:"2026-07-08",sent:4518,reply:131,bounce:42,leads:4518,interested:29,replyRate:2.9,bounceRate:0.9,rep:null},
+  {id:3617251,name:"John - IHS",status:"ACTIVE",created:"2026-07-09",sent:5265,reply:34,bounce:122,leads:5509,interested:0,replyRate:0.6,bounceRate:2.3,rep:null},
+  {id:3617146,name:"John - BE+ WELL",status:"COMPLETED",created:"2026-07-09",sent:944,reply:22,bounce:9,leads:944,interested:1,replyRate:2.3,bounceRate:1.0,rep:null},
+  {id:3620716,name:"Rachel - Solex",status:"COMPLETED",created:"2026-07-10",sent:807,reply:3,bounce:13,leads:807,interested:0,replyRate:0.4,bounceRate:1.6,rep:"RACHEL"},
+  {id:3644107,name:"Rachel - Global Brands 5",status:"COMPLETED",created:"2026-07-15",sent:2321,reply:8,bounce:123,leads:2323,interested:0,replyRate:0.3,bounceRate:5.3,rep:"RACHEL"},
+  {id:3643706,name:"Rachel - Modefabriek 2026",status:"COMPLETED",created:"2026-07-15",sent:1313,reply:15,bounce:53,leads:1313,interested:1,replyRate:1.1,bounceRate:4.0,rep:"RACHEL"},
+  {id:3710784,name:"Rachel - Global Brands 6",status:"PAUSED",created:"2026-07-23",sent:2546,reply:10,bounce:419,leads:3012,interested:0,replyRate:0.4,bounceRate:16.5,rep:"RACHEL"},
+  {id:3723976,name:"Rachel - Home & Gift Harrogate",status:"COMPLETED",created:"2026-07-27",sent:1792,reply:28,bounce:57,leads:1793,interested:3,replyRate:1.6,bounceRate:3.2,rep:"RACHEL"},
+  {id:3723729,name:"Rachel - Solex from booklet",status:"COMPLETED",created:"2026-07-27",sent:497,reply:4,bounce:11,leads:497,interested:0,replyRate:0.8,bounceRate:2.2,rep:"RACHEL"},
+  {id:3732474,name:"Eikko - ICAST 2026",status:"ACTIVE",created:"2026-07-28",sent:854,reply:28,bounce:37,leads:1247,interested:4,replyRate:3.3,bounceRate:4.3,rep:null},
+  {id:3731861,name:"Rachel - Nordstil",status:"ACTIVE",created:"2026-07-28",sent:1352,reply:21,bounce:69,leads:1363,interested:3,replyRate:1.6,bounceRate:5.1,rep:"RACHEL"},
+  {id:3730127,name:"Eikko - Cosmoprof 2026",status:"ACTIVE",created:"2026-07-28",sent:919,reply:23,bounce:38,leads:1462,interested:2,replyRate:2.5,bounceRate:4.1,rep:null},
+  {id:3738533,name:"Rachel - Spoga+gafa",status:"ACTIVE",created:"2026-07-29",sent:781,reply:18,bounce:65,leads:1408,interested:1,replyRate:2.3,bounceRate:8.3,rep:"RACHEL"},
+  {id:3738501,name:"Rachel - ISM Cologne",status:"ACTIVE",created:"2026-07-29",sent:2127,reply:32,bounce:121,leads:5492,interested:3,replyRate:1.5,bounceRate:5.7,rep:"RACHEL"},
+  {id:3748336,name:"Eikko - Eurobike Frankfurt",status:"DRAFTED",created:"2026-07-31",sent:0,reply:0,bounce:0,leads:0,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3748326,name:"Eikko - Free From Vienna",status:"DRAFTED",created:"2026-07-31",sent:0,reply:0,bounce:0,leads:0,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3756194,name:"Eikko - Tea Expo",status:"ACTIVE",created:"2026-08-03",sent:193,reply:3,bounce:7,leads:196,interested:1,replyRate:1.6,bounceRate:3.6,rep:null},
+  {id:3755309,name:"Rachel - Pitti Immagine Uomo",status:"ACTIVE",created:"2026-08-03",sent:1011,reply:15,bounce:49,leads:2072,interested:0,replyRate:1.5,bounceRate:4.8,rep:"RACHEL"},
+  {id:3771090,name:"Eikko - Toy Fair Q4",status:"ACTIVE",created:"2026-08-06",sent:1583,reply:17,bounce:318,leads:12007,interested:0,replyRate:1.1,bounceRate:20.1,rep:null},
+  {id:3792273,name:"Eikko - Fancy Foods Q4",status:"ACTIVE",created:"2026-08-11",sent:3745,reply:27,bounce:208,leads:36474,interested:1,replyRate:0.7,bounceRate:5.6,rep:null},
+  {id:3805608,name:"Yoni Demo Campaign",status:"DRAFTED",created:"2026-08-14",sent:0,reply:0,bounce:0,leads:0,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3804440,name:"Eikko - Expo West Q4",status:"ACTIVE",created:"2026-08-14",sent:2488,reply:37,bounce:168,leads:14992,interested:0,replyRate:1.5,bounceRate:6.8,rep:null},
+  {id:3804439,name:"Eikko - Sweets and Snacks Q4",status:"ACTIVE",created:"2026-08-14",sent:2160,reply:16,bounce:148,leads:8564,interested:0,replyRate:0.7,bounceRate:6.9,rep:null},
+  {id:3804435,name:"Eikko - Winter Fancy Fair Q4",status:"ACTIVE",created:"2026-08-14",sent:782,reply:2,bounce:54,leads:1174,interested:0,replyRate:0.3,bounceRate:6.9,rep:null},
+  {id:3804252,name:"Blacklist Test - albertscottadvisors",status:"DRAFTED",created:"2026-08-14",sent:0,reply:0,bounce:0,leads:1,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3813947,name:"Yoni demo 3",status:"DRAFTED",created:"2026-08-17",sent:0,reply:0,bounce:0,leads:0,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3838869,name:"Eikko- Cosmoprof",status:"ACTIVE",created:"2026-08-21",sent:332,reply:1,bounce:21,leads:5128,interested:0,replyRate:0.3,bounceRate:6.3,rep:null},
+  {id:3838867,name:"Eikko - Global Pet",status:"DRAFTED",created:"2026-08-21",sent:0,reply:0,bounce:0,leads:2202,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3838866,name:"Eikko - AAPEX",status:"DRAFTED",created:"2026-08-21",sent:0,reply:0,bounce:0,leads:9384,interested:0,replyRate:0.0,bounceRate:0.0,rep:null},
+  {id:3845170,name:"Rachel - IFA (intro before the show)",status:"ACTIVE",created:"2026-08-24",sent:477,reply:6,bounce:11,leads:3485,interested:0,replyRate:1.3,bounceRate:2.3,rep:"RACHEL"},
+];
+
+const DEALS = [
+  {id:4,title:"Urb",stage:"Qualified",status:"open",value:0,added:"2026-06-30",closed:null,owner:25109251},
+  {id:2,title:"ART OF BEAUTY INC",stage:"Close",status:"won",value:0,added:"2026-02-12",closed:"2026-04-22",owner:25102178},
+  {id:3,title:"Christa Dias",stage:"Close",status:"won",value:0,added:"2026-05-06",closed:"2026-05-06",owner:25102178},
+  {id:5,title:"Scentco",stage:"Close",status:"won",value:0,added:"2026-07-29",closed:"2026-07-29",owner:25102178},
+  {id:6,title:"Mexico's Finest",stage:"Close",status:"won",value:0,added:"2026-07-29",closed:"2026-07-29",owner:25102178}
+];
+
+/* Yesterday's SmartLead and campaign-to-date HeyReach figures from the Aug 27 pull.
+   One source, used by the Overview and by the channel pages, so they can never disagree. */
+const YESTERDAY = {
+  label: "Aug 26", sent: 1971, sendingCampaigns: 14, replies: 8, interested: 1,
+  replyMix: [["Do Not Contact", 2], ["Out Of Office", 2], ["Interested", 1], ["Wrong Person", 1], ["Ignore", 1], ["Uncategorized", 1]]
+};
+const LINKEDIN = { campaigns: 1, campaignName: "Global Brands", status: "Paused", leads: 1995, processed: 210, connectionsSent: 133, accepted: 16, messagesSent: 18, replies: 2 };
+
+const REP_NAME = { 25109251: "Yoni", 25102178: "Rachel", 26939288: "Rep 26939288" };
+function repName(id) { return REP_NAME[id] || ("Rep " + id); }
+
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function repLabel(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : ""; }
+function pdLink(kind, id, label) {
+  return '<a class="ext" href="https://app.pipedrive.com/' + kind + '/' + id + '" target="_blank" rel="noopener">' + label + '</a>';
+}
+function linkedTo(row) {
+  const parts = [];
+  if (row.person != null) parts.push(pdLink("person", row.person, row.personName ? esc(row.personName) : "Person #" + row.person));
+  if (row.org != null) parts.push(pdLink("organization", row.org, row.orgName ? esc(row.orgName) : "Org #" + row.org));
+  return parts.length ? parts.join(" · ") : "None on file";
+}
+
+/* ================= routing ================= */
+const ROUTES = ["overview", "smartlead", "linkedin", "pipedrive", "seo", "smartscout", "general", "automation"];
+function pageFromHash() {
+  const p = location.hash.replace(/^#\/?/, "");
+  return ROUTES.indexOf(p) !== -1 ? p : "overview";
+}
+function renderNavActive() {
+  const page = pageFromHash();
+  document.querySelectorAll("[data-nav]").forEach(function (a) { a.classList.toggle("active", a.getAttribute("data-nav") === page); });
+}
+function renderPage() {
+  const page = document.getElementById("page");
+  const route = pageFromHash();
+  if (route === "smartlead") renderSmartLeadPage(page);
+  else if (route === "linkedin") renderLinkedInPage(page);
+  else if (route === "pipedrive") renderPipedrivePage(page);
+  else if (route === "seo") renderPlaceholder(page, "seo");
+  else if (route === "smartscout") renderPlaceholder(page, "smartscout");
+  else if (route === "general") renderGeneralPage(page);
+  else if (route === "automation") renderPlaceholder(page, "automation");
+  else renderOverviewPage(page);
+  renderNavActive();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", renderPage);
+document.getElementById("railBadgePipedrive").textContent = OVERDUE.length;
+document.getElementById("mobileBadgePipedrive").textContent = OVERDUE.length;
+
+/* ================= shared bits ================= */
+function pageHead(title, sub, live) {
+  return '<div class="page-head"><div><h1>' + esc(title) + '</h1><p>' + sub + '</p></div>' +
+    (live ? '<span class="live-pill"><span class="dot"></span>Pulled Aug 27, 2026</span>' : '') + '</div>';
+}
+function sortRows(rows, key, dir) {
+  const out = rows.slice();
+  out.sort(function (a, b) {
+    let av = a[key], bv = b[key];
+    if (typeof av === "string") av = av.toLowerCase();
+    if (typeof bv === "string") bv = bv.toLowerCase();
+    if (av == null) av = "";
+    if (bv == null) bv = "";
+    if (av < bv) return dir === "asc" ? -1 : 1;
+    if (av > bv) return dir === "asc" ? 1 : -1;
+    return 0;
+  });
+  return out;
+}
+function wireSort(tableId, getSort, setSort, renderFn) {
+  document.getElementById(tableId).querySelectorAll("thead th[data-sort]").forEach(function (th) {
+    th.addEventListener("click", function () {
+      const key = th.getAttribute("data-sort");
+      const cur = getSort();
+      const next = cur.key === key ? { key: key, dir: cur.dir === "asc" ? "desc" : "asc" } : { key: key, dir: "asc" };
+      setSort(next);
+      document.getElementById(tableId).querySelectorAll("thead th").forEach(function (t) { t.classList.toggle("sorted", t === th); });
+      renderFn();
+    });
+  });
+}
+function wireToggle(id) {
+  const btn = document.querySelector('[data-toggle="' + id + '"]');
+  if (!btn) return;
+  btn.addEventListener("click", function () {
+    const visual = document.getElementById(id + "-visual");
+    const table = document.getElementById(id + "-table");
+    const showingTable = table.classList.contains("shown");
+    table.classList.toggle("shown", !showingTable);
+    visual.classList.toggle("hidden", !showingTable);
+    btn.textContent = showingTable ? "Plain table" : "Chart view";
+  });
+}
+
+/* ================= placeholder pages ================= */
+const PLACEHOLDER = {
+  seo: {
+    title: "SEO & GEO", sub: "Not connected in this session.",
+    body: "No Semrush domain has been confirmed for this workspace and no SEO connector was authorized for this build. Once connected, this page will show organic ranking movement, AI search visibility (GEO), technical crawl issues, backlink opportunities, and page-level wins/losses.",
+    need: "A confirmed primary domain plus a live SEO data connection."
+  },
+  smartscout: {
+    title: "SmartScout", sub: "Not connected in this session.",
+    body: "No SmartScout connector is available in this environment. Once connected, this page will show the Amazon prospecting and research workflows run through SmartScout: category opportunity scans, brand/domain shortlists, and prospect scoring.",
+    need: "A SmartScout API connection or export."
+  },
+  automation: {
+    title: "Claude Activity Log", sub: "No audit trail connected yet.",
+    body: "There is no logging system in place today that records what an automated process changes in Pipedrive or Smartlead (lead category changes, notes added, deals moved, replies categorized). This page is reserved for that audit trail once one exists, filterable by date, action type, system, lead, and campaign, with the ability to open any entry and see the lead, the reply that triggered it, what it was categorized as, and what happened next.",
+    need: "A write-time log of every automated action, stored somewhere queryable."
+  }
+};
+function renderPlaceholder(page, key) {
+  const p = PLACEHOLDER[key];
+  page.innerHTML = pageHead(p.title, p.sub, false) +
+    '<div class="empty-page"><h3>Not built yet, on purpose</h3><p>' + p.body + '</p>' +
+    '<p style="margin-top:14px"><strong style="color:var(--text)">To turn this on:</strong> ' + esc(p.need) + '</p></div>';
+}
+
+/* ================= Overview ================= */
+function renderOverviewPage(page) {
+  const outstandingTasks = ALL_OPEN_TYPE_COUNTS.task;
+  const overdueByRep = { 25109251: 0, 25102178: 0, 26939288: 0 };
+  OVERDUE.forEach(function (r) { overdueByRep[r.owner] = (overdueByRep[r.owner] || 0) + 1; });
+
+  const openDeals = DEALS.filter(function (d) { return d.status === "open"; }).length;
+  const wonDeals = DEALS.filter(function (d) { return d.status === "won"; }).length;
+  const oldestOverdue = OVERDUE.reduce(function (m, r) { return Math.max(m, r.days); }, 0);
+  const replyMixTop = YESTERDAY.replyMix.slice(0, 3).map(function (m) { return m[1] + " " + m[0]; }).join(", ");
+
+  page.innerHTML = pageHead("Sales & Marketing Command Center", "What needs attention today, then what happened yesterday.", false) +
+
+    '<section class="section">' +
+      '<div class="section-label">Needs attention today (Pipedrive, live)</div>' +
+      '<div class="kpi-row cols-3">' +
+        '<a class="kpi-card hero" href="#/pipedrive"><div class="kpi-top"><span class="kpi-label">Overdue follow-ups</span><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2.5h6"/></svg></span></div><div class="kpi-value tnum">' + OVERDUE.length + '</div><div class="kpi-caption">Oldest is ' + oldestOverdue + ' days overdue</div><span class="pill"><span class="dot"></span>Open the list &#8594;</span></a>' +
+        '<a class="kpi-card" href="#/pipedrive"><div class="kpi-top"><span class="kpi-label">Due today</span><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="M8.5 12l2.2 2.2L16 9"/></svg></span></div><div class="kpi-value tnum">' + DUE_TODAY.length + '</div><div class="kpi-caption">' + UPCOMING.length + ' more due in the next 7 days</div><span class="pill neutral"><span class="dot"></span>' + outstandingTasks + ' open tasks, ' + ALL_OPEN_TYPE_COUNTS.call + ' open calls</span></a>' +
+        '<a class="kpi-card" href="#/pipedrive"><div class="kpi-top"><span class="kpi-label">Open deals</span><span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="11.5" rx="2"/><path d="M8 8V6.2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2V8"/></svg></span></div><div class="kpi-value tnum">' + openDeals + '</div><div class="kpi-caption">' + wonDeals + ' won, 0 lost, value not tracked</div><span class="pill warning"><span class="dot"></span>Thin pipeline</span></a>' +
+      '</div>' +
+    '</section>' +
+
+    '<section class="section">' +
+      '<div class="exception-row cols-2">' +
+        '<div class="exc-card"><div class="exc-head"><h3>Overdue follow-ups by rep</h3><span class="tag">' + OVERDUE.length + ' total</span></div>' +
+          '<div class="bar-list">' +
+          [25109251, 25102178, 26939288].map(function (id) {
+            const n = overdueByRep[id] || 0;
+            return '<div class="bar-list-row"><span class="bar-list-label">' + esc(repName(id)) + '</span><span class="bar-list-track"><span class="bar-list-fill" style="width:' + (n / OVERDUE.length * 100).toFixed(1) + '%' + (id === 25109251 ? ';background:var(--danger-fg)' : '') + '"></span></span><span class="bar-list-val tnum">' + n + '</span></div>';
+          }).join("") +
+          '</div>' +
+          '<a class="btn-primary" style="text-align:center" href="#/pipedrive">Work the overdue list &#8594;</a>' +
+        '</div>' +
+        '<div class="exc-card"><div class="exc-head"><h3>Most overdue right now</h3><span class="tag">Oldest six</span></div>' +
+          '<div class="list-preview">' +
+          OVERDUE.slice(0, 6).map(function (r) {
+            return '<a href="#/pipedrive"><span class="t">' + esc(r.personName || r.orgName || r.subject) + '</span><span class="m tnum">' + r.days + 'd &middot; ' + esc(repName(r.owner)) + '</span></a>';
+          }).join("") +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</section>' +
+
+    '<section class="section">' +
+      '<div class="section-label">Yesterday&#39;s activity (' + YESTERDAY.label + ', from the Aug 27 pull)</div>' +
+      '<div class="kpi-row cols-3">' +
+        '<a class="kpi-card" href="#/smartlead"><div class="kpi-top"><span class="kpi-label">SmartLead emails sent</span></div><div class="kpi-value tnum">' + YESTERDAY.sent.toLocaleString() + '</div><div class="kpi-caption">Across ' + YESTERDAY.sendingCampaigns + ' campaigns that sent</div><span class="pill neutral"><span class="dot"></span>Open SmartLead</span></a>' +
+        '<a class="kpi-card" href="#/smartlead"><div class="kpi-top"><span class="kpi-label">Replies / Interested</span></div><div class="kpi-value tnum">' + YESTERDAY.replies + '<small>replies</small> &middot; ' + YESTERDAY.interested + '<small>interested</small></div><div class="kpi-caption">' + esc(replyMixTop) + '</div><span class="pill ' + (YESTERDAY.interested > 0 ? 'success' : 'neutral') + '"><span class="dot"></span>Reply mix on SmartLead</span></a>' +
+        '<a class="kpi-card" href="#/linkedin"><div class="kpi-top"><span class="kpi-label">LinkedIn, campaign to date</span></div><div class="kpi-value tnum">' + LINKEDIN.accepted + '<small>accepted</small> &middot; ' + LINKEDIN.replies + '<small>replies</small></div><div class="kpi-caption">' + LINKEDIN.connectionsSent + ' invites sent, ' + LINKEDIN.messagesSent + ' messages, ' + LINKEDIN.processed.toLocaleString() + ' of ' + LINKEDIN.leads.toLocaleString() + ' leads worked</div><span class="pill warning"><span class="dot"></span>' + esc(LINKEDIN.campaignName) + ', ' + LINKEDIN.status.toLowerCase() + '</span></a>' +
+      '</div>' +
+      '<div class="info-note" style="margin-top:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.2v.1"/></svg><span>SmartLead and HeyReach figures are from the Aug 27 session pull, the same numbers shown on their own pages. Pipedrive is the only source with rows resolved live.</span></div>' +
+    '</section>' +
+
+    '<footer class="page-foot">Also reserved, not built yet: <a href="#/automation">Claude Activity Log</a></footer>';
+}
+
+/* ================= SmartLead ================= */
+let campaignSort = { key: "created", dir: "desc" };
+let campaignStatusFilter = "ACTIVE";
+const STATUS_PILL_SL = { ACTIVE: "success", PAUSED: "warning", COMPLETED: "neutral", STOPPED: "danger", DRAFTED: "neutral" };
+
+function renderSmartLeadPage(page) {
+  const totalSent = CAMPAIGNS.reduce(function (s, c) { return s + c.sent; }, 0);
+  const totalReply = CAMPAIGNS.reduce(function (s, c) { return s + c.reply; }, 0);
+  const totalBounce = CAMPAIGNS.reduce(function (s, c) { return s + c.bounce; }, 0);
+  const totalInterested = CAMPAIGNS.reduce(function (s, c) { return s + c.interested; }, 0);
+  const replyRate = (totalReply / totalSent * 100).toFixed(2);
+  const bounceRate = (totalBounce / totalSent * 100).toFixed(2);
+  const statusCounts = {};
+  CAMPAIGNS.forEach(function (c) { statusCounts[c.status] = (statusCounts[c.status] || 0) + 1; });
+
+  page.innerHTML = pageHead("SmartLead", "Outbound email: campaigns, inboxes, domains, and deliverability.", true) +
+
+    '<section class="section"><div class="kpi-row cols-4">' +
+      '<div class="kpi-card hero"><div class="kpi-top"><span class="kpi-label">Sent yesterday (' + YESTERDAY.label + ')</span></div><div class="kpi-value tnum">' + YESTERDAY.sent.toLocaleString() + '</div><div class="kpi-caption">Across ' + YESTERDAY.sendingCampaigns + ' campaigns that sent something</div><span class="pill"><span class="dot"></span>' + YESTERDAY.replies + ' replies, ' + YESTERDAY.interested + ' Interested</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Sending inboxes</span></div><div class="kpi-value tnum">111</div><div class="kpi-caption">Across 37 sending domains</div><span class="pill success"><span class="dot"></span>Fully paginated count</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Campaigns</span></div><div class="kpi-value tnum">195</div><div class="kpi-caption">17 active, 21 paused, 7 drafted</div><span class="pill neutral"><span class="dot"></span>142 completed, 8 stopped</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">All-time bounce rate</span></div><div class="kpi-value tnum">' + bounceRate + '%</div><div class="kpi-caption">28,964 bounces of 532,608 sent</div><span class="pill danger"><span class="dot"></span>Above the 5% critical line</span></div>' +
+    '</div></section>' +
+
+    '<section class="section"><div class="danger-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l9.5 16.5H2.5z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/></svg><span><strong>Bounce rate is above the 5% critical threshold agencywide</strong> (5.44% all-time across all 195 campaigns). Sort the table below by bounce rate to find the worst offenders, they are the best candidates for domain rotation or a list-quality pass.</span></div></section>' +
+
+    '<div class="chart-row">' +
+      '<div class="chart-card"><div class="chart-head"><div><h3>Campaign status mix</h3><p>195 campaigns, all time</p></div><button class="toggle-link" data-toggle="sl-status">Plain table</button></div>' +
+        '<div class="chart-visual" id="sl-status-visual"><div class="bars-wrap">' +
+          ["ACTIVE","PAUSED","DRAFTED","COMPLETED","STOPPED"].map(function (s) {
+            const n = statusCounts[s] || 0; const pct = (n / CAMPAIGNS.length * 100);
+            const color = s === "ACTIVE" ? "var(--success-fg)" : s === "PAUSED" ? "var(--warning-fg)" : s === "STOPPED" ? "var(--danger-fg)" : "var(--chart-blue)";
+            return '<div class="bar-col"><div class="bar-value tnum">' + n + '</div><div class="bar-shape-wrap"><div class="bar-shape" style="height:' + Math.max(pct, 3) + '%;background:' + color + '"></div></div><div class="bar-caption">' + s.charAt(0) + s.slice(1).toLowerCase() + '</div><div class="bar-sub">' + pct.toFixed(0) + '%</div></div>';
+          }).join("") +
+        '</div></div>' +
+        '<table class="plain-table" id="sl-status-table"><thead><tr><th>Status</th><th>Campaigns</th></tr></thead><tbody>' +
+          ["ACTIVE","PAUSED","DRAFTED","COMPLETED","STOPPED"].map(function (s) { return '<tr><td>' + s + '</td><td class="n tnum">' + (statusCounts[s]||0) + '</td></tr>'; }).join("") +
+        '</tbody></table>' +
+      '</div>' +
+      '<div class="chart-card"><div class="chart-head"><div><h3>Yesterday&#39;s reply mix</h3><p>' + YESTERDAY.replies + ' replies, ' + YESTERDAY.label + '</p></div><button class="toggle-link" data-toggle="sl-reply">Plain table</button></div>' +
+        '<div class="chart-visual" id="sl-reply-visual"><div class="donut-wrap">' +
+          '<div class="donut-ring"><svg viewBox="0 0 36 36" width="122" height="122">' +
+            '<circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--danger-fg)" stroke-width="6" stroke-dasharray="25 75" stroke-dashoffset="25" transform="rotate(-90 18 18)"/>' +
+            '<circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--chart-blue)" stroke-width="6" stroke-dasharray="25 75" stroke-dashoffset="-0" transform="rotate(-90 18 18)"/>' +
+            '<circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--success-fg)" stroke-width="6" stroke-dasharray="12.5 87.5" stroke-dashoffset="-25" transform="rotate(-90 18 18)"/>' +
+            '<circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--text-tertiary)" stroke-width="6" stroke-dasharray="37.5 62.5" stroke-dashoffset="-37.5" transform="rotate(-90 18 18)"/>' +
+          '</svg><div class="hole"><span class="n tnum">8</span><span class="l">Replies</span></div></div>' +
+          '<div class="legend">' +
+            '<div class="legend-row"><span class="legend-dot" style="background:var(--danger-fg)"></span><span class="legend-name">Do Not Contact</span><span class="legend-val tnum">2</span></div>' +
+            '<div class="legend-row"><span class="legend-dot" style="background:var(--chart-blue)"></span><span class="legend-name">Out Of Office</span><span class="legend-val tnum">2</span></div>' +
+            '<div class="legend-row"><span class="legend-dot" style="background:var(--success-fg)"></span><span class="legend-name">Interested</span><span class="legend-val tnum">1</span></div>' +
+            '<div class="legend-row"><span class="legend-dot" style="background:var(--text-tertiary)"></span><span class="legend-name">Other</span><span class="legend-val tnum">3</span></div>' +
+          '</div>' +
+        '</div></div>' +
+        '<table class="plain-table" id="sl-reply-table"><thead><tr><th>Category</th><th>Replies</th></tr></thead><tbody>' +
+          '<tr><td>Do Not Contact</td><td class="n tnum">2</td></tr><tr><td>Out Of Office</td><td class="n tnum">2</td></tr><tr><td>Interested</td><td class="n tnum">1</td></tr><tr><td>Wrong Person</td><td class="n tnum">1</td></tr><tr><td>Ignore</td><td class="n tnum">1</td></tr><tr><td>Uncategorized</td><td class="n tnum">1</td></tr>' +
+        '</tbody></table>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="table-card">' +
+      '<div class="table-head"><h3>Campaigns</h3><span class="count-badge tnum" id="campVisibleCount"></span>' +
+        '<p class="table-head-sub">All-time totals per campaign. Showing Active by default, pick a status chip to widen. Click any column to resort.</p>' +
+      '</div>' +
+      '<div class="chip-row in-head" id="statusChips">' +
+        Object.keys({ All: 1, ACTIVE: 1, PAUSED: 1, DRAFTED: 1, COMPLETED: 1, STOPPED: 1 }).map(function (s) {
+          return '<button class="chip' + (s === campaignStatusFilter ? " active" : "") + '" data-status="' + s + '">' + s + (s !== "All" ? " " + (statusCounts[s] || 0) : " " + CAMPAIGNS.length) + '</button>';
+        }).join("") +
+      '</div>' +
+      '<div class="table-scroll thin-scroll"><table class="data-table" id="campaignsTable"><thead><tr>' +
+        '<th data-sort="created" class="sorted"><button>Created <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="name"><button>Campaign <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="status"><button>Status</button></th>' +
+        '<th data-sort="sent"><button>Sent <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="reply"><button>Replies <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="replyRate"><button>Reply % <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="bounceRate"><button>Bounce % <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="interested"><button>Interested <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+      '</tr></thead><tbody id="campaignsBody"></tbody></table></div>' +
+      '<div class="empty-state" id="campaignsEmpty" style="display:none">No campaigns match this filter.</div>' +
+    '</div>';
+
+  function renderCampaigns() {
+    const q = document.getElementById("globalSearch").value.trim().toLowerCase();
+    let rows = CAMPAIGNS.filter(function (c) {
+      if (campaignStatusFilter !== "All" && c.status !== campaignStatusFilter) return false;
+      if (q && (c.name + " " + c.status).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    rows = sortRows(rows, campaignSort.key, campaignSort.dir);
+    document.getElementById("campVisibleCount").textContent = rows.length;
+    document.getElementById("campaignsEmpty").style.display = rows.length ? "none" : "block";
+    document.getElementById("campaignsBody").innerHTML = rows.map(function (c) {
+      return "<tr>" +
+        '<td class="mono tnum">' + esc(c.created) + "</td>" +
+        '<td class="subject">' + esc(c.name) + (c.rep ? ' <span class="pill neutral" style="margin-left:4px">' + esc(repLabel(c.rep)) + '</span>' : '') + "</td>" +
+        '<td><span class="pill ' + (STATUS_PILL_SL[c.status] || "neutral") + '"><span class="dot"></span>' + c.status + "</span></td>" +
+        '<td class="n tnum">' + c.sent.toLocaleString() + "</td>" +
+        '<td class="n tnum">' + c.reply.toLocaleString() + "</td>" +
+        '<td class="n tnum">' + c.replyRate.toFixed(1) + "%</td>" +
+        '<td class="n tnum" style="' + (c.bounceRate >= 5 ? "color:var(--danger-fg)" : "") + '">' + c.bounceRate.toFixed(1) + "%</td>" +
+        '<td class="n tnum">' + c.interested + "</td>" +
+        "</tr>";
+    }).join("");
+  }
+  wireSort("campaignsTable", function () { return campaignSort; }, function (s) { campaignSort = s; }, renderCampaigns);
+  document.getElementById("statusChips").querySelectorAll(".chip").forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      campaignStatusFilter = chip.getAttribute("data-status");
+      document.getElementById("statusChips").querySelectorAll(".chip").forEach(function (c) { c.classList.toggle("active", c === chip); });
+      renderCampaigns();
+    });
+  });
+  document.getElementById("globalSearch").addEventListener("input", renderCampaigns);
+  wireToggle("sl-status"); wireToggle("sl-reply");
+  renderCampaigns();
+}
+
+/* ================= LinkedIn ================= */
+function renderLinkedInPage(page) {
+  page.innerHTML = pageHead("LinkedIn Outreach", "HeyReach campaigns, connections, and replies.", true) +
+    '<section class="section"><div class="kpi-row cols-4">' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Campaigns</span></div><div class="kpi-value tnum">1</div><div class="kpi-caption">"Global Brands", paused</div><span class="pill warning"><span class="dot"></span>Paused</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Leads in campaign</span></div><div class="kpi-value tnum">1,995</div><div class="kpi-caption">210 processed so far, 1,785 pending</div><span class="pill neutral"><span class="dot"></span>10.5% worked</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Connections accepted</span></div><div class="kpi-value tnum">' + LINKEDIN.accepted + '</div><div class="kpi-caption">Of ' + LINKEDIN.connectionsSent + ' sent + accepted so far</div><span class="pill neutral"><span class="dot"></span>12.0% acceptance</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Message replies</span></div><div class="kpi-value tnum">' + LINKEDIN.replies + '</div><div class="kpi-caption">Of ' + LINKEDIN.messagesSent + ' messages sent</div><span class="pill neutral"><span class="dot"></span>11.1% reply rate</span></div>' +
+    '</div></section>' +
+    '<div class="table-card"><div class="table-head"><h3>Global Brands</h3><span class="count-badge">Paused</span><p class="table-head-sub">Started Aug 20, 2026. 2 sending LinkedIn accounts, targeting 1,995 leads from list "Global Brands 4."</p></div>' +
+      '<div style="padding:0 20px 20px"><div class="exception-row cols-2">' +
+        '<div class="exc-card"><div class="exc-head"><h3>Lead progress</h3><span class="tag">210 processed</span></div><div class="bar-list">' +
+          '<div class="bar-list-row"><span class="bar-list-label">In sequence</span><span class="bar-list-track"><span class="bar-list-fill" style="width:62.4%"></span></span><span class="bar-list-val tnum">131</span></div>' +
+          '<div class="bar-list-row"><span class="bar-list-label">Pending</span><span class="bar-list-track"><span class="bar-list-fill" style="width:22.9%;background:var(--warning-fg)"></span></span><span class="bar-list-val tnum">48</span></div>' +
+          '<div class="bar-list-row"><span class="bar-list-label">Failed</span><span class="bar-list-track"><span class="bar-list-fill" style="width:13.8%;background:var(--danger-fg)"></span></span><span class="bar-list-val tnum">29</span></div>' +
+          '<div class="bar-list-row"><span class="bar-list-label">Finished</span><span class="bar-list-track"><span class="bar-list-fill" style="width:1%;background:var(--success-fg)"></span></span><span class="bar-list-val tnum">2</span></div>' +
+        '</div></div>' +
+        '<div class="exc-card"><div class="exc-head"><h3>Connection status</h3><span class="tag">210 processed</span></div><div class="bar-list">' +
+          '<div class="bar-list-row"><span class="bar-list-label">Sent</span><span class="bar-list-track"><span class="bar-list-fill" style="width:55.7%"></span></span><span class="bar-list-val tnum">117</span></div>' +
+          '<div class="bar-list-row"><span class="bar-list-label">Accepted</span><span class="bar-list-track"><span class="bar-list-fill" style="width:7.6%;background:var(--success-fg)"></span></span><span class="bar-list-val tnum">16</span></div>' +
+          '<div class="bar-list-row"><span class="bar-list-label">None yet</span><span class="bar-list-track"><span class="bar-list-fill" style="width:36.7%;background:var(--text-tertiary)"></span></span><span class="bar-list-val tnum">77</span></div>' +
+        '</div></div>' +
+      '</div></div>' +
+    '</div>' +
+    '<section class="section"><div class="info-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.2v.1"/></svg><span>This HeyReach key is workspace-scoped: it can read campaigns and leads, but not the organization-level workspace list (that needs a separate org-admin key). Only 1 campaign exists in this workspace right now, so campaign-level sort/filter is not meaningful yet, it will matter once more campaigns are running.</span></div></section>';
+}
+
+/* ================= Pipedrive ================= */
+let pdActiveTab = "overdue";
+let pdRepFilter = "All";
+let pdSort = { key: "due", dir: "asc" };
+
+function currentPdData() {
+  if (pdActiveTab === "today") return DUE_TODAY.map(function (r) { return Object.assign({}, r, { due: r.due, days: r.inDays }); });
+  if (pdActiveTab === "upcoming") return UPCOMING.map(function (r) { return Object.assign({}, r, { due: r.due, days: r.inDays }); });
+  return OVERDUE;
+}
+
+function renderPipedrivePage(page) {
+  const leadsByOwner = { 25109251: 1, 25102178: 182, 26939288: 9 };
+  page.innerHTML = pageHead("Pipedrive", "CRM operations: follow-ups, deals, and leads, read live.", true) +
+    '<section class="section"><div class="kpi-row cols-4">' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Outstanding tasks</span></div><div class="kpi-value tnum">' + ALL_OPEN_TYPE_COUNTS.task + '</div><div class="kpi-caption">Type "task" only</div><span class="pill neutral"><span class="dot"></span>185 open activities total</span></div>' +
+      '<div class="kpi-card hero"><div class="kpi-top"><span class="kpi-label">Overdue follow-ups</span></div><div class="kpi-value tnum">' + OVERDUE.length + '</div><div class="kpi-caption">56.8% of all open activities</div><span class="pill"><span class="dot"></span>Needs attention</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Due today</span></div><div class="kpi-value tnum">' + DUE_TODAY.length + '</div><div class="kpi-caption">Aug 27</div><span class="pill neutral"><span class="dot"></span>On the board</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Due next 7 days</span></div><div class="kpi-value tnum">' + UPCOMING.length + '</div><div class="kpi-caption">Aug 28 to Sep 3</div><span class="pill neutral"><span class="dot"></span>Upcoming</span></div>' +
+    '</div></section>' +
+
+    '<div class="table-card">' +
+      '<div class="table-head"><h3>Activities</h3><span class="count-badge tnum" id="pdVisibleCount"></span>' +
+        '<div class="table-actions"><a class="btn-primary" href="https://app.pipedrive.com/activities/list" target="_blank" rel="noopener">Open in Pipedrive</a></div>' +
+        '<p class="table-head-sub">Contacts and organizations are resolved to real names where Pipedrive has them on file. Click a name to open it in Pipedrive.</p>' +
+      '</div>' +
+      '<div class="chip-row in-head">' +
+        '<button class="chip active" data-tab="overdue">Overdue ' + OVERDUE.length + '</button>' +
+        '<button class="chip" data-tab="today">Due today ' + DUE_TODAY.length + '</button>' +
+        '<button class="chip" data-tab="upcoming">Upcoming ' + UPCOMING.length + '</button>' +
+      '</div>' +
+      '<div class="chip-row in-head" style="padding-top:0">' +
+        '<button class="chip active" data-rep="All">All reps</button>' +
+        '<button class="chip" data-rep="25109251">Yoni</button>' +
+        '<button class="chip" data-rep="25102178">Rachel</button>' +
+        '<button class="chip" data-rep="26939288">Rep 26939288</button>' +
+      '</div>' +
+      '<div class="table-scroll thin-scroll"><table class="data-table" id="pdTable"><thead><tr>' +
+        '<th class="sorted" data-sort="due"><button>Due date <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="days"><button>Days <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="subject"><button>Subject <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th data-sort="type"><button>Type <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+        '<th>Lead / contact</th>' +
+        '<th data-sort="owner"><button>Rep <svg viewBox="0 0 10 10"><path d="M5 1v8M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>' +
+      '</tr></thead><tbody id="pdBody"></tbody></table></div>' +
+      '<div class="empty-state" id="pdEmpty" style="display:none">No activities match this filter.</div>' +
+    '</div>' +
+
+    '<div class="table-card"><div class="table-head"><h3>Pipeline deals</h3><span class="count-badge">5</span>' +
+      '<div class="table-actions"><a class="btn-primary" href="https://app.pipedrive.com/deals" target="_blank" rel="noopener">Open in Pipedrive</a></div>' +
+      '<p class="table-head-sub">Single pipeline, 5 stages. Every deal shows $0 value, only 1 is currently open.</p></div>' +
+      '<div class="table-scroll thin-scroll"><table class="data-table"><thead><tr><th>Deal</th><th>Stage</th><th>Status</th><th>Value</th><th>Added</th><th>Closed</th><th>Rep</th></tr></thead><tbody>' +
+      DEALS.map(function (d) {
+        return "<tr>" + '<td class="subject">' + esc(d.title) + "</td><td>" + esc(d.stage) + '</td><td><span class="pill ' + (d.status === "won" ? "success" : "neutral") + '"><span class="dot"></span>' + d.status + '</span></td><td class="n tnum">$' + d.value.toLocaleString() + '</td><td class="mono tnum">' + d.added + '</td><td class="mono tnum">' + (d.closed || "Not closed") + '</td><td>' + repName(d.owner) + "</td></tr>";
+      }).join("") + "</tbody></table></div></div>" +
+
+    '<section class="section"><div class="exception-row cols-2">' +
+      '<div class="exc-card"><div class="exc-head"><h3>Leads by owner</h3><span class="tag">192 total</span></div><div class="bar-list">' +
+        '<div class="bar-list-row"><span class="bar-list-label">Rachel</span><span class="bar-list-track"><span class="bar-list-fill" style="width:94.8%"></span></span><span class="bar-list-val tnum">182</span></div>' +
+        '<div class="bar-list-row"><span class="bar-list-label">Rep 26939288</span><span class="bar-list-track"><span class="bar-list-fill" style="width:4.7%"></span></span><span class="bar-list-val tnum">9</span></div>' +
+        '<div class="bar-list-row"><span class="bar-list-label">Yoni</span><span class="bar-list-track"><span class="bar-list-fill" style="width:0.5%"></span></span><span class="bar-list-val tnum">1</span></div>' +
+      '</div><div class="info-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.2v.1"/></svg><span>Rachel intakes nearly every lead, Yoni does nearly all the overdue follow-up calling. That split is worth confirming is intentional.</span></div></div>' +
+      '<div class="exc-card"><div class="exc-head"><h3>Contacts on file</h3><span class="tag">Exact, fully paginated</span></div><div class="stat-pair">' +
+        '<div class="s"><div class="v tnum">988</div><div class="l">Organizations</div></div>' +
+        '<div class="s"><div class="v tnum">1,718</div><div class="l">Persons</div></div>' +
+        '<div class="s"><div class="v tnum">9</div><div class="l">Leads never opened</div></div>' +
+      '</div></div>' +
+    '</div></section>' +
+
+    '<section class="section"><div class="exc-card"><div class="exc-head"><h3>Recent BlueDot recordings</h3><span class="tag">Input source, not tracked as a metric</span></div>' +
+      '<div class="list-preview">' +
+        '<a href="#"><span class="t">Wholesome Hippy Amazon Advertising</span><span class="m">Aug 27</span></a>' +
+        '<a href="#"><span class="t">AS &amp; Katjes TikTok Next Steps</span><span class="m">Aug 27</span></a>' +
+        '<a href="#"><span class="t">Rufus Teague Weekly Updates</span><span class="m">Aug 27</span></a>' +
+        '<a href="#"><span class="t">Neal Mehra and Yoni Lebovits</span><span class="m">Aug 27</span></a>' +
+        '<a href="#"><span class="t">Scentco Updates</span><span class="m">Aug 26</span></a>' +
+        '<a href="#"><span class="t">Zoya x Albert Scott Biweekly Call</span><span class="m">Aug 25</span></a>' +
+      '</div>' +
+      '<div class="info-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.2v.1"/></svg><span>All recent recordings are named client account calls, not prospect sales calls, nothing here is currently actionable as a standing metric. Kept as a short list so a recording can be opened and used to update a Pipedrive contact, not tracked as its own dashboard box.</span></div>' +
+    '</div></section>';
+
+  function renderPd() {
+    const q = document.getElementById("globalSearch").value.trim().toLowerCase();
+    let rows = currentPdData().filter(function (r) {
+      if (pdRepFilter !== "All" && String(r.owner) !== pdRepFilter) return false;
+      if (q && (r.subject + " " + (r.personName||"") + " " + (r.orgName||"")).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    rows = sortRows(rows, pdSort.key, pdSort.dir);
+    document.getElementById("pdVisibleCount").textContent = rows.length;
+    document.getElementById("pdEmpty").style.display = rows.length ? "none" : "block";
+    document.getElementById("pdBody").innerHTML = rows.map(function (r) {
+      return "<tr>" + '<td class="mono tnum">' + esc(r.due) + '</td><td class="n tnum">' + (pdActiveTab === "overdue" ? r.days : (pdActiveTab === "today" ? "0" : "+" + r.days)) + '</td><td class="subject">' + esc(r.subject) + '</td><td style="text-transform:capitalize">' + esc(r.type) + '</td><td class="mono">' + linkedTo(r) + '</td><td class="mono">' + repName(r.owner) + "</td></tr>";
+    }).join("");
+  }
+  page.querySelectorAll("[data-tab]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      pdActiveTab = b.getAttribute("data-tab");
+      page.querySelectorAll("[data-tab]").forEach(function (x) { x.classList.toggle("active", x === b); });
+      renderPd();
+    });
+  });
+  page.querySelectorAll("[data-rep]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      pdRepFilter = b.getAttribute("data-rep");
+      page.querySelectorAll("[data-rep]").forEach(function (x) { x.classList.toggle("active", x === b); });
+      renderPd();
+    });
+  });
+  wireSort("pdTable", function () { return pdSort; }, function (s) { pdSort = s; }, renderPd);
+  document.getElementById("globalSearch").addEventListener("input", renderPd);
+  renderPd();
+}
+
+/* ================= General: software and infrastructure ================= */
+const VENDORS = [
+  { name: "Smartlead", purpose: "Sending platform, all 111 mailboxes", monthly: 333.70, annual: 4004.40, coverage: "111 mailboxes", renewal: "Monthly, 1st", ref: "Stripe receipt #2899-0302" },
+  { name: "Microsoft 365", purpose: "36 Outlook mailboxes (24 Business Basic + 12 Exchange Online P1)", monthly: 230.40, annual: 2764.80, coverage: "36 seats", renewal: "Per-seat, monthly", ref: "Confirmed seat order" },
+  { name: "GoDaddy", purpose: "12 sending domains", monthly: 22.19, annual: 266.28, coverage: "12 domains", renewal: "Staggered, see below", ref: "Order #3931643853 / #3965647774" },
+  { name: "Namecheap", purpose: "17 sending domains", monthly: 16.26, annual: 195.16, coverage: "17 domains", renewal: "2027-06-18", ref: "Order #205782920" },
+  { name: "Porkbun", purpose: "8 sending domains", monthly: 7.39, annual: 88.64, coverage: "8 domains", renewal: "2027-06-12", ref: "Order #10638583" },
+  { name: "Google Workspace", purpose: "Business Starter, 24 older Gmail mailboxes", monthly: null, annual: null, coverage: "24 mailboxes", renewal: "Monthly", ref: "Invoice 5640776065, amount in PDF" },
+  { name: "Premium Inboxes", purpose: "Provisioned the 51 newest Google mailboxes", monthly: null, annual: null, coverage: "51 mailboxes", renewal: "Unknown", ref: "No receipt found" }
+];
+const DOMAIN_WAVES = [
+  { wave: "Namecheap, Jun 2026", registrar: "Namecheap", count: 17, mailboxProvider: "Gmail", perYear: 11.48, renewal: "2027-06-18" },
+  { wave: "Porkbun, Jun 2025", registrar: "Porkbun", count: 8, mailboxProvider: "Gmail / Outlook", perYear: 11.08, renewal: "2027-06-12" },
+  { wave: "GoDaddy, Oct to Dec 2023", registrar: "GoDaddy", count: 8, mailboxProvider: "Outlook", perYear: 22.19, renewal: "Staggered, Sep to Dec" },
+  { wave: "GoDaddy, Sep 2023 (original set)", registrar: "GoDaddy", count: 4, mailboxProvider: "Gmail", perYear: 22.19, renewal: "Staggered, Sep to Apr" }
+];
+
+function renderGeneralPage(page) {
+  const monthlyKnown = VENDORS.reduce(function (s, v) { return s + (v.monthly || 0); }, 0);
+  const annualKnown = VENDORS.reduce(function (s, v) { return s + (v.annual || 0); }, 0);
+  page.innerHTML = pageHead("Resources", "Software and infrastructure: every vendor in the sending stack, what it costs, what it covers, and how to renew it.", true) +
+    '<section class="section"><div class="kpi-row cols-4">' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Verified monthly floor</span></div><div class="kpi-value tnum">$' + monthlyKnown.toFixed(2) + '</div><div class="kpi-caption">Priced vendors only</div><span class="pill neutral"><span class="dot"></span>2 of 7 unpriced</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Annualized</span></div><div class="kpi-value tnum">$' + annualKnown.toFixed(0) + '</div><div class="kpi-caption">Same floor, priced vendors only</div><span class="pill neutral"><span class="dot"></span>Not a total</span></div>' +
+      '<div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Domains</span></div><div class="kpi-value tnum">37</div><div class="kpi-caption">$550.08/yr registrar cost</div><span class="pill success"><span class="dot"></span>Live-pull confirmed</span></div>' +
+      '<div class="kpi-card hero"><div class="kpi-top"><span class="kpi-label">Unpriced gap</span></div><div class="kpi-value tnum">2</div><div class="kpi-caption">Google Workspace + Premium Inboxes: no receipt on file</div><span class="pill"><span class="dot"></span>Likely the largest line</span></div>' +
+    '</div></section>' +
+
+    '<div class="flag-note" style="margin-bottom:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l9.5 16.5H2.5z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/></svg><span><strong>Google Workspace and Premium Inboxes carry 75 mailboxes between them with no confirmed price.</strong> Given Smartlead alone runs $333.70/mo for 111 mailboxes, these two are plausibly the largest line in this report, larger than Smartlead. Worth pulling the actual receipts before trusting the $' + monthlyKnown.toFixed(2) + ' floor as anywhere close to real spend.</span></div>' +
+
+    '<div class="table-card"><div class="table-head"><h3>Vendors</h3><span class="count-badge">7</span></div>' +
+      '<div class="table-scroll thin-scroll"><table class="reg-table"><thead><tr><th>Vendor</th><th>Purpose</th><th>Coverage</th><th>Monthly</th><th>Annual</th><th>Renewal</th><th>Account reference</th><th>Credential</th></tr></thead><tbody>' +
+      VENDORS.map(function (v) {
+        return "<tr>" + '<td class="name">' + esc(v.name) + "</td><td>" + esc(v.purpose) + "</td><td>" + esc(v.coverage) + '</td><td class="n tnum">' + (v.monthly != null ? "$" + v.monthly.toFixed(2) : "Not priced") + '</td><td class="n tnum">' + (v.annual != null ? "$" + v.annual.toFixed(2) : "Not priced") + "</td><td>" + esc(v.renewal) + "</td><td>" + esc(v.ref) + '</td><td style="color:var(--text-tertiary)">See password manager</td></tr>';
+      }).join("") +
+      '</tbody><tfoot class="reg-foot"><tr><td colspan="3">Verified total (priced vendors)</td><td class="n tnum">$' + monthlyKnown.toFixed(2) + '</td><td class="n tnum">$' + annualKnown.toFixed(2) + '</td><td colspan="3"></td></tr></tfoot>' +
+      '</table></div></div>' +
+
+    '<div class="table-card"><div class="table-head"><h3>Domain waves</h3><span class="count-badge">37 domains, 4 waves</span><p class="table-head-sub">Every sending domain, grouped by when and where it was registered.</p></div>' +
+      '<div class="table-scroll thin-scroll"><table class="reg-table"><thead><tr><th>Wave</th><th>Registrar</th><th>Domains</th><th>Mailbox provider</th><th>Cost / domain / yr</th><th>Renewal</th></tr></thead><tbody>' +
+      DOMAIN_WAVES.map(function (w) {
+        return "<tr>" + '<td class="name">' + esc(w.wave) + "</td><td>" + esc(w.registrar) + '</td><td class="n tnum">' + w.count + "</td><td>" + esc(w.mailboxProvider) + '</td><td class="n tnum">$' + w.perYear.toFixed(2) + "</td><td>" + esc(w.renewal) + "</td></tr>";
+      }).join("") +
+      '</tbody></table></div></div>' +
+
+    '<section class="section"><div class="info-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/></svg><span><strong>No passwords are stored on this page.</strong> The credential column intentionally says "See password manager" instead of a value or a link, this session has no confirmed password manager URL to link to; wire that up once you tell me which one you use.</span></div></section>';
+}
+
+/* ================= boot ================= */
+const ALL_OPEN_TYPE_COUNTS = { call: 170, task: 8, meeting: 7 };
+renderPage();
+</script>
