@@ -67,6 +67,13 @@ All methods map directly to Smartlead's documented REST endpoints
 (`https://api.smartlead.ai/reference`). Extend `SmartleadClient` with `client.get/post/patch/delete`
 for any endpoint not yet wrapped.
 
+## Pipedrive (REST)
+
+`src/pipedrive.js` is a minimal client for the Pipedrive REST API (v2, with v1 for leads), used by
+`dashboards/pull/pull-pipedrive.mjs` to refresh the command center without the connector. It reads
+`PIPEDRIVE_API_TOKEN` from the environment. Responses are returned raw, in the same
+`{ success, data, additional_data }` shape the Pipedrive connector produces.
+
 ## Email verification (QuickEmailVerification)
 
 A separate, minimal client for [QuickEmailVerification.com](https://www.quickemailverification.com/)

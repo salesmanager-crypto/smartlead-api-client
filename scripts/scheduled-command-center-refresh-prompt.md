@@ -22,8 +22,11 @@ render functions on a scheduled run; this is a data refresh, not a redesign.
   report that; do not guess numbers.
 - **HeyReach:** `HEYREACH_API_KEY` from the environment (or `.env`). If missing, skip step 2; the
   build script carries the previous `LINKEDIN` block forward and says so.
-- **Pipedrive:** the connected Pipedrive MCP tools. If the connector is unavailable, stop and
-  report that; the overdue list and the sync check cannot be built without it.
+- **Pipedrive:** `PIPEDRIVE_API_TOKEN` from the environment (or `.env`) drives
+  `dashboards/pull/pull-pipedrive.mjs`, which needs no connector. If the token is missing but the
+  Pipedrive MCP connector is available, use the connector as described in step 3b. If neither is
+  available, stop and report that; the overdue list and the sync check cannot be built without
+  Pipedrive.
 
 Every figure on the dashboard must trace to an API response from this run or be carried forward
 from the previous page with a note in your report. Never invent a plausible number.
@@ -46,7 +49,15 @@ node dashboards/pull/pull-heyreach.mjs
 
 Writes `dashboards/pull/out/heyreach-pull.json`. Skip if the key is missing.
 
-## Step 3: Pipedrive (connector)
+## Step 3a: Pipedrive over REST (preferred)
+
+```
+node dashboards/pull/pull-pipedrive.mjs
+```
+
+Writes every file step 3b describes under `dashboards/pull/out/pipedrive/`. If it succeeds, skip 3b.
+
+## Step 3b: Pipedrive over the connector (fallback when there is no API token)
 
 Save each raw connector response as a JSON file under `dashboards/pull/out/pipedrive/`. Large
 responses are saved by the harness to a tool-results file; copy that file to the path below rather

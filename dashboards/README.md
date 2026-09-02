@@ -23,8 +23,9 @@ Only the constants block at the top of the `<script>` changes on a refresh: `DAT
 - `pull/pull-smartlead.mjs` pulls campaigns, per-campaign analytics, yesterday's sends, all inboxes,
   and the last 7 days of Master Inbox replies with categories. Needs `SMARTLEAD_API_KEY` in `.env`.
 - `pull/pull-heyreach.mjs` pulls the HeyReach campaign and its lead statuses. Needs `HEYREACH_API_KEY`.
-- Pipedrive comes from the connector: open activities sorted by due date, deals by status, leads,
-  and every person and organization (for name resolution and the sync check).
+- `pull/pull-pipedrive.mjs` pulls open activities, deals by status, stages, leads, and every person
+  and organization over REST. Needs `PIPEDRIVE_API_TOKEN`. Without a token, the same files can be
+  saved from the Pipedrive connector responses (see the scheduled prompt).
 
 `INBOX_LOG` rows carry a `status`: `synced` when the category is one the Smartlead-to-Pipedrive
 automation syncs (Interested, Meeting Request, Follow Up) and a Pipedrive person exists with the
