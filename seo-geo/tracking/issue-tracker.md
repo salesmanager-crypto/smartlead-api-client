@@ -41,10 +41,16 @@ One line per issue. Tick the box when the fix is live and verified on the page. 
   What is happening: The homepage divisions section links /listing-division-2/, /marketing-division/ and /logistics-division-2/, which all 301. Four pages link /case-studies-2/, which 301s to /case-studies/. The homepage reaches its own service pages only through redirects.  
   Fix: Edit the homepage divisions block and the case study CTAs to point at the live URLs.  
   Ref: R2
-- [ ] **AS-010 Homepage stats not in the HTML** (P1, site-wide)  
+
+## Homepage
+
+- [ ] **AS-010 Homepage stats not in the HTML** (P1, /)  
   What is happening: The five metrics (30+ Marketplace Experts, 90+ Client Retention, 10+ Years, 100M+ Managed Revenue, 50+ Clients) are Divi number counters. The values live only in a data-number-value attribute and are written into the page by JavaScript after load. In the raw HTML that crawlers and answer engines read, the number text is empty.  
   Fix: Replace the counter modules with plain text modules that contain the number, or add the same figures as a sentence in the body copy ("30+ marketplace experts, 90%+ client retention...") so they exist without JavaScript.  
   Ref: new
+
+## General
+
 - [ ] **AS-011 Image alt text missing site-wide** (P2, site-wide)  
   What is happening: 1,504 of 1,601 images have alt="". 63 pages have no alt on any image. Client logos, portfolio work, icons and the site logo are all unlabeled, so none of the portfolio work is visible to image search or screen readers.  
   Fix: Add alt text in the Media Library for every image, starting with the homepage, the four division pages, /dsp/, /case-studies/ and the portfolio gallery. Pattern: client logos "[Brand] logo"; portfolio "[Brand] Amazon A+ module designed by Albert Scott".  
@@ -85,7 +91,7 @@ One line per issue. Tick the box when the fix is live and verified on the page. 
   Fix: Add descriptive alt text to every image in the Media Library.  
   Ref: R10
 - [ ] **AS-020 Links to redirecting or dead URLs** (P1, /)  
-  What is happening: Links target: /listing-division-2/, /case-studies-2/, /logistics-division-2/, /marketing-division/.  
+  What is happening: Links target: /listing-division-2/, /logistics-division-2/, /case-studies-2/, /marketing-division/.  
   Fix: Point each link at the live URL.  
   Ref: R2
 - [ ] **AS-021 Competes with old copies of itself** (P1, /)  
