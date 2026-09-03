@@ -1813,3 +1813,19 @@ Rendered in headless Chromium on 2026-09-03. Full table in `../config/competitor
 - The entity signals on the site conflict: three different one-line descriptions (tagline "E-commerce Management", schema slogan "Amazon. Expertise. Delivered.", meta "full-service Amazon growth agency") and two Organization nodes with different employee counts and no sameAs to LinkedIn or the press coverage that currently outranks the site for its own name.
 - Third-party lists that answer engines draw from (Nova, Sermondo, Clutch, Canopy, Ecomranker) do not list Albert Scott. Only withalfi.com does.
 - The strongest GEO asset on the site is the four-model explanation on the homepage (Vendor Central, Seller Central, hybrid, distributor) and the Forbes Business Council articles linked from /newsroom/. Neither is marked up or linked from the division pages.
+
+## Verification re-run, 2026-09-03 17:47 UTC
+
+The full Stage 1 crawl, grading, link-status check and 24-query baseline were run a second time the same day to confirm the system is repeatable.
+
+| Check | Run 1 | Run 2 | Difference |
+|---|---|---|---|
+| Pages crawled, all HTTP 200 | 86 | 86 | none |
+| Average score (of 11) | 5.48 | 5.48 | none |
+| Pages whose score changed | | | 0 |
+| Page facts changed (status, title, meta, canonical, robots, H1, images, alt, schema, overflow, CTA, og:image; word and link counts within tolerance) | | | 0 |
+| Internal link targets checked | 142 | 142 | 0 status changes |
+| albertscott.com in returned results | 3 of 24 | 3 of 24 | same queries, same positions (8, 8, 5) |
+| GEO prompt naming Albert Scott | 1 of 5 | 1 of 5 | same prompt, same wording |
+
+Search result reshuffles between runs, both minor: "Amazon growth agency" dropped the newswire.com press release and added 10xcommerceco.com; "Amazon agency that also manages logistics and retail operations" returned aboutamazon.com first and wearemelody.com instead of two of the supplykick.com URLs. Every other query returned the same domains in the same order. Screenshots from run 2 were not committed because they duplicate run 1.

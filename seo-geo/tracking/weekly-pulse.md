@@ -24,4 +24,4 @@ Changes since last week:
 4. Core query set: albertscott.com absent from returned results for full service Amazon agency, Amazon agency, best Amazon agencies, Amazon management agency, Amazon growth agency, Amazon marketing agency. Brand query "Albert Scott Amazon agency": homepage at 8.
 5. GEO prompts: named in 1 of 5 (Vendor Central plus Seller Central prompt, sourced from withalfi.com).
 
-Changes since last week: first entry.
+Changes since last week: first entry. A same-day verification re-run at 17:47 UTC reproduced every result (see the audit's final section).

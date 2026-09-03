@@ -147,6 +147,7 @@ Report: `audits/smoke-test-2026-09-03.md`. Site inventory: `config/site-map.md`.
 | 2. Roadmap | 2026-09-03 | `roadmap/roadmap-2026-09-03.md` | 20 items in 3 batches with a disposition table for the 32 triage pages. |
 | 3. Growth | 2026-09-03 | `growth/growth-plan-2026-09-03.md` | 7 workstreams: entity, service pages, comparison content, local page, third-party lists, case studies, brand SERP. |
 | Report | 2026-09-03 | `reports/report-2026-09-03.md` | One-page summary for the business. |
+| 1. Audit (verification re-run) | 2026-09-03 17:47 UTC | Section appended to `audits/stage1-audit-2026-09-03.md` | Full crawl, grades, link check and 24 queries repeated. Identical results: 0 score changes, 0 fact changes, same search positions. The system is repeatable. |
 
 Stage 1 method notes: grading is rule-based from captured DOM evidence (rules listed in the audit, Part C) with hand review of the primary pages; the link-status check must strip trailing slashes from file URLs or it reports false 404s; competitor pages were rendered through the same browser routing pattern.
 
