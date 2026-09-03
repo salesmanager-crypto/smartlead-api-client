@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "smartscout": {
+      "type": "http",
+      "url": "https://mcp.smartscout.com/"
+    }
+  }
+}

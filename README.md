@@ -67,6 +67,14 @@ All methods map directly to Smartlead's documented REST endpoints
 (`https://api.smartlead.ai/reference`). Extend `SmartleadClient` with `client.get/post/patch/delete`
 for any endpoint not yet wrapped.
 
+## SmartScout MCP connector
+
+`.mcp.json` registers SmartScout's remote MCP server (`https://mcp.smartscout.com/`) for
+Claude Code sessions in this repo. It is read-only Amazon marketplace data (brands, products,
+keywords, sellers, ad intelligence) behind a browser OAuth login, no API key needed.
+Requires a SmartScout Business or Enterprise plan. Setup steps for Claude Code and for
+claude.ai custom connectors are in [`docs/SmartScout-MCP-Setup.md`](docs/SmartScout-MCP-Setup.md).
+
 ## Email verification (QuickEmailVerification)
 
 A separate, minimal client for [QuickEmailVerification.com](https://www.quickemailverification.com/)
