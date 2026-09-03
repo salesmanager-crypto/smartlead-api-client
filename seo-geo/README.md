@@ -121,7 +121,7 @@ Setup and test run completed 2026-09-03. Branch: `claude/seo-geo-setup-fqgzxb` (
 | b. WebFetch: robots.txt | PASSED | HTTP 200. Contents: `User-agent: *`, `Disallow: /wp-admin/`, `Allow: /wp-admin/admin-ajax.php`, `Disallow: /cdn-cgi/`, `Sitemap: https://www.albertscott.com/sitemap.xml`, `Sitemap: https://www.albertscott.com/sitemap.rss`. |
 | c. WebSearch: "Albert Scott Amazon agency" | PASSED | First three results as returned: 1. zoominfo.com "Albert Scott: Employee Directory". 2. zoominfo.com "Albert Scott - Overview, News & Similar companies". 3. linkedin.com/company/albert-scott-llc. The homepage https://www.albertscott.com/ was result 8 of 9. |
 | d. Headless browser: render at 390x844 and 1440x900 | PASSED after two failed attempts | Files: `audits/screenshots/test/homepage-mobile-390x844.png` (55,683 bytes), `audits/screenshots/test/homepage-desktop-1440x900.png` (159,211 bytes), plus full-page captures of both and of `/marketing-devision/`. Both viewport captures were opened and show the rendered hero, nav, headline and CTA; neither is blank. No horizontal overflow at either width. Failure detail: Chromium navigation returned `net::ERR_CONNECTION_RESET` for every HTTPS URL, with and without an explicit proxy flag, because Chromium's network stack cannot reach the sandbox egress proxy. Fix: route all browser requests through Playwright's Node-side fetch (`context.route` with `route.fetch`), which honors the proxy and CA bundle. Rendering still happens in Chromium. This is the required launch pattern for all future runs in this environment. |
-| e. Git: branch pushed | see the final line of this section | |
+| e. Git: branch pushed | PASSED | Push accepted by origin; PR #10 opened against main. |
 
 ### Smoke test
 
@@ -141,4 +141,4 @@ Report: `audits/smoke-test-2026-09-03.md`. Site inventory: `config/site-map.md`.
 
 ### Git result
 
-Branch `claude/seo-geo-setup-fqgzxb` pushed: see the pull request linked in the final session report. Result recorded in the PR description.
+Branch `claude/seo-geo-setup-fqgzxb` pushed successfully on 2026-09-03 (three commits). Pull request: https://github.com/salesmanager-crypto/smartlead-api-client/pull/10
