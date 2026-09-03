@@ -108,7 +108,7 @@ Append one dated entry to `tracking/monthly-deep-dive.md`:
 
 ## Status
 
-Setup and test run completed 2026-09-03. Branch: `claude/seo-geo-setup-fqgzxb` (the environment assigned this name; the requested name was `claude/seo-geo-setup`).
+Setup and test run completed 2026-09-03. All three stages then ran the same day (see "Stage runs" below). Branch: `claude/seo-geo-setup-fqgzxb` (the environment assigned this name; the requested name was `claude/seo-geo-setup`).
 
 ### Tool verification
 
@@ -138,6 +138,17 @@ Report: `audits/smoke-test-2026-09-03.md`. Site inventory: `config/site-map.md`.
 - Always add the `context.route('**/*', route => route.fetch().then(r => route.fulfill({ response: r })))` pattern before navigating.
 - `waitUntil: 'load'` is enough; `networkidle` can hang on third-party scripts.
 - Sitemap `<loc>` values are wrapped in CDATA; parsers must handle it.
+
+### Stage runs
+
+| Stage | Date | Output | Notes |
+|---|---|---|---|
+| 1. Audit | 2026-09-03 | `audits/stage1-audit-2026-09-03.md`, `audits/screenshots/stage1-2026-09-03/` (172 JPEGs), `tracking/scorecard.md` | 86 content pages rendered at both widths and graded; 24 queries; 5 GEO prompts; 10 competitor pages captured; junk dispositions in Part B. Average score 5.48 of 11. |
+| 2. Roadmap | 2026-09-03 | `roadmap/roadmap-2026-09-03.md` | 20 items in 3 batches with a disposition table for the 32 triage pages. |
+| 3. Growth | 2026-09-03 | `growth/growth-plan-2026-09-03.md` | 7 workstreams: entity, service pages, comparison content, local page, third-party lists, case studies, brand SERP. |
+| Report | 2026-09-03 | `reports/report-2026-09-03.md` | One-page summary for the business. |
+
+Stage 1 method notes: grading is rule-based from captured DOM evidence (rules listed in the audit, Part C) with hand review of the primary pages; the link-status check must strip trailing slashes from file URLs or it reports false 404s; competitor pages were rendered through the same browser routing pattern.
 
 ### Git result
 

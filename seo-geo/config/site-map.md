@@ -177,3 +177,14 @@ Rule 9 dispositions are proposals for the roadmap. Nothing here has been changed
 |---|---|
 | https://albertscott.com/ | 301 to https://www.albertscott.com/ |
 | http://www.albertscott.com/ | 301 to https://www.albertscott.com/ |
+
+## Stage 1 additions (2026-09-03)
+
+| URL | Finding | Disposition |
+|---|---|---|
+| /marketing-management/ | 404, still returned for the site: query, linked from /test-modules/ | 301 to the marketing division page |
+| /privacy-policy-2/ | 404, linked from /test-modules/ | 301 to /privacy-policy/ |
+| /listing-division-2/, /marketing-division/, /logistics-division-2/ | 301s linked from the homepage divisions section | Update the homepage links (roadmap R2) |
+| /case-studies-2/ | 301 linked from 4 pages | Update the links (roadmap R2) |
+| Orphans | 33 content pages have no inbound link from any crawled page; list in the audit, Part C item 4 | Resolved by roadmap R1 and R18 |
+| Case study PDFs | 9 PDFs under /wp-content/uploads/ linked from pages (Atlas, Flipbelt, Mouthwatchers, Objet D'Art, Great Western, Nora, BeYoutiful, Human Beanz, Roll Comb) | Convert to HTML case studies (growth plan G6) |
