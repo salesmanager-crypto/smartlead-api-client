@@ -1829,3 +1829,18 @@ The full Stage 1 crawl, grading, link-status check and 24-query baseline were ru
 | GEO prompt naming Albert Scott | 1 of 5 | 1 of 5 | same prompt, same wording |
 
 Search result reshuffles between runs, both minor: "Amazon growth agency" dropped the newswire.com press release and added 10xcommerceco.com; "Amazon agency that also manages logistics and retail operations" returned aboutamazon.com first and wearemelody.com instead of two of the supplykick.com URLs. Every other query returned the same domains in the same order. Screenshots from run 2 were not committed because they duplicate run 1.
+
+## Re-verification against the live site, 2026-09-07 14:00 UTC
+
+Every one of the 239 issues in `../tracking/issue-tracker.csv` was re-checked against the live site: all 86 content pages re-crawled and re-graded, the 143 internal link targets re-checked, and the 32 junk/redirect/dead-link URLs individually re-probed (7 category archives, 2 tag archives, 10 project_category archives, the /project/ archive, 4 author archives, 2 dead URLs, /blog/, and the 4 redirecting internal links).
+
+**Result: none of the 239 tracked issues have been fixed.** Every title, meta description, H1, schema block, canonical tag, robots meta, redirect, and dead link is unchanged from 2026-09-03. No site edits have been made since the tracker was built.
+
+**Two things changed on the site since 2026-09-03, neither a fix:**
+
+1. A new page, https://www.albertscott.com/brand-store-design/, went live. It did not exist on 2026-09-03 (published page count rose from 50 to 51; it is not in that day's page sitemap). It has one H1, 17 words of body copy, no meta description, and 48 of 48 images with empty alt text, the same problems already found elsewhere on the site. Added to the tracker as AS-240 and AS-241.
+2. A new junk taxonomy appeared: "dsm-attachment-category", with 7 archive pages (one per client brand: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero), all live, indexable, and listed in a new sitemap file (https://www.albertscott.com/dsm-attachment-category-sitemap.xml) that did not exist on 2026-09-03. Same pattern as the project_category archives already flagged. Added to the tracker as AS-242 through AS-248.
+
+Two small numeric deltas were also observed and are not tracked as issues: image and word counts on a few pages shifted by 1 to 3 (homepage, /dsp/, /contact-us/) and the portfolio gallery page's counts dropped (229 to 161 words, 219 to 167 images) with its first paragraph and link set otherwise unchanged. This is consistent with a lazy-loading image gallery rendering a different number of tiles depending on scroll timing during the crawl, not a content edit; it should be re-checked in the next full re-crawl rather than acted on now.
+
+Tracker total: 239 to 248 rows. Status column is unchanged (still all Open) since nothing was found fixed.

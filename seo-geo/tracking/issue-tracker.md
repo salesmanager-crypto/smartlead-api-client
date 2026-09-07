@@ -1,6 +1,6 @@
 # Issue tracker
 
-One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Rebuilt 2026-09-03 (v2) to name every specific instance individually rather than summarizing counts.
+One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2, one row per exact URL). Re-verified against the live site on 2026-09-07: all 239 original rows were still present exactly as described, and 9 new rows were added for a new page and a new junk taxonomy that appeared in the interim (see the audit's re-verification section).
 
 
 ## General - sitewide template
@@ -1320,3 +1320,54 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/case-studies/mouthwatchers/ contains 5 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14
+
+## New since 2026-09-03
+
+- [ ] **AS-240 New page found live, not in the original audit: thin content, no meta description, no alt text** (P1, New page: Brand Store Design)  
+  URL: https://www.albertscott.com/brand-store-design/  
+  What is happening: https://www.albertscott.com/brand-store-design/ did not exist on 2026-09-03 (confirmed absent from the page sitemap that day) and is live as of the 2026-09-07 re-check: HTTP 200, in the page sitemap, published page count rose from 50 to 51. It has one H1 ("Brand Store Design"), 17 words of body copy, no meta description, and 48 of 48 images with empty alt text. It carries the same sitewide Organization/ProfessionalService schema as every other page (see the schema rows above), so it inherits that issue too.  
+  Fix: Give this page the same treatment as the other primary pages: write a meta description, expand the body copy well past 17 words (what Brand Store design work includes, examples, a link to the portfolio gallery), and add alt text to all 48 images.  
+  Ref: new
+- [ ] **AS-241 No call to action visible in the first mobile screen** (P2, New page: Brand Store Design)  
+  URL: https://www.albertscott.com/brand-store-design/  
+  What is happening: Rendered at 390x844, the only CTA ("Contact") is inside the collapsed nav menu, same pattern as most other pages.  
+  Fix: Add a visible CTA button under the H1.  
+  Ref: new
+
+## New since 2026-09-03: dsm-attachment-category archives
+
+- [ ] **AS-242 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: ABG)  
+  URL: https://www.albertscott.com/blog/dsm-attachment-category/abg/  
+  What is happening: https://www.albertscott.com/blog/dsm-attachment-category/abg/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
+  Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
+  Ref: R4
+- [ ] **AS-243 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: BeYoutifull)  
+  URL: https://www.albertscott.com/blog/dsm-attachment-category/beyoutifull/  
+  What is happening: https://www.albertscott.com/blog/dsm-attachment-category/beyoutifull/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
+  Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
+  Ref: R4
+- [ ] **AS-244 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Katjes)  
+  URL: https://www.albertscott.com/blog/dsm-attachment-category/katjes/  
+  What is happening: https://www.albertscott.com/blog/dsm-attachment-category/katjes/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
+  Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
+  Ref: R4
+- [ ] **AS-245 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Magmod)  
+  URL: https://www.albertscott.com/blog/dsm-attachment-category/magmod/  
+  What is happening: https://www.albertscott.com/blog/dsm-attachment-category/magmod/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
+  Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
+  Ref: R4
+- [ ] **AS-246 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Mouthwatchers)  
+  URL: https://www.albertscott.com/blog/dsm-attachment-category/mouthwatchers/  
+  What is happening: https://www.albertscott.com/blog/dsm-attachment-category/mouthwatchers/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
+  Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
+  Ref: R4
+- [ ] **AS-247 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Rufus)  
+  URL: https://www.albertscott.com/blog/dsm-attachment-category/rufus/  
+  What is happening: https://www.albertscott.com/blog/dsm-attachment-category/rufus/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
+  Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
+  Ref: R4
+- [ ] **AS-248 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Tabanero)  
+  URL: https://www.albertscott.com/blog/dsm-attachment-category/tabanero/  
+  What is happening: https://www.albertscott.com/blog/dsm-attachment-category/tabanero/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
+  Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
+  Ref: R4
