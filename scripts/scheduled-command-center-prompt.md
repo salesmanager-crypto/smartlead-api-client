@@ -71,6 +71,11 @@ id="__DATA__">` block for the schema: `meta`, `campaigns`, `campaignStatusCounts
 `yesterdayInterested`, `seoGeo`, `linkedin`, `resources`). Read the live artifact first (`action:
 "read"`) if you need to confirm the current JS/CSS before re-splicing new data into it.
 
+Each entry in `campaigns` also carries `tags` (the raw Smartlead tag names array, from
+`analytics.tags` in the pull) and `isRachel` (true if any tag name equals "RACHEL",
+case-insensitive) — this powers the "Tagged Rachel" filter chip on the Smartlead page.
+Keep populating both fields on every refresh.
+
 If a source is unavailable (no LinkedIn connector, Semrush not enabled, site fetch blocked),
 keep that section's "not connected" placeholder honest — never invent a number to fill a gap.
 
