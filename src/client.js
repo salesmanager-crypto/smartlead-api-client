@@ -150,7 +150,7 @@ export class SmartleadClient {
 
   /** Create/update email sequences for a campaign. */
   upsertCampaignSequences(campaignId, sequences) {
-    return this.post(`/campaigns/${campaignId}/sequences`, sequences);
+    return this.post(`/campaigns/${campaignId}/sequences`, { sequences });
   }
 
   /** Aggregate performance metrics (sent/open/click/reply/bounce/unsubscribe). */
