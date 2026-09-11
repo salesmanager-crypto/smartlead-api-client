@@ -19,3 +19,6 @@ service-account*.json
 token*.json
 *.pem
 *.p12
+
+# built dashboard, contains live lead data
+dashboard/_site/
