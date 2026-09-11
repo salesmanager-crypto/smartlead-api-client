@@ -11,3 +11,11 @@ scripts/*-log.txt
 scripts/deliverability-log.txt
 logs/
 dist/
+
+# credentials — never commit (this repository is public)
+client_secret*.json
+*credentials*.json
+service-account*.json
+token*.json
+*.pem
+*.p12

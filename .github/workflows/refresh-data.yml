@@ -1,0 +1,58 @@
+name: Refresh dashboard data
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pull live data
+        env:
+          PIPEDRIVE_API_TOKEN: ${{ secrets.PIPEDRIVE_API_TOKEN }}
+          PIPEDRIVE_COMPANY_DOMAIN: ${{ secrets.PIPEDRIVE_COMPANY_DOMAIN }}
+          SMARTLEAD_API_KEY: ${{ secrets.SMARTLEAD_API_KEY }}
+          SMARTLEAD_BASE_URL: ${{ secrets.SMARTLEAD_BASE_URL }}
+          HEYREACH_API_KEY: ${{ secrets.HEYREACH_API_KEY }}
+          HEYREACH_ORG_API_KEY: ${{ secrets.HEYREACH_ORG_API_KEY }}
+        run: node dashboard/pull/apply-constants.mjs
+      - name: Refresh the SEO issue tracker
+        # Skips silently until the Google secrets exist, so the rest of the
+        # refresh keeps working while Workspace access is still being set up.
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          SEO_TRACKER_FILE_ID: ${{ secrets.SEO_TRACKER_FILE_ID }}
+          SEO_TRACKER_TAB: ${{ secrets.SEO_TRACKER_TAB }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ] || [ -z "$SEO_TRACKER_FILE_ID" ]; then
+            echo "Google Workspace secrets not set yet, skipping the SEO tracker refresh."
+            exit 0
+          fi
+          node dashboard/pull/pull-seo-tracker.mjs
+      # The filled dashboard carries real lead names, email addresses and deal
+      # values. This repository is public, so it is uploaded as a workflow
+      # artifact (visible only to people with repo access) and never committed.
+      - name: Upload the built dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: command-center
+          path: dashboard/command-center.html
+          retention-days: 7
+      - name: Confirm no data was committed
+        run: |
+          if ! git diff --quiet -- dashboard/command-center.html; then
+            echo "Dashboard was filled with live data (expected). Discarding so it is never committed."
+            git checkout -- dashboard/command-center.html
+          fi
