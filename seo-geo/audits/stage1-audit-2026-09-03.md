@@ -1844,3 +1844,28 @@ Every one of the 239 issues in `../tracking/issue-tracker.csv` was re-checked ag
 Two small numeric deltas were also observed and are not tracked as issues: image and word counts on a few pages shifted by 1 to 3 (homepage, /dsp/, /contact-us/) and the portfolio gallery page's counts dropped (229 to 161 words, 219 to 167 images) with its first paragraph and link set otherwise unchanged. This is consistent with a lazy-loading image gallery rendering a different number of tiles depending on scroll timing during the crawl, not a content edit; it should be re-checked in the next full re-crawl rather than acted on now.
 
 Tracker total: 239 to 248 rows. Status column is unchanged (still all Open) since nothing was found fixed.
+
+## Re-verification against the live site, 2026-09-11
+
+Full re-crawl of all 86 content pages, a fresh check of every junk/redirect/dead-link/author-archive URL, and a fresh check of the two items added on 2026-09-07 (the new page and the new taxonomy). Result compared line by line against the 248-row tracker.
+
+**26 rows confirmed fixed, 1 partially fixed, and 1 urgent regression found.** Roughly 210 rows are still open exactly as described; see the note below on what was not re-checked this pass.
+
+### Confirmed fixed (Status set to "Done" in the tracker)
+
+- Six duplicate/legacy pages were removed from WordPress entirely (published page count dropped from 51 to 45, confirmed via the site's own read-only REST API): `/marketing-division-2/`, `/videos/`, `/test-page/`, `/test-modules/`, `/hero/`, `/sample-page/`. Two of these (`/marketing-division-2/` and `/videos/`) were recommended as 301 redirects rather than deletions; a hard delete achieves the same de-duplication result but means any existing link or bookmark to those URLs now hits a dead page instead of being forwarded. Removing `/marketing-division-2/` also resolved the tracker row about it linking to a redirecting URL, and both deleted pages' em-dash rows became moot along with them (AS-040, AS-230, AS-238).
+- `/thank-you/` is now set to noindex, exactly as recommended (AS-217). `/thankyou/` now renders the same content and canonicalizes to `/thank-you/` rather than being 301-redirected as recommended, but both pages are noindexed and consolidated, which resolves the duplication (AS-216).
+- Em dashes were removed from body copy on 14 pages, confirmed at 0 by direct re-count: the homepage, About Us, Listing Division, Marketing Division, Retail Division, Retail Management, Case Studies, the Atlas Olive Oils, BeYoutiful and Mouthwatchers case studies, Newsroom, Clients, and the "Mastering Amazon DSP" and "Subscribe-and-Save Strategies" articles (AS-222, 223, 225, 226, 227, 228, 229, 231, 232, 233, 234, 236, 237, 239).
+- The DSP page's em dash count dropped from 6 to 3, a partial fix, not complete (AS-235, marked "In progress").
+
+That is 26 rows plus 1 partial, spread across a smaller number of underlying actions: 6 page deletions, 2 thank-you page changes, and one sitewide pass removing em dashes from 14 pages (15 counting the partial DSP pass).
+
+### Urgent: a regression, not one of the tracked issues
+
+A real, substantive article, "From Cart to Consumer: Streamlining Logistics for Scalable Amazon Success" (1,129 words, one of only 5 genuine articles on the site and one of the highest-scoring pages in the original audit), was deleted. Confirmed via the site's own read-only REST API: published post count dropped from 13 to 12 and the slug no longer appears anywhere in the post list. This was never recommended by this system. It most likely happened by mistake in the same cleanup pass that correctly removed the 6 legacy pages above, since it shares the "logistics" theme with the Logistics Division page. Added to the tracker as AS-000 (urgent, top of the file) with a recommendation to restore it from the WordPress trash or a backup before any further cleanup work continues.
+
+### Not re-checked this pass, still shown as open pending manual review
+
+About 42 rows (schema/sameAs/og:image sitewide items, the homepage stats-in-HTML item, the four engagement-models item, a handful of internal-link-source rechecks, and the contact-page consolidation) were not re-derivable from an automated crawl comparison with full confidence and are left as open rather than guessed at. They should be manually spot-checked in the next pass.
+
+Two small numeric deltas (image/word counts on the portfolio gallery page, up this time after being down on 2026-09-07) again look like lazy-load rendering variance rather than a content edit, consistent with the same caveat noted on 2026-09-07.

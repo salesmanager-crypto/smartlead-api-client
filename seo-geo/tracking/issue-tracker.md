@@ -1,7 +1,16 @@
 # Issue tracker
 
-One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2, one row per exact URL). Re-verified against the live site on 2026-09-07: all 239 original rows were still present exactly as described, and 9 new rows were added for a new page and a new junk taxonomy that appeared in the interim (see the audit's re-verification section).
+One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2, one row per exact URL). Re-verified against the live site on 2026-09-07 (0 fixed, 9 new rows added) and again on 2026-09-11 (26 rows confirmed fixed, 1 improved, 1 urgent regression found and added at the top). See the audit file for full detail on each pass.
 
+
+## URGENT: regression since 2026-09-03
+
+- [ ] **AS-000 A real, valuable article was deleted, not one of the tracked issues or recommended fixes** (P1, Deleted article: Streamlining Logistics for Scalable Amazon Success)  
+  URL: https://www.albertscott.com/blog/streamlining-logistics-for-scalable-amazon-success/  
+  What is happening: This post ("From Cart to Consumer: Streamlining Logistics for Scalable Amazon Success", 1,129 words) was one of the 5 substantive articles on the site and scored among the highest pages in the original audit (7.5 of 11). It is not in the tracker as something to remove. As of 2026-09-11 it returns HTTP 404 with title "Page not found - Albert Scott". Confirmed via the site's own read-only WordPress REST API: published post count dropped from 13 to 12 and this slug no longer appears in the post list at all (not draft, not trashed and visible via the API; simply absent). This most likely happened by mistake during the same cleanup pass that correctly removed /marketing-division-2/, /videos/, /test-page/, /test-modules/, /hero/, and /sample-page/, since this URL sits in the same batch alphabetically/thematically (logistics division content) and none of those were meant to include a real article.  
+  Fix: Restore this post from the WordPress trash if it is still there (Posts > All Posts > Trash), or republish it from a backup if it was permanently deleted. This should happen before anything else on this list; it is a content loss, not a cleanup.  
+  Ref: new  
+  Status: Open, urgent
 
 ## General - sitewide template
 
@@ -230,11 +239,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: On https://www.albertscott.com/marketing-devision/, a link points at https://www.albertscott.com/case-studies-2/, which returns a 301 redirect to https://www.albertscott.com/case-studies/. Confirmed via a direct HTTP request to https://www.albertscott.com/case-studies-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/marketing-devision/ to point directly at https://www.albertscott.com/case-studies/.  
   Ref: R2
-- [ ] **AS-040 Links to /case-studies-2/, which 301s** (P1, Marketing division page (duplicate))  
+- [x] **AS-040 Links to /case-studies-2/, which 301s** (P1, Marketing division page (duplicate))  
   URL: https://www.albertscott.com/marketing-division-2/  
   What is happening: On https://www.albertscott.com/marketing-division-2/, a link points at https://www.albertscott.com/case-studies-2/, which returns a 301 redirect to https://www.albertscott.com/case-studies/. Confirmed via a direct HTTP request to https://www.albertscott.com/case-studies-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/marketing-division-2/ to point directly at https://www.albertscott.com/case-studies/.  
-  Ref: R2
+  Ref: R2  
+  Status: Done (verified 2026-09-11)
 
 ## Homepage
 
@@ -1127,11 +1137,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: Shortcode leak in body text; overflows the viewport at both 390px and 1440px.  
   Fix: 301 redirect to https://www.albertscott.com/  
   Ref: R1
-- [ ] **AS-202 Duplicate marketing division page** (P2, Legacy/test page: /marketing-division-2/)  
+- [x] **AS-202 Duplicate marketing division page** (P2, Legacy/test page: /marketing-division-2/)  
   URL: https://www.albertscott.com/marketing-division-2/  
   What is happening: 405 words, own meta description. Already listed above under Marketing division page.  
   Fix: 301 redirect to https://www.albertscott.com/marketing-devision/  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
 - [ ] **AS-203 Duplicate of the Retail division page** (P2, Legacy/test page: /retail-management/)  
   URL: https://www.albertscott.com/retail-management/  
   What is happening: 125 words, 1 inbound link.  
@@ -1152,11 +1163,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: Shortcode leak in body text.  
   Fix: 301 redirect to https://www.albertscott.com/listings-portfolio-gallery/  
   Ref: R1
-- [ ] **AS-207 Legacy page from 2019** (P2, Legacy/test page: /videos/)  
+- [x] **AS-207 Legacy page from 2019** (P2, Legacy/test page: /videos/)  
   URL: https://www.albertscott.com/videos/  
   What is happening: Shortcode leak in body text; overflows the viewport at 390px.  
   Fix: 301 redirect to https://www.albertscott.com/listings-portfolio-gallery/  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
 - [ ] **AS-208 Legacy page from 2019, holds the founding story** (P2, Legacy/test page: /our-story/)  
   URL: https://www.albertscott.com/our-story/  
   What is happening: Shortcode leak in body text. This page has the company's founding story, which /about-us/ currently lacks.  
@@ -1197,129 +1209,153 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: 68 words, no H1, 0 inbound links from any other crawled page. Already listed above under Contact page.  
   Fix: 301 redirect to https://www.albertscott.com/contact-us/, or keep separate and noindexed if a booking calendar embed needs its own URL  
   Ref: R1
-- [ ] **AS-216 Duplicate thank-you page** (P2, Legacy/test page: /thankyou/)  
+- [x] **AS-216 Duplicate thank-you page** (P2, Legacy/test page: /thankyou/)  
   URL: https://www.albertscott.com/thankyou/  
   What is happening: 102 words. Same title pattern as /thank-you/.  
   Fix: 301 redirect to https://www.albertscott.com/thank-you/  
-  Ref: R1
-- [ ] **AS-217 Second thank-you page, both indexable** (P2, Legacy/test page: /thank-you/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-217 Second thank-you page, both indexable** (P2, Legacy/test page: /thank-you/)  
   URL: https://www.albertscott.com/thank-you/  
   What is happening: 180 words.  
   Fix: Keep this one as the canonical thank-you page but set it to noindex (thank-you pages should not appear in search)  
-  Ref: R1
-- [ ] **AS-218 Test page, live and indexable** (P2, Legacy/test page: /test-page/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-218 Test page, live and indexable** (P2, Legacy/test page: /test-page/)  
   URL: https://www.albertscott.com/test-page/  
   What is happening: 290 words, title "test page".  
   Fix: Delete (410)  
-  Ref: R1
-- [ ] **AS-219 Test page linking two dead URLs** (P2, Legacy/test page: /test-modules/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-219 Test page linking two dead URLs** (P2, Legacy/test page: /test-modules/)  
   URL: https://www.albertscott.com/test-modules/  
   What is happening: Links to /marketing-management/ and /privacy-policy-2/, both 404 (see the Junk URLs section above).  
   Fix: Delete (410)  
-  Ref: R1
-- [ ] **AS-220 Design fragment page** (P2, Legacy/test page: /hero/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-220 Design fragment page** (P2, Legacy/test page: /hero/)  
   URL: https://www.albertscott.com/hero/  
   What is happening: 40 words.  
   Fix: Delete (410)  
-  Ref: R1
-- [ ] **AS-221 The WordPress default "Sample Page", still live** (P2, Legacy/test page: /sample-page/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-221 The WordPress default "Sample Page", still live** (P2, Legacy/test page: /sample-page/)  
   URL: https://www.albertscott.com/sample-page/  
   What is happening: 335 words, the placeholder text WordPress installs by default, indexable.  
   Fix: Delete (410)  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-11)
 
 ## Copy style
 
-- [ ] **AS-222 9 em dash(es) in body copy** (P3, See URL)  
+- [x] **AS-222 9 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/blog/mastering-amazon-dsp/  
   What is happening: https://www.albertscott.com/blog/mastering-amazon-dsp/ contains 9 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-223 3 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-223 3 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/blog/subscribe-and-save-strategies/  
   What is happening: https://www.albertscott.com/blog/subscribe-and-save-strategies/ contains 3 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-224 20 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-224 20 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/blog/streamlining-logistics-for-scalable-amazon-success/  
   What is happening: https://www.albertscott.com/blog/streamlining-logistics-for-scalable-amazon-success/ contains 20 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-225 4 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-225 4 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/  
   What is happening: https://www.albertscott.com/ contains 4 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-226 2 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-226 2 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/newsroom/  
   What is happening: https://www.albertscott.com/newsroom/ contains 2 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-227 5 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-227 5 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/atlas-olive-oils/  
   What is happening: https://www.albertscott.com/case-studies/atlas-olive-oils/ contains 5 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-228 3 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-228 3 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/beyoutiful/  
   What is happening: https://www.albertscott.com/case-studies/beyoutiful/ contains 3 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-229 7 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-229 7 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/about-us/  
   What is happening: https://www.albertscott.com/about-us/ contains 7 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-230 1 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-230 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/marketing-division-2/  
   What is happening: https://www.albertscott.com/marketing-division-2/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-231 3 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-231 3 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/marketing-devision/  
   What is happening: https://www.albertscott.com/marketing-devision/ contains 3 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-232 1 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-232 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/retail-division/  
   What is happening: https://www.albertscott.com/retail-division/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-233 6 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-233 6 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/listing-division/  
   What is happening: https://www.albertscott.com/listing-division/ contains 6 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-234 2 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-234 2 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/  
   What is happening: https://www.albertscott.com/case-studies/ contains 2 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
 - [ ] **AS-235 6 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/dsp/  
   What is happening: https://www.albertscott.com/dsp/ contains 6 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-236 1 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: In progress (verified 2026-09-11: )
+- [x] **AS-236 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/retail-management/  
   What is happening: https://www.albertscott.com/retail-management/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-237 4 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-237 4 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/clients/  
   What is happening: https://www.albertscott.com/clients/ contains 4 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-238 1 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-238 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/videos/  
   What is happening: https://www.albertscott.com/videos/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
-- [ ] **AS-239 5 em dash(es) in body copy** (P3, See URL)  
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
+- [x] **AS-239 5 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/mouthwatchers/  
   What is happening: https://www.albertscott.com/case-studies/mouthwatchers/ contains 5 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
-  Ref: R14
+  Ref: R14  
+  Status: Done (verified 2026-09-11)
 
 ## New since 2026-09-03
 
