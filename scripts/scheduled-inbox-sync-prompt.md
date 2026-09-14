@@ -42,8 +42,8 @@ them already set (see Step 3's pre-categorized-lead handling).
 
 | Category | id | When to use | You apply this? |
 |---|---|---|---|
-| Interested | 1 | Real interest in an Amazon US conversation | Yes |
-| Meeting Request | 2 | Explicitly asks to schedule a call | Yes |
+| Interested | 1 | Real interest in an Amazon US conversation — **also use for explicit meeting/call requests** (decision 2026-09-14: asking to schedule a call is real interest, so file it here, not under Meeting Request) | Yes |
+| Meeting Request | 2 | Legacy id, superseded 2026-09-14 by folding meeting/call requests into Interested (1) above. Never apply id 2 to a freshly-classified reply. If a lead already carries id 2 from before this switch, treat it exactly like Interested for sync purposes — do not re-classify it. | No (legacy — treat pre-existing hits as Interested) |
 | Not Interested | 3 | Explicit rejection, "not for now," similar | Yes |
 | Do Not Contact | 4 | "No"/"stop"/unsubscribe/any clear opt-out — even one word | Yes |
 | Information Request | 5 | Legacy id, semantically identical to "Follow Up" (5301) below. Superseded in practice — use 5301 when classifying yourself. If a lead already carries id 5 from before this switch (or from elsewhere), treat it exactly like Follow Up for sync purposes. | No (legacy — treat pre-existing hits as Follow Up) |
@@ -87,15 +87,16 @@ clear it programmatically.
 
 | Category | Pipedrive sync | Block domain |
 |---|---|---|
-| Interested, Follow Up (incl. legacy id 5, "Information Request"), Meeting Request, Action Needed (5270), Client (5302) | ✓ Org + Person + Lead + Activity | ✓ — **except Client: never block**, they're an active customer |
+| Interested (incl. legacy id 2, "Meeting Request"), Follow Up (incl. legacy id 5, "Information Request"), Action Needed (5270), Client (5302) | ✓ Org + Person + Lead + Activity | ✓ — **except Client: never block**, they're an active customer |
 | Do Not Contact, Not Interested, Ignore, Unqualified (5303) | ✗ | ✓ (email + domain) |
 | Out of Office (any case) | ✗ | ✗ — never block, they'll return |
 | Wrong Person | ✗ | ✗ — never block, contact is still reachable |
 | Unsure, Uncategorizable by Ai (8) | ✗ | use judgment — block only if clearly a dead end |
 
 **Pre-categorized leads (`lead_category_id` already non-null when fetched):** as of 2026-08-26,
-do NOT blanket-skip these. If the existing category is Interested, Follow Up (or legacy id 5),
-Meeting Request, Action Needed, or Client, run Step 4 for it same as a freshly-classified one —
+do NOT blanket-skip these. If the existing category is Interested (or legacy id 2, "Meeting
+Request"), Follow Up (or legacy id 5), Action Needed, or Client, run Step 4 for it same as a
+freshly-classified one —
 first `searchOrganization`/`searchPersons` to check whether a Pipedrive record already exists
 (these leads are sometimes added manually before this script gets to them), and only create what's
 missing; always still check the activity history for a duplicate before adding a new one. For
@@ -111,7 +112,8 @@ GET `${BASE}/leads/get-domain-block-list?api_key=...&filter_email_or_domain=<dom
 If not already present, block the **entire domain** (not just the email):
 POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list":["<domain>"],"client_id":null}`
 
-## Step 4 — Pipedrive sync (only for Interested / Follow Up / Meeting Request)
+## Step 4 — Pipedrive sync (for Interested, Follow Up, Action Needed, and Client — see the Step 3
+table above for the full eligible list, including legacy pre-existing categories)
 1. `searchOrganization` by company name → use `org_id` if found, else `addOrganization`.
 2. `searchPersons` by email → use `person_id` if found — this also catches a person already
    created by the Calendly step (Step 5) if they booked before replying — else `addPerson` with
