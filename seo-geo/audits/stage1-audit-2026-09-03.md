@@ -1869,3 +1869,34 @@ A real, substantive article, "From Cart to Consumer: Streamlining Logistics for 
 About 42 rows (schema/sameAs/og:image sitewide items, the homepage stats-in-HTML item, the four engagement-models item, a handful of internal-link-source rechecks, and the contact-page consolidation) were not re-derivable from an automated crawl comparison with full confidence and are left as open rather than guessed at. They should be manually spot-checked in the next pass.
 
 Two small numeric deltas (image/word counts on the portfolio gallery page, up this time after being down on 2026-09-07) again look like lazy-load rendering variance rather than a content edit, consistent with the same caveat noted on 2026-09-07.
+
+## Re-verification against the live site, 2026-09-14
+
+A Google Sheet copy of the tracker (`issuetracker (1).xlsx`, shared with this session, an older 239-row export from 2026-09-03) was found to have manual "Done" and "In progress" entries typed into its Status column, separate from anything this system had verified. Before trusting or overwriting that, every claim in it was checked against a fresh full re-crawl of all 86 content pages and a fresh probe of every junk, redirect, dead-link, and archive URL.
+
+**Result: 69 rows confirmed fixed since 2026-09-11, 3 more partially fixed, and the regression from 2026-09-11 is still open.** That is a large jump from the 26 fixed found on 2026-09-11, real progress.
+
+### Newly confirmed fixed since 2026-09-11
+
+- All 7 category archives, both tag archives, all 10 project_category archives, and all 4 author archives are now noindexed. This also resolved the 7 dsm-attachment-category archives (AS-242 to AS-248) as a side effect, even though those were never on the shared Google Sheet, the same AIOSEO taxonomy setting covers all of them at once.
+- `/marketing-management/`, `/privacy-policy-2/`, and `/blog/` now 301 redirect instead of 404ing.
+- The homepage's three redirecting links (to `/listing-division-2/`, `/marketing-division/`, `/logistics-division-2/`) now point directly at the live URLs. Two more (the portfolio gallery and marketing page linking to `/case-studies-2/`) are still open.
+- Ten more duplicate or legacy pages were removed, and this time correctly, as 301 redirects rather than hard deletes: `/clients/` to `/case-studies/`; `/niftyone-custom-portal/`, `/our-management/`, `/our-story/`, `/our-team/`, `/our-world-wide-team/` to `/about-us/`; `/portfolio/` and `/recent-success/` to `/listings-portfolio-gallery/`; `/retail-management/` to `/retail-division/`; `/university/` to `/albert-scott-university/`.
+- `/lets-talk/` now 301s to `/contact-us/`; `/book-a-call/` is now noindexed (a partial fix toward the "one contact page" recommendation, marked in progress).
+
+### Two mistakes in this system's own automated check, corrected
+
+Two rows briefly looked like regressions (previously marked fixed, now reading as open) and turned out to be measurement errors, not real site changes: a redirect-target page reads 200 in the tool that follows redirects automatically but 301 in a direct check (the direct check is correct), and the homepage's crawl entry that run hit a screenshot timeout and returned no data at all, which a direct fetch resolved (still 0 em dashes). Both are corrected in the tracker with a note explaining why. Flagging this so it's clear that "reopened" in this tracker means actually reopened, checked twice.
+
+### Still open, unchanged
+
+- **The deleted article (AS-000) has not been restored, five days after it was found.** This is still the single most important open item.
+
+### Two new, minor findings
+
+- Five pages were correctly redirected to `/about-us/` (`/our-story/`, `/our-team/`, `/our-management/`, `/our-world-wide-team/`, `/niftyone-custom-portal/`), but the roadmap specifically asked for the founding story on `/our-story/` to be copied into `/about-us/` before redirecting it. `/about-us/` is essentially the same word count as before (648 vs 647), so that content did not make the move, it is gone from the live site, only the URL now forwards there.
+- A new heading on `/about-us/`, likely added while merging content from the redirected pages, reads "Alber Scott Company Summary", missing the "t" in Albert.
+
+### A note on how this Google Sheet was found and why nothing was written back to it
+
+This session was asked to update a Google Sheet that turned out to be a copy of this tracker uploaded to Google Drive. This session's tools can read and download Drive files but cannot write cell values into an existing Google Sheet. The corrected data above lives in this repository's `issue-tracker.csv`/`.xlsx`/`.md` as usual, plus a fourth file, `issue-tracker-for-gsheet-import.xlsx`, built to match that Google Sheet's exact column layout (including the Complete checkbox and DevNotes/Response columns) so it can be imported over the existing sheet by hand.

@@ -1,6 +1,6 @@
 # Issue tracker
 
-One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2, one row per exact URL). Re-verified against the live site on 2026-09-07 (0 fixed, 9 new rows added) and again on 2026-09-11 (26 rows confirmed fixed, 1 improved, 1 urgent regression found and added at the top). See the audit file for full detail on each pass.
+One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2). Re-verified against the live site on 2026-09-07 (0 fixed), 2026-09-11 (26 fixed, 1 partial, 1 urgent regression), and 2026-09-14 (69 fixed, 3 partial, regression still open). See the audit file for full detail on each pass.
 
 
 ## URGENT: regression since 2026-09-03
@@ -10,7 +10,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: This post ("From Cart to Consumer: Streamlining Logistics for Scalable Amazon Success", 1,129 words) was one of the 5 substantive articles on the site and scored among the highest pages in the original audit (7.5 of 11). It is not in the tracker as something to remove. As of 2026-09-11 it returns HTTP 404 with title "Page not found - Albert Scott". Confirmed via the site's own read-only WordPress REST API: published post count dropped from 13 to 12 and this slug no longer appears in the post list at all (not draft, not trashed and visible via the API; simply absent). This most likely happened by mistake during the same cleanup pass that correctly removed /marketing-division-2/, /videos/, /test-page/, /test-modules/, /hero/, and /sample-page/, since this URL sits in the same batch alphabetically/thematically (logistics division content) and none of those were meant to include a real article.  
   Fix: Restore this post from the WordPress trash if it is still there (Posts > All Posts > Trash), or republish it from a backup if it was permanently deleted. This should happen before anything else on this list; it is a content loss, not a cleanup.  
   Ref: new  
-  Status: Open, urgent
+  Status: Open, urgent (confirmed again 2026-09-14: article still not restored, 5 days after it was found deleted)
 
 ## General - sitewide template
 
@@ -50,107 +50,126 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## Junk URLs: category archives
 
-- [ ] **AS-007 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: uncategorized)  
+- [x] **AS-007 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: uncategorized)  
   URL: https://www.albertscott.com/blog/category/uncategorized/  
   What is happening: https://www.albertscott.com/blog/category/uncategorized/ returns HTTP 200 with no noindex meta tag, self canonical, and is one of the 105 URLs in /sitemap.xml (child sitemap /category-sitemap.xml). It holds 1 post. It exists only because WordPress auto-creates a page for every category used on a post; nobody wrote this as a page.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Categories, set "Show Categories in search results" to No (this noindexes all 7 category archives in one setting) and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-008 Indexable category archive with only 3 posts, listed in the sitemap** (P1, Category archive: grocery)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-008 Indexable category archive with only 3 posts, listed in the sitemap** (P1, Category archive: grocery)  
   URL: https://www.albertscott.com/blog/category/grocery/  
   What is happening: https://www.albertscott.com/blog/category/grocery/ returns HTTP 200 with no noindex meta tag, self canonical, and is one of the 105 URLs in /sitemap.xml (child sitemap /category-sitemap.xml). It holds 3 posts. It exists only because WordPress auto-creates a page for every category used on a post; nobody wrote this as a page.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Categories, set "Show Categories in search results" to No (this noindexes all 7 category archives in one setting) and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-009 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: apparel)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-009 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: apparel)  
   URL: https://www.albertscott.com/blog/category/apparel/  
   What is happening: https://www.albertscott.com/blog/category/apparel/ returns HTTP 200 with no noindex meta tag, self canonical, and is one of the 105 URLs in /sitemap.xml (child sitemap /category-sitemap.xml). It holds 1 post. It exists only because WordPress auto-creates a page for every category used on a post; nobody wrote this as a page.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Categories, set "Show Categories in search results" to No (this noindexes all 7 category archives in one setting) and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-010 Indexable category archive with only 3 posts, listed in the sitemap** (P1, Category archive: health-household)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-010 Indexable category archive with only 3 posts, listed in the sitemap** (P1, Category archive: health-household)  
   URL: https://www.albertscott.com/blog/category/health-household/  
   What is happening: https://www.albertscott.com/blog/category/health-household/ returns HTTP 200 with no noindex meta tag, self canonical, and is one of the 105 URLs in /sitemap.xml (child sitemap /category-sitemap.xml). It holds 3 posts. It exists only because WordPress auto-creates a page for every category used on a post; nobody wrote this as a page.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Categories, set "Show Categories in search results" to No (this noindexes all 7 category archives in one setting) and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-011 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: beauty-personal-care)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-011 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: beauty-personal-care)  
   URL: https://www.albertscott.com/blog/category/beauty-personal-care/  
   What is happening: https://www.albertscott.com/blog/category/beauty-personal-care/ returns HTTP 200 with no noindex meta tag, self canonical, and is one of the 105 URLs in /sitemap.xml (child sitemap /category-sitemap.xml). It holds 1 post. It exists only because WordPress auto-creates a page for every category used on a post; nobody wrote this as a page.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Categories, set "Show Categories in search results" to No (this noindexes all 7 category archives in one setting) and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-012 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: amazon-agency)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-012 Indexable category archive with only 1 post, listed in the sitemap** (P1, Category archive: amazon-agency)  
   URL: https://www.albertscott.com/blog/category/amazon-agency/  
   What is happening: https://www.albertscott.com/blog/category/amazon-agency/ returns HTTP 200 with no noindex meta tag, self canonical, and is one of the 105 URLs in /sitemap.xml (child sitemap /category-sitemap.xml). It holds 1 post. It exists only because WordPress auto-creates a page for every category used on a post; nobody wrote this as a page.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Categories, set "Show Categories in search results" to No (this noindexes all 7 category archives in one setting) and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-013 Indexable category archive with only 3 posts, listed in the sitemap** (P1, Category archive: amazon-advertising)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-013 Indexable category archive with only 3 posts, listed in the sitemap** (P1, Category archive: amazon-advertising)  
   URL: https://www.albertscott.com/blog/category/amazon-advertising/  
   What is happening: https://www.albertscott.com/blog/category/amazon-advertising/ returns HTTP 200 with no noindex meta tag, self canonical, and is one of the 105 URLs in /sitemap.xml (child sitemap /category-sitemap.xml). It holds 3 posts. It exists only because WordPress auto-creates a page for every category used on a post; nobody wrote this as a page.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Categories, set "Show Categories in search results" to No (this noindexes all 7 category archives in one setting) and untick "Include in sitemap".  
-  Ref: R4
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
 
 ## Junk URLs: tag archives
 
-- [ ] **AS-014 Indexable tag archive with only 1 post, listed in the sitemap** (P1, Tag archive: bags)  
+- [x] **AS-014 Indexable tag archive with only 1 post, listed in the sitemap** (P1, Tag archive: bags)  
   URL: https://www.albertscott.com/blog/tag/bags/  
   What is happening: https://www.albertscott.com/blog/tag/bags/ returns HTTP 200 with no noindex meta tag, self canonical, and is listed in /sitemap.xml (child sitemap /post_tag-sitemap.xml). It holds 1 post.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Tags, set "Show Tags in search results" to No and untick "Include in sitemap". Then delete the tag itself in WordPress (Posts > Tags) since it serves no purpose with one post.  
-  Ref: R4
-- [ ] **AS-015 Indexable tag archive with only 1 post, listed in the sitemap** (P1, Tag archive: subscribe-and-save)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-015 Indexable tag archive with only 1 post, listed in the sitemap** (P1, Tag archive: subscribe-and-save)  
   URL: https://www.albertscott.com/blog/tag/subscribe-and-save/  
   What is happening: https://www.albertscott.com/blog/tag/subscribe-and-save/ returns HTTP 200 with no noindex meta tag, self canonical, and is listed in /sitemap.xml (child sitemap /post_tag-sitemap.xml). It holds 1 post.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Tags, set "Show Tags in search results" to No and untick "Include in sitemap". Then delete the tag itself in WordPress (Posts > Tags) since it serves no purpose with one post.  
-  Ref: R4
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
 
 ## Junk URLs: project_category archives
 
-- [ ] **AS-016 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: apparel)  
+- [x] **AS-016 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: apparel)  
   URL: https://www.albertscott.com/blog/project_category/apparel/  
   What is happening: https://www.albertscott.com/blog/project_category/apparel/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-017 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: automotive)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-017 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: automotive)  
   URL: https://www.albertscott.com/blog/project_category/automotive/  
   What is happening: https://www.albertscott.com/blog/project_category/automotive/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-018 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: beauty-cosmetics)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-018 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: beauty-cosmetics)  
   URL: https://www.albertscott.com/blog/project_category/beauty-cosmetics/  
   What is happening: https://www.albertscott.com/blog/project_category/beauty-cosmetics/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-019 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: food)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-019 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: food)  
   URL: https://www.albertscott.com/blog/project_category/food/  
   What is happening: https://www.albertscott.com/blog/project_category/food/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-020 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: furniture)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-020 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: furniture)  
   URL: https://www.albertscott.com/blog/project_category/furniture/  
   What is happening: https://www.albertscott.com/blog/project_category/furniture/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-021 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: homewares)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-021 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: homewares)  
   URL: https://www.albertscott.com/blog/project_category/homewares/  
   What is happening: https://www.albertscott.com/blog/project_category/homewares/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-022 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: outdoors)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-022 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: outdoors)  
   URL: https://www.albertscott.com/blog/project_category/outdoors/  
   What is happening: https://www.albertscott.com/blog/project_category/outdoors/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-023 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: pet)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-023 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: pet)  
   URL: https://www.albertscott.com/blog/project_category/pet/  
   What is happening: https://www.albertscott.com/blog/project_category/pet/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-024 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: tech-accessories)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-024 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: tech-accessories)  
   URL: https://www.albertscott.com/blog/project_category/tech-accessories/  
   What is happening: https://www.albertscott.com/blog/project_category/tech-accessories/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
-- [ ] **AS-025 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: vitamins-supplements)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-025 Indexable taxonomy archive under the /blog/ prefix, listed in the sitemap** (P1, Project category archive: vitamins-supplements)  
   URL: https://www.albertscott.com/blog/project_category/vitamins-supplements/  
   What is happening: https://www.albertscott.com/blog/project_category/vitamins-supplements/ returns HTTP 200, self canonical, no noindex, listed in /sitemap.xml (child sitemap /project_category-sitemap.xml, 10 URLs total). It sits under /blog/ even though it categorizes portfolio projects, not blog posts, which is confusing for both users and crawlers.  
   Fix: In All in One SEO > Search Appearance > Taxonomies > Project Categories, set "Show in search results" to No and untick "Include in sitemap".  
-  Ref: R4
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
 
 ## Junk URLs: archive
 
@@ -162,26 +181,30 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## Junk URLs: author archives
 
-- [ ] **AS-027 Indexable author archive page** (P1, Author archive: 7121525_u8r6t1)  
+- [x] **AS-027 Indexable author archive page** (P1, Author archive: 7121525_u8r6t1)  
   URL: https://www.albertscott.com/blog/author/7121525_u8r6t1/  
   What is happening: https://www.albertscott.com/blog/author/7121525_u8r6t1/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "7121525_u8r6t1", display name "7121525_u8r6t1". Unknown/system account name; needs owner confirmation  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
-  Ref: R4
-- [ ] **AS-028 Indexable author archive page** (P1, Author archive: Albert Scott)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-028 Indexable author archive page** (P1, Author archive: Albert Scott)  
   URL: https://www.albertscott.com/blog/author/albertllc/  
   What is happening: https://www.albertscott.com/blog/author/albertllc/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "albertllc", display name "Albert Scott". Company account; used as the byline on most posts  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
-  Ref: R4
-- [ ] **AS-029 Indexable author archive page** (P1, Author archive: Hannah Kaufman)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-029 Indexable author archive page** (P1, Author archive: Hannah Kaufman)  
   URL: https://www.albertscott.com/blog/author/hannah-kaufman/  
   What is happening: https://www.albertscott.com/blog/author/hannah-kaufman/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "hannah-kaufman", display name "Hannah Kaufman". Named person account  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
-  Ref: R4
-- [ ] **AS-030 Indexable author archive page** (P1, Author archive: Hashsalacop)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-030 Indexable author archive page** (P1, Author archive: Hashsalacop)  
   URL: https://www.albertscott.com/blog/author/hashsalacop/  
   What is happening: https://www.albertscott.com/blog/author/hashsalacop/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "hashsalacop", display name "Hashsalacop". Unknown account name; needs owner confirmation  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
-  Ref: R4
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
 
 ## Junk URLs: attachment pages
 
@@ -193,42 +216,48 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## Junk URLs: dead links
 
-- [ ] **AS-032 404, but still returned by a live web search for site:albertscott.com** (P1, Dead URL: /marketing-management/)  
+- [x] **AS-032 404, but still returned by a live web search for site:albertscott.com** (P1, Dead URL: /marketing-management/)  
   URL: https://www.albertscott.com/marketing-management/  
   What is happening: https://www.albertscott.com/marketing-management/ returns HTTP 404. It is linked from https://www.albertscott.com/test-modules/. A "site:albertscott.com" search still returned this URL with the title "Marketing Management" on 2026-09-03, meaning it is (or recently was) indexed.  
   Fix: Add a 301 redirect from https://www.albertscott.com/marketing-management/ to https://www.albertscott.com/marketing-devision/ (or its renamed slug, see the Marketing division page row below). Remove the dead link from /test-modules/, or delete that page entirely (see the Triage section).  
-  Ref: R5
-- [ ] **AS-033 404, linked from a test page** (P1, Dead URL: /privacy-policy-2/)  
+  Ref: R5  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-033 404, linked from a test page** (P1, Dead URL: /privacy-policy-2/)  
   URL: https://www.albertscott.com/privacy-policy-2/  
   What is happening: https://www.albertscott.com/privacy-policy-2/ returns HTTP 404, linked only from https://www.albertscott.com/test-modules/.  
   Fix: Add a 301 redirect from /privacy-policy-2/ to https://www.albertscott.com/privacy-policy/, or remove the link when /test-modules/ is deleted.  
-  Ref: R5
+  Ref: R5  
+  Status: Done (verified 2026-09-14)
 
 ## Junk URLs: missing hub
 
-- [ ] **AS-034 404, even though all 13 posts live under this path** (P1, Missing page: /blog/)  
+- [x] **AS-034 404, even though all 13 posts live under this path** (P1, Missing page: /blog/)  
   URL: https://www.albertscott.com/blog/  
   What is happening: https://www.albertscott.com/blog/ returns HTTP 404. All 13 blog posts (for example https://www.albertscott.com/blog/mastering-amazon-dsp/) use /blog/ as their URL prefix, but there is no index page at /blog/ itself. Once the category archives are noindexed (rows above), posts will have no page linking to all of them.  
   Fix: Either create a real blog index page at /blog/ that lists every article with a descriptive link, or add a 301 redirect from /blog/ to https://www.albertscott.com/newsroom/ and list the articles there instead.  
-  Ref: R19
+  Ref: R19  
+  Status: Done (verified 2026-09-14)
 
 ## Internal links to redirects
 
-- [ ] **AS-035 Links to /listing-division-2/, which 301s** (P1, Homepage)  
+- [x] **AS-035 Links to /listing-division-2/, which 301s** (P1, Homepage)  
   URL: https://www.albertscott.com/  
   What is happening: On https://www.albertscott.com/, a link points at https://www.albertscott.com/listing-division-2/, which returns a 301 redirect to https://www.albertscott.com/listing-division/. Confirmed via a direct HTTP request to https://www.albertscott.com/listing-division-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/ to point directly at https://www.albertscott.com/listing-division/.  
-  Ref: R2
-- [ ] **AS-036 Links to /marketing-division/, which 301s** (P1, Homepage)  
+  Ref: R2  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-036 Links to /marketing-division/, which 301s** (P1, Homepage)  
   URL: https://www.albertscott.com/  
   What is happening: On https://www.albertscott.com/, a link points at https://www.albertscott.com/marketing-division/, which returns a 301 redirect to https://www.albertscott.com/marketing-devision/. Confirmed via a direct HTTP request to https://www.albertscott.com/marketing-division/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/ to point directly at https://www.albertscott.com/marketing-devision/.  
-  Ref: R2
-- [ ] **AS-037 Links to /logistics-division-2/, which 301s** (P1, Homepage)  
+  Ref: R2  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-037 Links to /logistics-division-2/, which 301s** (P1, Homepage)  
   URL: https://www.albertscott.com/  
   What is happening: On https://www.albertscott.com/, a link points at https://www.albertscott.com/logistics-division-2/, which returns a 301 redirect to https://www.albertscott.com/logistics-division/. Confirmed via a direct HTTP request to https://www.albertscott.com/logistics-division-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/ to point directly at https://www.albertscott.com/logistics-division/.  
-  Ref: R2
+  Ref: R2  
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-038 Links to /case-studies-2/, which 301s** (P1, Portfolio gallery page)  
   URL: https://www.albertscott.com/listings-portfolio-gallery/  
   What is happening: On https://www.albertscott.com/listings-portfolio-gallery/, a link points at https://www.albertscott.com/case-studies-2/, which returns a 301 redirect to https://www.albertscott.com/case-studies/. Confirmed via a direct HTTP request to https://www.albertscott.com/case-studies-2/ on 2026-09-03.  
@@ -244,7 +273,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: On https://www.albertscott.com/marketing-division-2/, a link points at https://www.albertscott.com/case-studies-2/, which returns a 301 redirect to https://www.albertscott.com/case-studies/. Confirmed via a direct HTTP request to https://www.albertscott.com/case-studies-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/marketing-division-2/ to point directly at https://www.albertscott.com/case-studies/.  
   Ref: R2  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14: the source page /marketing-division-2/ itself now 301s, confirmed via a direct HTTP check; an earlier automated pass misread this because a browser-based crawl follows redirects and reports the destination page instead of the redirect)
 
 ## Homepage
 
@@ -471,11 +500,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/dsp/ has 175 of 175 images with an empty alt attribute (alt="").  
   Fix: Open each image in the WordPress Media Library (or edit it directly in the page block) and add descriptive alt text.  
   Ref: R10
-- [ ] **AS-082 Almost no internal links point to this page** (P2, DSP page)  
+- [x] **AS-082 Almost no internal links point to this page** (P2, DSP page)  
   URL: https://www.albertscott.com/dsp/  
   What is happening: Only 1 link(s) from the other 85 crawled pages point at https://www.albertscott.com/dsp/. It is reachable mainly through the sitemap.  
   Fix: Add a link to https://www.albertscott.com/dsp/ from the homepage divisions section and from the case studies or articles most relevant to it.  
-  Ref: R18
+  Ref: R18  
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-083 Body copy links to almost nothing else on the site** (P2, DSP page)  
   URL: https://www.albertscott.com/dsp/  
   What is happening: https://www.albertscott.com/dsp/ has only 1 link(s) in its body content beyond the shared nav and footer.  
@@ -532,11 +562,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/case-studies/beyoutiful/ has 10 of 13 images with an empty alt attribute (alt="").  
   Fix: Open each image in the WordPress Media Library (or edit it directly in the page block) and add descriptive alt text.  
   Ref: R10
-- [ ] **AS-093 Almost no internal links point to this page** (P2, Case study: BeYoutiful)  
+- [x] **AS-093 Almost no internal links point to this page** (P2, Case study: BeYoutiful)  
   URL: https://www.albertscott.com/case-studies/beyoutiful/  
   What is happening: Only 1 link(s) from the other 85 crawled pages point at https://www.albertscott.com/case-studies/beyoutiful/. It is reachable mainly through the sitemap.  
   Fix: Add a link to https://www.albertscott.com/case-studies/beyoutiful/ from the homepage divisions section and from the case studies or articles most relevant to it.  
-  Ref: R18
+  Ref: R18  
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-094 Body copy links to almost nothing else on the site** (P2, Case study: BeYoutiful)  
   URL: https://www.albertscott.com/case-studies/beyoutiful/  
   What is happening: https://www.albertscott.com/case-studies/beyoutiful/ has only 2 link(s) in its body content beyond the shared nav and footer.  
@@ -570,11 +601,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/case-studies/atlas-olive-oils/ has 11 of 13 images with an empty alt attribute (alt="").  
   Fix: Open each image in the WordPress Media Library (or edit it directly in the page block) and add descriptive alt text.  
   Ref: R10
-- [ ] **AS-100 Almost no internal links point to this page** (P2, Case study: Atlas Olive Oils)  
+- [x] **AS-100 Almost no internal links point to this page** (P2, Case study: Atlas Olive Oils)  
   URL: https://www.albertscott.com/case-studies/atlas-olive-oils/  
   What is happening: Only 1 link(s) from the other 85 crawled pages point at https://www.albertscott.com/case-studies/atlas-olive-oils/. It is reachable mainly through the sitemap.  
   Fix: Add a link to https://www.albertscott.com/case-studies/atlas-olive-oils/ from the homepage divisions section and from the case studies or articles most relevant to it.  
-  Ref: R18
+  Ref: R18  
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-101 Body copy links to almost nothing else on the site** (P2, Case study: Atlas Olive Oils)  
   URL: https://www.albertscott.com/case-studies/atlas-olive-oils/  
   What is happening: https://www.albertscott.com/case-studies/atlas-olive-oils/ has only 2 link(s) in its body content beyond the shared nav and footer.  
@@ -603,11 +635,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/case-studies/mouthwatchers/ has 11 of 12 images with an empty alt attribute (alt="").  
   Fix: Open each image in the WordPress Media Library (or edit it directly in the page block) and add descriptive alt text.  
   Ref: R10
-- [ ] **AS-106 Almost no internal links point to this page** (P2, Case study: Mouthwatchers (noindexed))  
+- [x] **AS-106 Almost no internal links point to this page** (P2, Case study: Mouthwatchers (noindexed))  
   URL: https://www.albertscott.com/case-studies/mouthwatchers/  
   What is happening: Only 1 link(s) from the other 85 crawled pages point at https://www.albertscott.com/case-studies/mouthwatchers/. It is reachable mainly through the sitemap.  
   Fix: Add a link to https://www.albertscott.com/case-studies/mouthwatchers/ from the homepage divisions section and from the case studies or articles most relevant to it.  
-  Ref: R18
+  Ref: R18  
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-107 Body copy links to almost nothing else on the site** (P2, Case study: Mouthwatchers (noindexed))  
   URL: https://www.albertscott.com/case-studies/mouthwatchers/  
   What is happening: https://www.albertscott.com/case-studies/mouthwatchers/ has only 2 link(s) in its body content beyond the shared nav and footer.  
@@ -867,7 +900,8 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   URL: https://www.albertscott.com/contact-us/  
   What is happening: https://www.albertscott.com/contact-us/ (54 words, no H1), https://www.albertscott.com/book-a-call/ (68 words, no H1, 0 inbound links from any other crawled page), and https://www.albertscott.com/lets-talk/ (50 words) all serve the same purpose.  
   Fix: Keep https://www.albertscott.com/contact-us/ as the one contact page: add an H1 ("Contact Albert Scott"), expand to 150+ words, and include the address and phone number already present in the site's schema. 301 redirect https://www.albertscott.com/lets-talk/ to it. Either 301 redirect https://www.albertscott.com/book-a-call/ to it too, or keep it separate and noindexed if it holds a booking calendar embed that must stay on its own URL.  
-  Ref: R20
+  Ref: R20  
+  Status: In progress (verified 2026-09-14: book-a-call now noindexed; lets-talk now redirects to contact-us)
 
 ## Location page
 
@@ -887,11 +921,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## University page
 
-- [ ] **AS-155 A duplicate "University" page exists at a different URL** (P2, University page)  
+- [x] **AS-155 A duplicate "University" page exists at a different URL** (P2, University page)  
   URL: https://www.albertscott.com/albert-scott-university/  
   What is happening: https://www.albertscott.com/university/ is a separate, indexable page with 148 words covering the same topic as https://www.albertscott.com/albert-scott-university/.  
   Fix: 301 redirect https://www.albertscott.com/university/ to https://www.albertscott.com/albert-scott-university/.  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-14)
 
 ## Portfolio gallery page
 
@@ -1142,22 +1177,24 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: 405 words, own meta description. Already listed above under Marketing division page.  
   Fix: 301 redirect to https://www.albertscott.com/marketing-devision/  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-203 Duplicate of the Retail division page** (P2, Legacy/test page: /retail-management/)  
   URL: https://www.albertscott.com/retail-management/  
   What is happening: 125 words, 1 inbound link.  
   Fix: 301 redirect to https://www.albertscott.com/retail-division/  
   Ref: R1
-- [ ] **AS-204 Duplicate University page** (P2, Legacy/test page: /university/)  
+- [x] **AS-204 Duplicate University page** (P2, Legacy/test page: /university/)  
   URL: https://www.albertscott.com/university/  
   What is happening: 148 words. Already listed above under University page.  
   Fix: 301 redirect to https://www.albertscott.com/albert-scott-university/  
-  Ref: R1
-- [ ] **AS-205 Legacy portfolio page** (P2, Legacy/test page: /portfolio/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-205 Legacy portfolio page** (P2, Legacy/test page: /portfolio/)  
   URL: https://www.albertscott.com/portfolio/  
   What is happening: 70 words.  
   Fix: 301 redirect to https://www.albertscott.com/listings-portfolio-gallery/  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-206 Legacy page from 2019** (P2, Legacy/test page: /recent-success/)  
   URL: https://www.albertscott.com/recent-success/  
   What is happening: Shortcode leak in body text.  
@@ -1168,7 +1205,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: Shortcode leak in body text; overflows the viewport at 390px.  
   Fix: 301 redirect to https://www.albertscott.com/listings-portfolio-gallery/  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-208 Legacy page from 2019, holds the founding story** (P2, Legacy/test page: /our-story/)  
   URL: https://www.albertscott.com/our-story/  
   What is happening: Shortcode leak in body text. This page has the company's founding story, which /about-us/ currently lacks.  
@@ -1194,57 +1231,60 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: Shortcode leak in body text.  
   Fix: 301 redirect to https://www.albertscott.com/about-us/  
   Ref: R1
-- [ ] **AS-213 Legacy clients page, still indexed** (P2, Legacy/test page: /clients/)  
+- [x] **AS-213 Legacy clients page, still indexed** (P2, Legacy/test page: /clients/)  
   URL: https://www.albertscott.com/clients/  
   What is happening: Returned by a site: search on 2026-09-03; a logo wall with no alt text on any logo.  
   Fix: 301 redirect to https://www.albertscott.com/case-studies/, or rebuild with alt text on every client logo  
-  Ref: R1
-- [ ] **AS-214 Duplicate contact page** (P2, Legacy/test page: /lets-talk/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-214 Duplicate contact page** (P2, Legacy/test page: /lets-talk/)  
   URL: https://www.albertscott.com/lets-talk/  
   What is happening: 50 words. Already listed above under Contact page.  
   Fix: 301 redirect to https://www.albertscott.com/contact-us/  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-215 Duplicate contact page, orphaned** (P2, Legacy/test page: /book-a-call/)  
   URL: https://www.albertscott.com/book-a-call/  
   What is happening: 68 words, no H1, 0 inbound links from any other crawled page. Already listed above under Contact page.  
   Fix: 301 redirect to https://www.albertscott.com/contact-us/, or keep separate and noindexed if a booking calendar embed needs its own URL  
-  Ref: R1
+  Ref: R1  
+  Status: In progress (verified 2026-09-14: DevNotes from the sheet: "i set it to Non-index", confirmed live: /book-a-call/ now noindex (still 200, not merged into contact-us))
 - [x] **AS-216 Duplicate thank-you page** (P2, Legacy/test page: /thankyou/)  
   URL: https://www.albertscott.com/thankyou/  
   What is happening: 102 words. Same title pattern as /thank-you/.  
   Fix: 301 redirect to https://www.albertscott.com/thank-you/  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-217 Second thank-you page, both indexable** (P2, Legacy/test page: /thank-you/)  
   URL: https://www.albertscott.com/thank-you/  
   What is happening: 180 words.  
   Fix: Keep this one as the canonical thank-you page but set it to noindex (thank-you pages should not appear in search)  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-218 Test page, live and indexable** (P2, Legacy/test page: /test-page/)  
   URL: https://www.albertscott.com/test-page/  
   What is happening: 290 words, title "test page".  
   Fix: Delete (410)  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-219 Test page linking two dead URLs** (P2, Legacy/test page: /test-modules/)  
   URL: https://www.albertscott.com/test-modules/  
   What is happening: Links to /marketing-management/ and /privacy-policy-2/, both 404 (see the Junk URLs section above).  
   Fix: Delete (410)  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-220 Design fragment page** (P2, Legacy/test page: /hero/)  
   URL: https://www.albertscott.com/hero/  
   What is happening: 40 words.  
   Fix: Delete (410)  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-221 The WordPress default "Sample Page", still live** (P2, Legacy/test page: /sample-page/)  
   URL: https://www.albertscott.com/sample-page/  
   What is happening: 335 words, the placeholder text WordPress installs by default, indexable.  
   Fix: Delete (410)  
   Ref: R1  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 
 ## Copy style
 
@@ -1253,109 +1293,109 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/blog/mastering-amazon-dsp/ contains 9 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-223 3 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/blog/subscribe-and-save-strategies/  
   What is happening: https://www.albertscott.com/blog/subscribe-and-save-strategies/ contains 3 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-224 20 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/blog/streamlining-logistics-for-scalable-amazon-success/  
   What is happening: https://www.albertscott.com/blog/streamlining-logistics-for-scalable-amazon-success/ contains 20 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-225 4 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/  
   What is happening: https://www.albertscott.com/ contains 4 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14: 0 em dashes confirmed by a direct fetch of the homepage; the automated crawl that flagged this as reopened hit a screenshot timeout and returned no data for this page, not a real regression)
 - [x] **AS-226 2 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/newsroom/  
   What is happening: https://www.albertscott.com/newsroom/ contains 2 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-227 5 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/atlas-olive-oils/  
   What is happening: https://www.albertscott.com/case-studies/atlas-olive-oils/ contains 5 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-228 3 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/beyoutiful/  
   What is happening: https://www.albertscott.com/case-studies/beyoutiful/ contains 3 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-229 7 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/about-us/  
   What is happening: https://www.albertscott.com/about-us/ contains 7 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-230 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/marketing-division-2/  
   What is happening: https://www.albertscott.com/marketing-division-2/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-231 3 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/marketing-devision/  
   What is happening: https://www.albertscott.com/marketing-devision/ contains 3 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-232 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/retail-division/  
   What is happening: https://www.albertscott.com/retail-division/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-233 6 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/listing-division/  
   What is happening: https://www.albertscott.com/listing-division/ contains 6 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-234 2 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/  
   What is happening: https://www.albertscott.com/case-studies/ contains 2 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [ ] **AS-235 6 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/dsp/  
   What is happening: https://www.albertscott.com/dsp/ contains 6 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: In progress (verified 2026-09-11: )
+  Status: In progress (verified 2026-09-14: )
 - [x] **AS-236 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/retail-management/  
   What is happening: https://www.albertscott.com/retail-management/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-237 4 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/clients/  
   What is happening: https://www.albertscott.com/clients/ contains 4 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-238 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/videos/  
   What is happening: https://www.albertscott.com/videos/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 - [x] **AS-239 5 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/case-studies/mouthwatchers/  
   What is happening: https://www.albertscott.com/case-studies/mouthwatchers/ contains 5 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: Done (verified 2026-09-11)
+  Status: Done (verified 2026-09-14)
 
 ## New since 2026-09-03
 
@@ -1372,38 +1412,58 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## New since 2026-09-03: dsm-attachment-category archives
 
-- [ ] **AS-242 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: ABG)  
+- [x] **AS-242 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: ABG)  
   URL: https://www.albertscott.com/blog/dsm-attachment-category/abg/  
   What is happening: https://www.albertscott.com/blog/dsm-attachment-category/abg/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
   Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
-  Ref: R4
-- [ ] **AS-243 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: BeYoutifull)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-243 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: BeYoutifull)  
   URL: https://www.albertscott.com/blog/dsm-attachment-category/beyoutifull/  
   What is happening: https://www.albertscott.com/blog/dsm-attachment-category/beyoutifull/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
   Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
-  Ref: R4
-- [ ] **AS-244 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Katjes)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-244 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Katjes)  
   URL: https://www.albertscott.com/blog/dsm-attachment-category/katjes/  
   What is happening: https://www.albertscott.com/blog/dsm-attachment-category/katjes/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
   Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
-  Ref: R4
-- [ ] **AS-245 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Magmod)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-245 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Magmod)  
   URL: https://www.albertscott.com/blog/dsm-attachment-category/magmod/  
   What is happening: https://www.albertscott.com/blog/dsm-attachment-category/magmod/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
   Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
-  Ref: R4
-- [ ] **AS-246 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Mouthwatchers)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-246 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Mouthwatchers)  
   URL: https://www.albertscott.com/blog/dsm-attachment-category/mouthwatchers/  
   What is happening: https://www.albertscott.com/blog/dsm-attachment-category/mouthwatchers/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
   Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
-  Ref: R4
-- [ ] **AS-247 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Rufus)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-247 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Rufus)  
   URL: https://www.albertscott.com/blog/dsm-attachment-category/rufus/  
   What is happening: https://www.albertscott.com/blog/dsm-attachment-category/rufus/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
   Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
-  Ref: R4
-- [ ] **AS-248 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Tabanero)  
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+- [x] **AS-248 New junk taxonomy archive found live and indexable, not present on 2026-09-03** (P1, DSM attachment category archive: Tabanero)  
   URL: https://www.albertscott.com/blog/dsm-attachment-category/tabanero/  
   What is happening: https://www.albertscott.com/blog/dsm-attachment-category/tabanero/ did not exist on 2026-09-03. As of 2026-09-07 it returns HTTP 200, self canonical, no noindex meta tag, and is listed in a new child sitemap at https://www.albertscott.com/dsm-attachment-category-sitemap.xml (7 URLs total, all named after client brands: ABG, BeYoutifull, Katjes, Magmod, Mouthwatchers, Rufus, Tabanero). This is the same pattern as the project_category archives already flagged: an auto-generated taxonomy archive with no unique content, here from a Divi Supreme Modules plugin feature.  
   Fix: In All in One SEO > Search Appearance > Taxonomies, find "DSM Attachment Category" (or the equivalent label the Divi Supreme Modules plugin registers) and set "Show in search results" to No and untick "Include in sitemap", the same fix already applied to the other taxonomy archives.  
-  Ref: R4
+  Ref: R4  
+  Status: Done (verified 2026-09-14)
+
+## New since 2026-09-11
+
+- [ ] **AS-250 Redirected pages were removed without migrating their content first, as the roadmap asked** (P2, About page)  
+  URL: https://www.albertscott.com/about-us/  
+  What is happening: /our-story/, /our-team/, /our-management/, /our-world-wide-team/ and /niftyone-custom-portal/ were all correctly 301-redirected to /about-us/ on or before 2026-09-14 (good, matches the recommended disposition). But the roadmap specifically said to copy the founding story from /our-story/ into /about-us/ before redirecting it. About Us is 648 words today, essentially unchanged from before this batch of redirects (647 words on 2026-09-11), so that migration did not happen: the founding story text itself is gone from the live site, only the URL now forwards visitors to a page that does not contain it.  
+  Fix: Pull the founding story text from a backup or from a cached copy of /our-story/ and add it to /about-us/ under the existing "Our Story" heading.  
+  Ref: new
+- [ ] **AS-251 New heading has a typo: "Alber Scott Company Summary"** (P3, About page)  
+  URL: https://www.albertscott.com/about-us/  
+  What is happening: A heading reading "Alber Scott Company Summary" (missing the "t" in Albert) now appears on /about-us/, likely added as part of merging in content from one of the five redirected pages.  
+  Fix: Fix the heading text to "Albert Scott Company Summary".  
+  Ref: new
