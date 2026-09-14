@@ -24,22 +24,39 @@ Paginate (increase offset by 20) until `total_count` is exhausted or you've cove
 Filter out `email_campaign_name` starting with "Rachel -" and anything with `has_new_unread_email: false`.
 
 ## Step 2 — Classify each remaining reply
-Read the actual inbound reply body (`type: "REPLY"` entries in `email_history`, HTML-stripped) and
-assign exactly one category:
 
-| Category | id | When to use |
-|---|---|---|
-| Interested | 1 | Real interest in an Amazon US conversation |
-| Meeting Request | 2 | Explicitly asks to schedule a call |
-| Not Interested | 3 | Explicit rejection, "not for now," similar |
-| Do Not Contact | 4 | "No"/"stop"/unsubscribe/any clear opt-out — even one word |
-| Information Request | 5 | Wants more info, hasn't committed (docs call this "Follow Up" — use id 5301 "Follow Up" to match the production doc's exact label, not id 5) |
-| Out Of Office | 6 | Autoresponder / OOO message |
-| Wrong Person | 7 | Says they're not the right contact, no other contact given |
-| Sender Originated Bounce | 9 | The "reply" is actually an NDR/bounce notice (e.g. Office 365/Gmail spam rejection) or other delivery-failure artifact misfiled as a reply — not a genuine message from the lead |
-| Unsure | 5271 | Ambiguous, can't tell intent — genuine human reply, just unclear |
-| Follow Up | 5301 | Wants more info, hasn't clearly committed |
-| Ignore | 4497 | Auto-generated, no human signal either way |
+**This table is the complete, verified list of every category ID that exists on this SmartLead
+account** — confirmed 2026-09-14 against the live `getLeadCategories()` / `GET
+/leads/fetch-categories` endpoint (the authoritative source) and cross-checked against 1,157 real
+replies since June 2026. Three of the IDs below (`8`, `5270`, `5302`) have zero historical hits as of
+this check but exist on the account and are documented now so they're handled correctly the first
+time they appear, rather than falling through undefined. `5303` ("Unqualified") already has 15+ real
+leads carrying it in production — it was previously undocumented and unhandled; that gap is now
+closed.
+
+Read the actual inbound reply body (`type: "REPLY"` entries in `email_history`, HTML-stripped) and
+assign exactly one category **for a reply you are classifying yourself** (the "You apply this"
+column). The other categories only ever arrive pre-existing (set by SmartLead's own AI or by a
+teammate in the SmartLead UI) — never apply those yourself; just handle them correctly when you see
+them already set (see Step 3's pre-categorized-lead handling).
+
+| Category | id | When to use | You apply this? |
+|---|---|---|---|
+| Interested | 1 | Real interest in an Amazon US conversation | Yes |
+| Meeting Request | 2 | Explicitly asks to schedule a call | Yes |
+| Not Interested | 3 | Explicit rejection, "not for now," similar | Yes |
+| Do Not Contact | 4 | "No"/"stop"/unsubscribe/any clear opt-out — even one word | Yes |
+| Information Request | 5 | Legacy id, semantically identical to "Follow Up" (5301) below. Superseded in practice — use 5301 when classifying yourself. If a lead already carries id 5 from before this switch (or from elsewhere), treat it exactly like Follow Up for sync purposes. | No (legacy — treat pre-existing hits as Follow Up) |
+| Out Of Office | 6 | Autoresponder / OOO message | Yes |
+| Wrong Person | 7 | Says they're not the right contact, no other contact given | Yes |
+| Uncategorizable by Ai | 8 | SmartLead's own AI classifier's catch-all bucket for messages it can't classify — same idea as Sender Originated Bounce (9) below, applied by SmartLead itself. | No — leave pre-existing hits alone, same as a bounce |
+| Sender Originated Bounce | 9 | The "reply" is actually an NDR/bounce notice (e.g. Office 365/Gmail spam rejection) or other delivery-failure artifact misfiled as a reply — not a genuine message from the lead | Yes, but only when you find one mis-filed as `null` (see note below) |
+| Ignore | 4497 | Auto-generated, no human signal either way | Yes |
+| Action Needed | 5270 | Pre-existing only — a teammate flagged this lead as needing a human follow-up action. Currently unused (0 hits as of 2026-09-14) but documented for when it appears. | No — if seen pre-existing, sync it (Step 4) same as Interested/Follow Up/Meeting Request |
+| Unsure | 5271 | Ambiguous, can't tell intent — genuine human reply, just unclear | Yes |
+| Follow Up | 5301 | Wants more info, hasn't clearly committed | Yes |
+| Client | 5302 | Pre-existing only — this lead has already converted to an actual client. Currently unused (0 hits as of 2026-09-14) but documented for when it appears. | No — if seen pre-existing, sync it (Step 4) same as Interested, but **never block their domain** — they're an active client, not a dead end |
+| Unqualified | 5303 | Pre-existing only — a teammate manually disqualified this lead. **Confirmed live in production: 15+ leads already carry this id.** | No — if seen pre-existing, treat exactly like Not Interested: no Pipedrive sync, block the domain |
 
 Category 9 is SmartLead's own built-in bounce classifier — it sometimes auto-applies this before this
 script ever sees the reply (leave those alone, already handled). When a "reply" is clearly a bounce/NDR
@@ -70,21 +87,24 @@ clear it programmatically.
 
 | Category | Pipedrive sync | Block domain |
 |---|---|---|
-| Interested, Follow Up, Meeting Request | ✓ Org + Person + Lead + Activity | ✓ |
-| Do Not Contact, Not Interested, Ignore | ✗ | ✓ (email + domain) |
+| Interested, Follow Up (incl. legacy id 5, "Information Request"), Meeting Request, Action Needed (5270), Client (5302) | ✓ Org + Person + Lead + Activity | ✓ — **except Client: never block**, they're an active customer |
+| Do Not Contact, Not Interested, Ignore, Unqualified (5303) | ✗ | ✓ (email + domain) |
 | Out of Office (any case) | ✗ | ✗ — never block, they'll return |
 | Wrong Person | ✗ | ✗ — never block, contact is still reachable |
-| Unsure | ✗ | use judgment — block only if clearly a dead end |
+| Unsure, Uncategorizable by Ai (8) | ✗ | use judgment — block only if clearly a dead end |
 
 **Pre-categorized leads (`lead_category_id` already non-null when fetched):** as of 2026-08-26,
-do NOT blanket-skip these. If the existing category is Interested, Follow Up, or Meeting Request,
-run Step 4 for it same as a freshly-classified one — first `searchOrganization`/`searchPersons` to
-check whether a Pipedrive record already exists (these leads are sometimes added manually before
-this script gets to them), and only create what's missing; always still check the activity history
-for a duplicate before adding a new one. Do not re-run category classification or touch the
-category/pause state on an already-categorized lead — that part of the old blanket-skip rule still
-applies. For every other pre-existing category (Not Interested, Do Not Contact, Ignore, OOO, Wrong
-Person, Unsure), the old behavior is unchanged: leave it alone, no action.
+do NOT blanket-skip these. If the existing category is Interested, Follow Up (or legacy id 5),
+Meeting Request, Action Needed, or Client, run Step 4 for it same as a freshly-classified one —
+first `searchOrganization`/`searchPersons` to check whether a Pipedrive record already exists
+(these leads are sometimes added manually before this script gets to them), and only create what's
+missing; always still check the activity history for a duplicate before adding a new one. For
+Client specifically, still sync but never block the domain. Do not re-run category classification
+or touch the category/pause state on an already-categorized lead — that part of the old
+blanket-skip rule still applies. For every other pre-existing category (Not Interested, Do Not
+Contact, Ignore, OOO, Wrong Person, Unsure, Uncategorizable by Ai, Unqualified), the old behavior
+is unchanged: leave it alone, no action (Unqualified and Not Interested/Do Not Contact/Ignore do
+still get the domain-block treatment above if not already blocked).
 
 **Before blocking**, always check first:
 GET `${BASE}/leads/get-domain-block-list?api_key=...&filter_email_or_domain=<domain>`
