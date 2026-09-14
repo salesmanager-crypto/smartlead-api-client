@@ -117,7 +117,12 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
    - `participants`: `[{ "person_id": <id>, "primary": true }]` — **never** pass `person_id` at
      the top level, it's read-only and 400s.
    - `lead_id`: the id from step 3 above — link the activity to the **lead**, not just the person
-   - `owner_id`: 26939288
+   - `owner_id`: **25109251 (Yoni)** — fixed 2026-09-14. `26939288` is Eikko (this automation's own
+     API identity — it's also permanently baked into every record's immutable `creator_user_id`
+     field no matter what `owner_id` is set to, so don't mistake that field for the assignee). Every
+     Activity this automation had ever created was wrongly left on Eikko as owner until this fix;
+     all pre-existing ones were bulk-reassigned to 25109251 on 2026-09-14. The Org/Person/Lead
+     themselves stay on `owner_id: 26939288` (Eikko) as before — this fix is Activities only.
    - `due_date`: today, ISO date
 
 ## Step 5 — Calendly (verified 2026-08-19; dedup fix 2026-08-28)
@@ -144,7 +149,8 @@ booking found, extract name/email/date/time, then:
    is exactly the bug flagged in the Aug 18 meeting ("Fix Calendly→Pipedrive: create leads, not
    contacts", fixed 2026-08-19).
 4. `addActivity` type "Meeting" subject "Calendly Booking" with the date/time, linked via `lead_id`
-   (from step 2 or 3 above) rather than just `person_id`.
+   (from step 2 or 3 above) rather than just `person_id`. `owner_id: 25109251` (Yoni) — same
+   Activity-owner fix as Step 4 (fixed 2026-09-14); the Lead/Person/Org stay on `26939288` (Eikko).
 5. Block that domain+email in Smartlead so no campaign re-contacts them.
 
 ## Step 6 — Update checkpoint
