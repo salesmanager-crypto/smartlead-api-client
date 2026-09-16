@@ -1900,3 +1900,26 @@ Two rows briefly looked like regressions (previously marked fixed, now reading a
 ### A note on how this Google Sheet was found and why nothing was written back to it
 
 This session was asked to update a Google Sheet that turned out to be a copy of this tracker uploaded to Google Drive. This session's tools can read and download Drive files but cannot write cell values into an existing Google Sheet. The corrected data above lives in this repository's `issue-tracker.csv`/`.xlsx`/`.md` as usual, plus a fourth file, `issue-tracker-for-gsheet-import.xlsx`, built to match that Google Sheet's exact column layout (including the Complete checkbox and DevNotes/Response columns) so it can be imported over the existing sheet by hand.
+
+## Re-verification against the live site, 2026-09-16
+
+Confirmed the Google Sheet had in fact been updated since the last session (file size grew, modified 2026-09-15) and matched this tracker's 2026-09-14 data exactly, including the one manual note (AS-215's DevNotes). No new manual notes had been added since. A full re-crawl of all 86 content pages hit resource errors partway through on the first attempt (28 pages returned no data); all 28 were re-fetched individually before drawing any conclusions, so every figure below is based on complete data, not a partial crawl.
+
+**Result: 10 more rows confirmed fixed, 2 rows found genuinely reopened, and 1 new problem found. The 2026-09-11 regression is still not restored, now 7 days.**
+
+### Newly confirmed fixed
+
+Three of these are new since 2026-09-14: `/marketing-devision/` and the Atlas Olive Oils case study now have meta descriptions, and the "Alber Scott" typo on `/about-us/` found on 2026-09-14 has been corrected. The other seven (the retail-management, our-story, our-team, our-management, our-world-wide-team, niftyone-custom-portal, and recent-success redirects) were already confirmed fixed during the 2026-09-14 session and reported in that day's chat, but this tracker's Status column was not updated for them at the time, a bookkeeping gap in this system's own process, corrected now rather than left as a stale gap.
+
+### Two rows found genuinely reopened, confirmed by fetching the live homepage HTML directly (not a measurement error)
+
+- The homepage's "Explore Logistics" button links to `/logistics-division-2/` again (a 301 redirect), even though a separate, correct link to `/logistics-division/` also exists elsewhere on the page.
+- The homepage also contains a plain link to `https://www.albertscott.com/marketing-division/`, which still 301s to `/marketing-devision/`.
+
+### One new problem found
+
+A new gallery block appeared on the homepage (a "dsm-gallery" widget, the same plugin feature behind the dsm-attachment-category taxonomy found on 2026-09-07) with at least 4 tiles, every one linking to the redirecting `/case-studies-2/` rather than `/case-studies/`. This section was not present in earlier checks. Added as a new row.
+
+### Still open
+
+**AS-000, the deleted article, has still not been restored, 7 days after it was found missing.**

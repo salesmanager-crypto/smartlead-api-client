@@ -1,6 +1,6 @@
 # Issue tracker
 
-One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2). Re-verified against the live site on 2026-09-07 (0 fixed), 2026-09-11 (26 fixed, 1 partial, 1 urgent regression), and 2026-09-14 (69 fixed, 3 partial, regression still open). See the audit file for full detail on each pass.
+One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2). Re-verified against the live site on 2026-09-07, 2026-09-11, 2026-09-14, and 2026-09-16. See the audit file for full detail on each pass.
 
 
 ## URGENT: regression since 2026-09-03
@@ -10,7 +10,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: This post ("From Cart to Consumer: Streamlining Logistics for Scalable Amazon Success", 1,129 words) was one of the 5 substantive articles on the site and scored among the highest pages in the original audit (7.5 of 11). It is not in the tracker as something to remove. As of 2026-09-11 it returns HTTP 404 with title "Page not found - Albert Scott". Confirmed via the site's own read-only WordPress REST API: published post count dropped from 13 to 12 and this slug no longer appears in the post list at all (not draft, not trashed and visible via the API; simply absent). This most likely happened by mistake during the same cleanup pass that correctly removed /marketing-division-2/, /videos/, /test-page/, /test-modules/, /hero/, and /sample-page/, since this URL sits in the same batch alphabetically/thematically (logistics division content) and none of those were meant to include a real article.  
   Fix: Restore this post from the WordPress trash if it is still there (Posts > All Posts > Trash), or republish it from a backup if it was permanently deleted. This should happen before anything else on this list; it is a content loss, not a cleanup.  
   Ref: new  
-  Status: Open, urgent (confirmed again 2026-09-14: article still not restored, 5 days after it was found deleted)
+  Status: Open, urgent (confirmed again 2026-09-16: article still not restored, 7 days after it was found deleted)
 
 ## General - sitewide template
 
@@ -246,18 +246,18 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   Fix: Edit the link on https://www.albertscott.com/ to point directly at https://www.albertscott.com/listing-division/.  
   Ref: R2  
   Status: Done (verified 2026-09-14)
-- [x] **AS-036 Links to /marketing-division/, which 301s** (P1, Homepage)  
+- [ ] **AS-036 Links to /marketing-division/, which 301s** (P1, Homepage)  
   URL: https://www.albertscott.com/  
   What is happening: On https://www.albertscott.com/, a link points at https://www.albertscott.com/marketing-division/, which returns a 301 redirect to https://www.albertscott.com/marketing-devision/. Confirmed via a direct HTTP request to https://www.albertscott.com/marketing-division/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/ to point directly at https://www.albertscott.com/marketing-devision/.  
   Ref: R2  
-  Status: Done (verified 2026-09-14)
-- [x] **AS-037 Links to /logistics-division-2/, which 301s** (P1, Homepage)  
+  Status: REOPENED (verified 2026-09-16: the homepage still links to https://www.albertscott.com/marketing-division/, which 301s to /marketing-devision/, confirmed by fetching the live homepage HTML directly. Not a measurement error this time; a plain absolute link on the page.)
+- [ ] **AS-037 Links to /logistics-division-2/, which 301s** (P1, Homepage)  
   URL: https://www.albertscott.com/  
   What is happening: On https://www.albertscott.com/, a link points at https://www.albertscott.com/logistics-division-2/, which returns a 301 redirect to https://www.albertscott.com/logistics-division/. Confirmed via a direct HTTP request to https://www.albertscott.com/logistics-division-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/ to point directly at https://www.albertscott.com/logistics-division/.  
   Ref: R2  
-  Status: Done (verified 2026-09-14)
+  Status: REOPENED (verified 2026-09-16: the homepage's "Explore Logistics" button in the divisions accordion section links to /logistics-division-2/ (relative href), confirmed by fetching the live homepage HTML directly. A correct absolute link to /logistics-division/ also exists elsewhere on the page, so this looks like a second button using the old URL, not the original one being un-fixed.)
 - [ ] **AS-038 Links to /case-studies-2/, which 301s** (P1, Portfolio gallery page)  
   URL: https://www.albertscott.com/listings-portfolio-gallery/  
   What is happening: On https://www.albertscott.com/listings-portfolio-gallery/, a link points at https://www.albertscott.com/case-studies-2/, which returns a 301 redirect to https://www.albertscott.com/case-studies/. Confirmed via a direct HTTP request to https://www.albertscott.com/case-studies-2/ on 2026-09-03.  
@@ -273,7 +273,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: On https://www.albertscott.com/marketing-division-2/, a link points at https://www.albertscott.com/case-studies-2/, which returns a 301 redirect to https://www.albertscott.com/case-studies/. Confirmed via a direct HTTP request to https://www.albertscott.com/case-studies-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/marketing-division-2/ to point directly at https://www.albertscott.com/case-studies/.  
   Ref: R2  
-  Status: Done (verified 2026-09-14: the source page /marketing-division-2/ itself now 301s, confirmed via a direct HTTP check; an earlier automated pass misread this because a browser-based crawl follows redirects and reports the destination page instead of the redirect)
+  Status: Done (verified 2026-09-16: source page no longer exists as a separate page, moot)
 
 ## Homepage
 
@@ -391,11 +391,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: The live URL is https://www.albertscott.com/marketing-devision/ (note "Devision"). The <title> tag is "Marketing Devision - Albert Scott". The AIOSEO BreadcrumbList schema on this page names the breadcrumb item "Marketing Devision". The correctly spelled https://www.albertscott.com/marketing-division/ exists only as a 301 redirect pointing at this misspelled URL.  
   Fix: In WordPress, edit the page slug from "marketing-devision" to "marketing-division" (WordPress will auto-create a redirect from the old slug). Then delete the now-unnecessary existing redirect rule that points /marketing-division/ at /marketing-devision/. Fix the SEO title at the same time (see the row above).  
   Ref: R3
-- [ ] **AS-062 No meta description** (P1, Marketing division page)  
+- [x] **AS-062 No meta description** (P1, Marketing division page)  
   URL: https://www.albertscott.com/marketing-devision/  
   What is happening: View source on https://www.albertscott.com/marketing-devision/ and search for name="description": the tag is absent.  
   Fix: Write a 120 to 155 character meta description in All in One SEO for this specific page, stating what it offers and for whom.  
-  Ref: R8
+  Ref: R8  
+  Status: Done (verified 2026-09-16)
 - [ ] **AS-063 A heading appears before the H1** (P2, Marketing division page)  
   URL: https://www.albertscott.com/marketing-devision/  
   What is happening: On https://www.albertscott.com/marketing-devision/, "Albert Scott Divisions" is rendered as an H3 tag and appears before the H1 "Marketing Division" in the page source. This is the "Albert Scott Divisions" eyebrow label on division pages, or a similar label elsewhere.  
@@ -586,11 +587,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: The <title> tag reads "Atlas Olive Oils - Albert Scott". It contains no term a buyer would search for (no "Amazon", "agency", the service name, etc.), and the og:title tag copies this same text, so link previews are equally uninformative.  
   Fix: In All in One SEO, set the SEO Title for this page to: "[Service] for Amazon Brands: Albert Scott".  
   Ref: R7
-- [ ] **AS-097 No meta description** (P1, Case study: Atlas Olive Oils)  
+- [x] **AS-097 No meta description** (P1, Case study: Atlas Olive Oils)  
   URL: https://www.albertscott.com/case-studies/atlas-olive-oils/  
   What is happening: View source on https://www.albertscott.com/case-studies/atlas-olive-oils/ and search for name="description": the tag is absent.  
   Fix: Write a 120 to 155 character meta description in All in One SEO for this specific page, stating what it offers and for whom.  
-  Ref: R8
+  Ref: R8  
+  Status: Done (verified 2026-09-16)
 - [ ] **AS-098 A heading appears before the H1** (P2, Case study: Atlas Olive Oils)  
   URL: https://www.albertscott.com/case-studies/atlas-olive-oils/  
   What is happening: On https://www.albertscott.com/case-studies/atlas-olive-oils/, "Case Study: Atlas Olive Oils" is rendered as an H4 tag and appears before the H1 "Atlas Olive Oil: The Best Selling Olive Oil on Amazon" in the page source. This is the "Albert Scott Divisions" eyebrow label on division pages, or a similar label elsewhere.  
@@ -1178,11 +1180,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   Fix: 301 redirect to https://www.albertscott.com/marketing-devision/  
   Ref: R1  
   Status: Done (verified 2026-09-14)
-- [ ] **AS-203 Duplicate of the Retail division page** (P2, Legacy/test page: /retail-management/)  
+- [x] **AS-203 Duplicate of the Retail division page** (P2, Legacy/test page: /retail-management/)  
   URL: https://www.albertscott.com/retail-management/  
   What is happening: 125 words, 1 inbound link.  
   Fix: 301 redirect to https://www.albertscott.com/retail-division/  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-16)
 - [x] **AS-204 Duplicate University page** (P2, Legacy/test page: /university/)  
   URL: https://www.albertscott.com/university/  
   What is happening: 148 words. Already listed above under University page.  
@@ -1195,42 +1198,48 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   Fix: 301 redirect to https://www.albertscott.com/listings-portfolio-gallery/  
   Ref: R1  
   Status: Done (verified 2026-09-14)
-- [ ] **AS-206 Legacy page from 2019** (P2, Legacy/test page: /recent-success/)  
+- [x] **AS-206 Legacy page from 2019** (P2, Legacy/test page: /recent-success/)  
   URL: https://www.albertscott.com/recent-success/  
   What is happening: Shortcode leak in body text.  
   Fix: 301 redirect to https://www.albertscott.com/listings-portfolio-gallery/  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-16)
 - [x] **AS-207 Legacy page from 2019** (P2, Legacy/test page: /videos/)  
   URL: https://www.albertscott.com/videos/  
   What is happening: Shortcode leak in body text; overflows the viewport at 390px.  
   Fix: 301 redirect to https://www.albertscott.com/listings-portfolio-gallery/  
   Ref: R1  
   Status: Done (verified 2026-09-14)
-- [ ] **AS-208 Legacy page from 2019, holds the founding story** (P2, Legacy/test page: /our-story/)  
+- [x] **AS-208 Legacy page from 2019, holds the founding story** (P2, Legacy/test page: /our-story/)  
   URL: https://www.albertscott.com/our-story/  
   What is happening: Shortcode leak in body text. This page has the company's founding story, which /about-us/ currently lacks.  
   Fix: Copy the founding story content into https://www.albertscott.com/about-us/ before redirecting, then 301 redirect this page to /about-us/  
-  Ref: R1
-- [ ] **AS-209 Legacy page from 2018** (P2, Legacy/test page: /our-team/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-16)
+- [x] **AS-209 Legacy page from 2018** (P2, Legacy/test page: /our-team/)  
   URL: https://www.albertscott.com/our-team/  
   What is happening: Shortcode leak in body text; overflows the viewport at 390px.  
   Fix: 301 redirect to https://www.albertscott.com/about-us/  
-  Ref: R1
-- [ ] **AS-210 Legacy page from 2020** (P2, Legacy/test page: /our-management/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-16)
+- [x] **AS-210 Legacy page from 2020** (P2, Legacy/test page: /our-management/)  
   URL: https://www.albertscott.com/our-management/  
   What is happening: Shortcode leak in body text.  
   Fix: 301 redirect to https://www.albertscott.com/about-us/  
-  Ref: R1
-- [ ] **AS-211 Legacy page from 2019** (P2, Legacy/test page: /our-world-wide-team/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-16)
+- [x] **AS-211 Legacy page from 2019** (P2, Legacy/test page: /our-world-wide-team/)  
   URL: https://www.albertscott.com/our-world-wide-team/  
   What is happening: Shortcode leak in body text.  
   Fix: 301 redirect to https://www.albertscott.com/about-us/  
-  Ref: R1
-- [ ] **AS-212 Legacy page from 2019, unrelated internal tool name** (P2, Legacy/test page: /niftyone-custom-portal/)  
+  Ref: R1  
+  Status: Done (verified 2026-09-16)
+- [x] **AS-212 Legacy page from 2019, unrelated internal tool name** (P2, Legacy/test page: /niftyone-custom-portal/)  
   URL: https://www.albertscott.com/niftyone-custom-portal/  
   What is happening: Shortcode leak in body text.  
   Fix: 301 redirect to https://www.albertscott.com/about-us/  
-  Ref: R1
+  Ref: R1  
+  Status: Done (verified 2026-09-16)
 - [x] **AS-213 Legacy clients page, still indexed** (P2, Legacy/test page: /clients/)  
   URL: https://www.albertscott.com/clients/  
   What is happening: Returned by a site: search on 2026-09-03; a logo wall with no alt text on any logo.  
@@ -1371,7 +1380,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/dsp/ contains 6 em dash character(s) in its visible body text. House style for this site is no em dashes.  
   Fix: Replace each em dash with a comma, period, or colon when this page is next edited.  
   Ref: R14  
-  Status: In progress (verified 2026-09-14: )
+  Status: In progress (verified 2026-09-16)
 - [x] **AS-236 1 em dash(es) in body copy** (P3, See URL)  
   URL: https://www.albertscott.com/retail-management/  
   What is happening: https://www.albertscott.com/retail-management/ contains 1 em dash character(s) in its visible body text. House style for this site is no em dashes.  
@@ -1462,8 +1471,17 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: /our-story/, /our-team/, /our-management/, /our-world-wide-team/ and /niftyone-custom-portal/ were all correctly 301-redirected to /about-us/ on or before 2026-09-14 (good, matches the recommended disposition). But the roadmap specifically said to copy the founding story from /our-story/ into /about-us/ before redirecting it. About Us is 648 words today, essentially unchanged from before this batch of redirects (647 words on 2026-09-11), so that migration did not happen: the founding story text itself is gone from the live site, only the URL now forwards visitors to a page that does not contain it.  
   Fix: Pull the founding story text from a backup or from a cached copy of /our-story/ and add it to /about-us/ under the existing "Our Story" heading.  
   Ref: new
-- [ ] **AS-251 New heading has a typo: "Alber Scott Company Summary"** (P3, About page)  
+- [x] **AS-251 New heading has a typo: "Alber Scott Company Summary"** (P3, About page)  
   URL: https://www.albertscott.com/about-us/  
   What is happening: A heading reading "Alber Scott Company Summary" (missing the "t" in Albert) now appears on /about-us/, likely added as part of merging in content from one of the five redirected pages.  
   Fix: Fix the heading text to "Albert Scott Company Summary".  
+  Ref: new  
+  Status: Done (verified 2026-09-16)
+
+## New since 2026-09-14
+
+- [ ] **AS-252 A new gallery block on the homepage links every tile to the same redirecting URL** (P1, Homepage)  
+  URL: https://www.albertscott.com/  
+  What is happening: Fetching the live homepage HTML on 2026-09-16 shows a gallery grid (class "dsm-gallery", the same Divi Supreme Modules widget behind the dsm-attachment-category taxonomy found on 2026-09-07) with at least 4 tiles, every one linking to /case-studies-2/ (a relative href), which 301s to /case-studies/. This section was not present in earlier checks; it looks like a new homepage block was added using this widget.  
+  Fix: Point each gallery tile's link directly at https://www.albertscott.com/case-studies/, or at the specific case study each tile represents, instead of the redirecting URL.  
   Ref: new
