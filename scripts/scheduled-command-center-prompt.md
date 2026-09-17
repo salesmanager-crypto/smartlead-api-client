@@ -47,7 +47,7 @@ say so in your final report rather than silently using partial data.
   Python/jq script rather than trying to read the raw file into context — these routinely
   exceed the inline-output limit at current data volume.
 
-## Step 3 — Build the sync-gap classification
+## Step 3 — Build the sync-gap classification (persistent, not just the 7-day window)
 For every reply in the Smartlead 7-day window: look up its Pipedrive lead-category name (via
 `leadCategories` from the pull), and classify:
 - **synced** — category is Interested, Meeting Request, or Follow Up, AND a Pipedrive person
@@ -58,23 +58,45 @@ For every reply in the Smartlead 7-day window: look up its Pipedrive lead-catego
 - **none** — any other category (Do Not Contact, Not Interested, Out Of Office, Ignore,
   Wrong Person, Unsure, etc.) — doesn't need to sync.
 
-## Step 4 — Rebuild the dashboard HTML
-The dashboard is a self-contained single-page app: one `<script type="application/json">`
-block holds all the data, one `<script>` block renders every page from it (hash routing,
-Mine/Team/All toggles, sortable tables, the daily inbox log). Don't rewrite the design or the
-page logic — only regenerate the embedded JSON with fresh numbers pulled in Steps 1–3, matching
-the exact shape the existing page's JS expects (see the current artifact's `<script
-id="__DATA__">` block for the schema: `meta`, `campaigns`, `campaignStatusCounts`, `yesterday`,
-`masterInboxReplies7d`, `syncGap`, `mailboxCount`, `sendingDomainCount`, `activities`, `deals`,
-`leadsByOwner`, `totalLeads`, `totalPersons`, `totalOrgs`, `activityTypeCounts`,
-`overdueByOwner`, `dueTodayByOwner`, `upcomingByOwner`, `yesterdayReplyMix`,
-`yesterdayInterested`, `seoGeo`, `linkedin`, `resources`). Read the live artifact first (`action:
-"read"`) if you need to confirm the current JS/CSS before re-splicing new data into it.
+**Gaps must persist across refreshes, not just live in the rolling 7-day window** — a reply
+from 8 days ago that's still unsynced is still a real problem, even though the Smartlead pull
+no longer returns it. Maintain this with a small state file, `scripts/.sync-gap-state.json`
+(gitignored — machine-local, like `.deliverability-state.json`):
+1. Load it (an object keyed by lowercased email; empty object if the file doesn't exist yet).
+2. Drop any entry whose email now matches a Pipedrive person (found in Step 2) — it's resolved.
+3. For every **gap** found in this run's 7-day window, add it to the state if not already
+   present (fields: `email`, `lead_name`, `campaign_name`, `category`, `reply_time`,
+   `first_seen` — set `first_seen` to `reply_time` the first time it's seen; never overwrite
+   `first_seen` on later runs) or just refresh `reply_time` if already tracked.
+4. Write the updated state back to `scripts/.sync-gap-state.json`.
+5. Compute `days_open` for every remaining entry (today's date minus `first_seen`'s date) and
+   sort descending by `days_open` — this list becomes `syncGap.persistentGaps`, and
+   `syncGap.persistentGapCount` is its length. This count (not the raw 7-day `gap` count) is
+   what drives the sidebar badge and the main-page banner.
 
-Each entry in `campaigns` also carries `tags` (the raw Smartlead tag names array, from
-`analytics.tags` in the pull) and `isRachel` (true if any tag name equals "RACHEL",
-case-insensitive) — this powers the "Tagged Rachel" filter chip on the Smartlead page.
-Keep populating both fields on every refresh.
+## Step 4 — Rebuild the dashboard HTML
+The dashboard's design/logic now live as committed files, not just inside the live artifact:
+- `scripts/command-center-template.html` — page shell, CSS, router.
+- `scripts/command-center-page.js` — spliced into the template at `__PAGE_JS__`; all the
+  page-rendering logic (Mine/Team/All toggles, sortable tables, daily inbox log, the sync-gap
+  watchlist table, the "Tagged Rachel" campaign filter).
+- `scripts/build-command-center-html.mjs` — splices template + page JS + a data JSON file into
+  the final HTML: `node scripts/build-command-center-html.mjs <data.json> <output.html>`.
+
+Don't rewrite the design or page logic — only regenerate the data JSON with fresh numbers from
+Steps 1–3, matching the shape `command-center-page.js` expects: `meta`, `campaigns` (each with
+`tags` and `isRachel` — true if any tag name equals "RACHEL", case-insensitive, powering the
+"Tagged Rachel" filter chip), `campaignStatusCounts`, `yesterday`, `masterInboxReplies7d`,
+`syncGap` (now including `persistentGaps` and `persistentGapCount` per Step 3),
+`mailboxCount`, `sendingDomainCount`, `activities`, `deals`, `leadsByOwner`, `totalLeads`,
+`totalPersons`, `totalOrgs`, `activityTypeCounts`, `overdueByOwner`, `dueTodayByOwner`,
+`upcomingByOwner`, `yesterdayReplyMix`, `yesterdayInterested`, `seoGeo`, `linkedin`,
+`resources`. Write that JSON to a scratch file, then run the build script above.
+
+If you genuinely need to change the design or add a page feature, edit
+`command-center-template.html` / `command-center-page.js` directly and commit the change (same
+branch, `Rachel-automation`) so the next refresh inherits it — don't fork the design by hand-
+editing a one-off copy of the HTML.
 
 If a source is unavailable (no LinkedIn connector, Semrush not enabled, site fetch blocked),
 keep that section's "not connected" placeholder honest — never invent a number to fill a gap.
@@ -91,6 +113,8 @@ Call the Artifact tool with:
   the team."
 
 ## Step 6 — Report
-Two or three sentences: when it refreshed, the sync-gap count (the number that matters most),
-Rachel's own overdue/due-today count, and any sources that were unavailable this run (call
-these out rather than silently skipping). No further action needed unless something failed.
+Two or three sentences: when it refreshed, the persistent sync-gap count and how long the
+oldest open one has been sitting (the number that matters most — call out if any gap has been
+open several days with no resolution), Rachel's own overdue/due-today count, and any sources
+that were unavailable this run (call these out rather than silently skipping). No further
+action needed unless something failed.

@@ -7,6 +7,7 @@ node_modules/
 .last-checkpoint
 .last-triage-checkpoint
 scripts/.deliverability-state.json
+scripts/.sync-gap-state.json
 scripts/*.log
 scripts/deliverability-log.txt
 logs/
