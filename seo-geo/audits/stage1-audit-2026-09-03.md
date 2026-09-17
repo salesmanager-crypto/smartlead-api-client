@@ -1923,3 +1923,25 @@ A new gallery block appeared on the homepage (a "dsm-gallery" widget, the same p
 ### Still open
 
 **AS-000, the deleted article, has still not been restored, 7 days after it was found missing.**
+
+## Re-verification against the live site, 2026-09-17
+
+Requested to check specifically for changes attributable to a separate Claude Chrome extension the user had make edits directly on the live site. Full re-crawl of all 86 content pages (clean this time, no crawl errors) and a fresh probe of every junk, redirect, dead-link, and archive URL, then a broader field-by-field diff against 2026-09-16 to catch anything outside the row-level check.
+
+**Result: no new rows resolved. Two small live-site changes found, neither matching either of the two candidate WordPress-only fixes identified on 2026-09-16 (the article restore or the em dash cleanup). The regression is still open, and Hassan has now given a reason for it that conflicts with this system's own evidence.**
+
+### What changed since 2026-09-16
+
+- The 4 author archive pages (previously noindexed) now 301 redirect straight to the homepage instead, a stronger fix than noindex, though not a change to their tracked status since they were already marked resolved.
+- `/thank-you/` and `/thankyou/` had their robots directive simplified from `noindex, max-snippet:-1, max-image-preview:large, max-video-preview:-1` to a plain `noindex, nofollow`. Same effective outcome (both stay out of the index), different exact tag.
+- The portfolio gallery page's image count dropped from 351 to 267 and its desktop horizontal overflow cleared. Not a tracked row (only mobile overflow was tracked, AS-115, which is still open), so noted here rather than marked resolved.
+
+### What did not change
+
+- **AS-000, the deleted article, is still not restored** (published post count still 12, the URL still 404s), 8 days after it was first found missing.
+- **AS-235, the DSP page's em dash count, is still 3**, unchanged since 2026-09-14. If the em dash cleanup (Track Two item T2-032) had been run as a single pass across all 18 pages, this page would show 0 like the other 17.
+- The two homepage regressions found on 2026-09-16 (the "Explore Logistics" button linking to `/logistics-division-2/`, and a plain link to `/marketing-division/`) are both still present, confirmed again by fetching the live homepage HTML directly.
+
+### Hassan's explanation for AS-000, and why it does not fully resolve the question
+
+Per the email thread on 2026-09-16, Hassan says the article was deleted intentionally because its content was entirely leftover shortcodes from a previous developer, and that he believes he had already deleted it once before. This system's own 2026-09-03 baseline captured that page while still live with a real 1,129-word count, no shortcode-junk text extracted (unlike several other legacy pages graded that same day, where the extracted text was literally raw `[vc_row ...]` shortcode), and a 7.5-of-11 score, one of the better-performing pages in that audit. That does not disprove his account, he may be describing an earlier version or an earlier deletion this system never saw, but it is not yet reconciled, and the tracker still carries this as open pending either the trash being checked directly or a further explanation.

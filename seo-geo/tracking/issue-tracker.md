@@ -1,6 +1,6 @@
 # Issue tracker
 
-One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2). Re-verified against the live site on 2026-09-07, 2026-09-11, 2026-09-14, and 2026-09-16. See the audit file for full detail on each pass.
+One row per issue. Every row names the exact page, links to its exact URL, and states the exact fix so nothing needs to be looked up separately. Tick the box when the fix is live and verified on the page. Same rows as `issue-tracker.csv` (Excel/Sheets) and `issue-tracker.xlsx` (with clickable links). Priority: P1 configuration or a quick, well-defined edit; P2 page-level content or structural work; P3 low-impact cleanup. Roadmap ref points to `../roadmap/roadmap-2026-09-03.md`, the growth plan, or "new" for items found while building this tracker. Built 2026-09-03 (v2). Re-verified against the live site on 2026-09-07, 2026-09-11, 2026-09-14, 2026-09-16, and 2026-09-17. See the audit file for full detail on each pass.
 
 
 ## URGENT: regression since 2026-09-03
@@ -10,7 +10,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: This post ("From Cart to Consumer: Streamlining Logistics for Scalable Amazon Success", 1,129 words) was one of the 5 substantive articles on the site and scored among the highest pages in the original audit (7.5 of 11). It is not in the tracker as something to remove. As of 2026-09-11 it returns HTTP 404 with title "Page not found - Albert Scott". Confirmed via the site's own read-only WordPress REST API: published post count dropped from 13 to 12 and this slug no longer appears in the post list at all (not draft, not trashed and visible via the API; simply absent). This most likely happened by mistake during the same cleanup pass that correctly removed /marketing-division-2/, /videos/, /test-page/, /test-modules/, /hero/, and /sample-page/, since this URL sits in the same batch alphabetically/thematically (logistics division content) and none of those were meant to include a real article.  
   Fix: Restore this post from the WordPress trash if it is still there (Posts > All Posts > Trash), or republish it from a backup if it was permanently deleted. This should happen before anything else on this list; it is a content loss, not a cleanup.  
   Ref: new  
-  Status: Open, urgent (confirmed again 2026-09-16: article still not restored, 7 days after it was found deleted)
+  Status: Open, urgent (confirmed again 2026-09-17: article still not restored, 8 days since it was found deleted, and per Hassan's 2026-09-16 reply the deletion was intentional, not accidental -- see the audit note)
 
 ## General - sitewide template
 
@@ -186,25 +186,25 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: https://www.albertscott.com/blog/author/7121525_u8r6t1/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "7121525_u8r6t1", display name "7121525_u8r6t1". Unknown/system account name; needs owner confirmation  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
   Ref: R4  
-  Status: Done (verified 2026-09-14)
+  Status: Done (verified 2026-09-17: now returns a 301 redirect to the homepage, an upgrade from the noindex it had before)
 - [x] **AS-028 Indexable author archive page** (P1, Author archive: Albert Scott)  
   URL: https://www.albertscott.com/blog/author/albertllc/  
   What is happening: https://www.albertscott.com/blog/author/albertllc/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "albertllc", display name "Albert Scott". Company account; used as the byline on most posts  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
   Ref: R4  
-  Status: Done (verified 2026-09-14)
+  Status: Done (verified 2026-09-17: now returns a 301 redirect to the homepage, an upgrade from the noindex it had before)
 - [x] **AS-029 Indexable author archive page** (P1, Author archive: Hannah Kaufman)  
   URL: https://www.albertscott.com/blog/author/hannah-kaufman/  
   What is happening: https://www.albertscott.com/blog/author/hannah-kaufman/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "hannah-kaufman", display name "Hannah Kaufman". Named person account  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
   Ref: R4  
-  Status: Done (verified 2026-09-14)
+  Status: Done (verified 2026-09-17: now returns a 301 redirect to the homepage, an upgrade from the noindex it had before)
 - [x] **AS-030 Indexable author archive page** (P1, Author archive: Hashsalacop)  
   URL: https://www.albertscott.com/blog/author/hashsalacop/  
   What is happening: https://www.albertscott.com/blog/author/hashsalacop/ returns HTTP 200, self canonical, no noindex. Confirmed via the site's read-only WordPress REST API (/wp-json/wp/v2/users), account id and slug "hashsalacop", display name "Hashsalacop". Unknown account name; needs owner confirmation  
   Fix: In All in One SEO > Search Appearance > Archives > Author Archives, set "Show Author Archives in search results" to No. Separately, ask whoever manages WordPress users to confirm what the "7121525_u8r6t1" and "Hashsalacop" accounts are for; if unused, disable or delete them.  
   Ref: R4  
-  Status: Done (verified 2026-09-14)
+  Status: Done (verified 2026-09-17: now returns a 301 redirect to the homepage, an upgrade from the noindex it had before)
 
 ## Junk URLs: attachment pages
 
@@ -273,7 +273,7 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   What is happening: On https://www.albertscott.com/marketing-division-2/, a link points at https://www.albertscott.com/case-studies-2/, which returns a 301 redirect to https://www.albertscott.com/case-studies/. Confirmed via a direct HTTP request to https://www.albertscott.com/case-studies-2/ on 2026-09-03.  
   Fix: Edit the link on https://www.albertscott.com/marketing-division-2/ to point directly at https://www.albertscott.com/case-studies/.  
   Ref: R2  
-  Status: Done (verified 2026-09-16: source page no longer exists as a separate page, moot)
+  Status: Done (verified 2026-09-17: source page no longer exists as a separate page, moot)
 
 ## Homepage
 
