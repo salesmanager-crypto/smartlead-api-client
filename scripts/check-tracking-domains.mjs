@@ -23,10 +23,14 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import tls from "node:tls";
-import dns from "node:dns/promises";
 import { fileURLToPath } from "node:url";
 import { SmartleadClient } from "../src/client.js";
+import {
+  TRACKING_EDGE,
+  auditTrackingDomains,
+  cnameTarget,
+  listAllEmailAccounts,
+} from "../src/trackingdomains.js";
 
 const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -43,47 +47,7 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const TRACKING_EDGE = "open.sleadtrack.com";
 const COMMON_PREFIXES = ["trk", "open", "hello", "track", "go", "link"];
-
-async function listAllAccounts(client) {
-  const all = [];
-  for (let offset = 0; ; offset += 100) {
-    const batch = await client.listEmailAccounts({ offset, limit: 100 });
-    if (!Array.isArray(batch) || batch.length === 0) break;
-    all.push(...batch);
-    if (batch.length < 100) break;
-  }
-  return all;
-}
-
-async function cnameTarget(host) {
-  try {
-    return await dns.resolveCname(host);
-  } catch {
-    return null;
-  }
-}
-
-/** Resolves once the handshake completes; `authorized` is what a mail client sees. */
-function checkCert(host) {
-  return new Promise((resolve) => {
-    const socket = tls.connect({ host, port: 443, servername: host, timeout: 10000 }, () => {
-      const cert = socket.getPeerCertificate();
-      const names = String(cert.subjectaltname || "")
-        .split(",")
-        .map((n) => n.trim().replace(/^DNS:/, ""));
-      resolve({ ok: socket.authorized, covers: names.includes(host), names });
-      socket.destroy();
-    });
-    const fail = (reason) => {
-      resolve({ ok: false, covers: false, error: reason });
-      socket.destroy();
-    };
-    socket.on("error", (err) => fail(err.code || err.message));
-    socket.on("timeout", () => fail("timeout"));
-  });
-}
 
 /** Which of the usual prefixes on `domain` already point at the tracking edge. */
 async function probeSendingDomain(domain) {
@@ -116,50 +80,17 @@ function loadFlagged() {
 async function main() {
   const flaggedInUi = loadFlagged();
   const client = new SmartleadClient();
-  const accounts = await listAllAccounts(client);
+  const accounts = await listAllEmailAccounts(client);
 
   const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "es"}`;
 
-  const missing = [];
-  const configured = new Map(); // tracking host -> accounts using it
-  for (const account of accounts) {
-    const host = (account.custom_tracking_domain || "").trim();
-    if (!host) missing.push(account);
-    else {
-      const key = host.toLowerCase();
-      if (!configured.has(key)) configured.set(key, []);
-      configured.get(key).push(account);
-    }
-  }
-
-  // 2 + 3: every distinct tracking host is checked once, not once per mailbox.
-  const broken = [];
-  const healthy = [];
-  for (const [host, users] of configured) {
-    const targets = await cnameTarget(host);
-    const problems = [];
-    if (!targets) problems.push("no CNAME record");
-    else if (!targets.some((t) => t.toLowerCase() === TRACKING_EDGE))
-      problems.push(`CNAME points at ${targets.join(",")}, not ${TRACKING_EDGE}`);
-
-    if (problems.length === 0) {
-      const cert = await checkCert(host);
-      if (cert.error) problems.push(`TLS handshake failed (${cert.error})`);
-      else if (!cert.ok) problems.push("TLS certificate is not trusted");
-      else if (!cert.covers) problems.push("TLS certificate does not cover this hostname");
-    }
-    (problems.length ? broken : healthy).push({ host, users, problems });
-  }
-
-  const mixedCase = [...configured.entries()].flatMap(([, users]) =>
-    users.filter((a) => a.custom_tracking_domain !== a.custom_tracking_domain.toLowerCase()),
-  );
+  const { missing, broken, healthy, mixedCase } = await auditTrackingDomains(accounts);
 
   console.log(`${accounts.length} mailboxes: ${accounts.length - missing.length} with a tracking domain, ${missing.length} without.\n`);
 
   if (broken.length) {
-    console.log(`BROKEN - ${broken.reduce((n, b) => n + b.users.length, 0)} mailboxes on ${broken.length} tracking domains:`);
-    for (const { host, users, problems } of broken) {
+    console.log(`BROKEN - ${broken.reduce((n, b) => n + b.accounts.length, 0)} mailboxes on ${broken.length} tracking domains:`);
+    for (const { host, accounts: users, problems } of broken) {
       console.log(`  ${host} (${plural(users.length, "mailbox")}): ${problems.join("; ")}`);
       for (const a of users) console.log(`      ${a.from_email}`);
     }
@@ -222,9 +153,9 @@ async function main() {
     console.log();
   }
 
-  if (healthy.length) console.log(`HEALTHY - ${healthy.reduce((n, h) => n + h.users.length, 0)} mailboxes on ${healthy.length} tracking domains resolve to ${TRACKING_EDGE} with a valid certificate.`);
+  if (healthy.length) console.log(`HEALTHY - ${healthy.reduce((n, h) => n + h.accounts.length, 0)} mailboxes on ${healthy.length} tracking domains resolve to ${TRACKING_EDGE} with a valid certificate.`);
 
-  const flagged = broken.reduce((n, b) => n + b.users.length, 0) + missing.length;
+  const flagged = broken.reduce((n, b) => n + b.accounts.length, 0) + missing.length;
   console.log(`\n${plural(flagged, "mailbox")} need attention from this side.`);
   process.exitCode = flagged === 0 ? 0 : 1;
 }

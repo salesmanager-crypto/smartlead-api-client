@@ -85,6 +85,12 @@ are the common trap: Porkbun parks `*.domain` at `uixie.porkbun.com`, so every p
 like it resolves, but to the parking host rather than the tracking edge. Exits non-zero when
 any mailbox needs attention, so it works as a scheduled check.
 
+The same audit runs inside `scripts/daily-deliverability-check.mjs`, across every inbox rather
+than that script's watched list, so a domain added without its CNAME gets caught on the next
+daily run instead of after it has been sending untracked for weeks. It stays silent when
+everything is clean and only flags what is genuinely broken in DNS or TLS, never a mailbox that
+Smartlead has merely not re-verified.
+
 Smartlead's "Custom Tracking Domain Needs Attention" banner lumps a fourth case in with these:
 a domain that is set and resolves fine, but that Smartlead hasn't verified yet. That state
 lives only in their UI and is tracked per mailbox rather than per domain, so two mailboxes
