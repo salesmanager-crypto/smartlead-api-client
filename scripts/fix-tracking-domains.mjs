@@ -12,9 +12,13 @@
 //   case      a hostname stored with capitals. DNS doesn't care, but it makes one
 //             domain look like two in every report.
 //   reverify  re-submit a value that is already correct, to nudge Smartlead into
-//             re-running a verification that went stale. Opt-in, because it is a
-//             write with no observable result from the API side: Smartlead exposes
-//             no verification state, so confirm in the UI banner afterwards.
+//             re-running a verification that went stale. Opt-in, and it requires
+//             --flagged: Smartlead exposes no verification state, so the only way to
+//             know which mailboxes are stale is the UI banner. Re-submitting blind
+//             would write to every healthy mailbox on the chance that a write resets
+//             a verified account back to unverified, turning a small problem into an
+//             account-wide one. Confirm in the banner afterwards, since the API
+//             cannot report whether it worked.
 //
 // Mailboxes whose tracking domain does NOT resolve to the tracking edge are left
 // alone: that is a DNS problem, and writing a Smartlead field would only hide it.
@@ -48,6 +52,21 @@ const TRACKING_EDGE = "open.sleadtrack.com";
 const COMMON_PREFIXES = ["trk", "open", "hello", "track", "go", "link"];
 const APPLY = process.argv.includes("--apply");
 const REVERIFY = process.argv.includes("--reverify");
+
+/** Emails pasted out of Smartlead's "Needs Attention" banner, one per line. */
+function loadFlagged() {
+  const i = process.argv.indexOf("--flagged");
+  if (i === -1) return null;
+  const file = process.argv[i + 1];
+  if (!file) throw new Error("--flagged needs a file path");
+  return new Set(
+    fs
+      .readFileSync(file, "utf8")
+      .split("\n")
+      .map((l) => l.trim().toLowerCase())
+      .filter((l) => l && l.includes("@")),
+  );
+}
 
 async function listAllAccounts(client) {
   const all = [];
@@ -94,6 +113,12 @@ async function setTrackingDomain(client, account, host) {
 }
 
 async function main() {
+  const flaggedInUi = loadFlagged();
+  if (REVERIFY && !flaggedInUi)
+    throw new Error(
+      "--reverify needs --flagged <file> so it only touches mailboxes Smartlead actually " +
+        "reports as unverified. Without it this would re-submit every healthy mailbox.",
+    );
   const client = new SmartleadClient();
   const accounts = await listAllAccounts(client);
 
@@ -124,7 +149,11 @@ async function main() {
         if (await pointsAtEdge(current.toLowerCase()))
           planned.push({ account, host: current.toLowerCase(), reason: "case" });
         else blocked.push({ account, reason: `${current} does not resolve to ${TRACKING_EDGE}` });
-      } else if (REVERIFY && (await pointsAtEdge(current))) {
+      } else if (
+        REVERIFY &&
+        flaggedInUi.has(account.from_email.toLowerCase()) &&
+        (await pointsAtEdge(current))
+      ) {
         planned.push({ account, host: current, reason: "reverify" });
       }
     }
