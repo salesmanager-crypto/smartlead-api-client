@@ -85,6 +85,19 @@ are the common trap: Porkbun parks `*.domain` at `uixie.porkbun.com`, so every p
 like it resolves, but to the parking host rather than the tracking edge. Exits non-zero when
 any mailbox needs attention, so it works as a scheduled check.
 
+Smartlead's "Custom Tracking Domain Needs Attention" banner lumps a fourth case in with these:
+a domain that is set and resolves fine, but that Smartlead hasn't verified yet. That state
+lives only in their UI and is tracked per mailbox rather than per domain, so two mailboxes
+sharing one healthy tracking domain can disagree. Paste the banner's emails into a file (one
+per line) to split their list against live DNS:
+
+```bash
+node scripts/check-tracking-domains.mjs --flagged flagged.txt
+```
+
+Anything it reports as "set and resolving correctly" needs no DNS work at all, only the Verify
+click in Smartlead.
+
 ## Email verification (QuickEmailVerification)
 
 A separate, minimal client for [QuickEmailVerification.com](https://www.quickemailverification.com/)

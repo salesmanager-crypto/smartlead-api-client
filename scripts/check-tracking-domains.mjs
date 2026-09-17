@@ -12,6 +12,14 @@
 // domain so you can tell "DNS is ready, just fill in the field" from "DNS first".
 // Watch for registrar wildcards (Porkbun parks *.domain at uixie.porkbun.com): every
 // prefix appears to resolve, but to the parking host, not the tracking edge.
+//
+// Smartlead's own banner lumps a fourth case in with these: a domain that is set and
+// resolves fine, but that Smartlead hasn't verified yet. That state lives only in their
+// UI, so pass --flagged <file> (one email per line, pasted from the banner) to split
+// their list against live DNS. Verification is tracked per mailbox, not per domain, so
+// siblings sharing one healthy tracking domain can disagree; when a flagged mailbox sits
+// on a domain this script calls healthy, the record is fine and only the Verify click
+// in Smartlead is outstanding.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -90,7 +98,23 @@ async function probeSendingDomain(domain) {
   return { ready, parked };
 }
 
+/** Emails pasted out of Smartlead's "Needs Attention" banner, one per line. */
+function loadFlagged() {
+  const i = process.argv.indexOf("--flagged");
+  if (i === -1) return null;
+  const file = process.argv[i + 1];
+  if (!file) throw new Error("--flagged needs a file path");
+  return new Set(
+    fs
+      .readFileSync(file, "utf8")
+      .split("\n")
+      .map((l) => l.trim().toLowerCase())
+      .filter((l) => l && l.includes("@")),
+  );
+}
+
 async function main() {
+  const flaggedInUi = loadFlagged();
   const client = new SmartleadClient();
   const accounts = await listAllAccounts(client);
 
@@ -170,10 +194,38 @@ async function main() {
     console.log();
   }
 
+  if (flaggedInUi) {
+    const byEmail = new Map(accounts.map((a) => [a.from_email.toLowerCase(), a]));
+    const healthyHosts = new Set(healthy.map((h) => h.host));
+    const unverified = [];
+    const unset = [];
+    const realFault = [];
+    const unknown = [];
+    for (const email of flaggedInUi) {
+      const account = byEmail.get(email);
+      if (!account) {
+        unknown.push(email);
+        continue;
+      }
+      const host = (account.custom_tracking_domain || "").trim().toLowerCase();
+      if (!host) unset.push(account);
+      else if (healthyHosts.has(host)) unverified.push(account);
+      else realFault.push(account);
+    }
+
+    console.log(`SMARTLEAD'S LIST - ${plural(flaggedInUi.size, "mailbox")} flagged in the UI, split against live DNS:`);
+    console.log(`  ${unset.length} with no tracking domain set (see above for the per-domain fix)`);
+    console.log(`  ${realFault.length} with a tracking domain that genuinely fails DNS or TLS`);
+    console.log(`  ${unverified.length} set and resolving correctly: nothing to fix in DNS, just hit Verify in Smartlead`);
+    if (unknown.length) console.log(`  ${unknown.length} not found in the API (renamed or disconnected?): ${unknown.join(", ")}`);
+    for (const a of unverified) console.log(`      ${a.from_email} -> ${a.custom_tracking_domain}`);
+    console.log();
+  }
+
   if (healthy.length) console.log(`HEALTHY - ${healthy.reduce((n, h) => n + h.users.length, 0)} mailboxes on ${healthy.length} tracking domains resolve to ${TRACKING_EDGE} with a valid certificate.`);
 
   const flagged = broken.reduce((n, b) => n + b.users.length, 0) + missing.length;
-  console.log(`\n${flagged} mailboxes need attention.`);
+  console.log(`\n${plural(flagged, "mailbox")} need attention from this side.`);
   process.exitCode = flagged === 0 ? 0 : 1;
 }
 
