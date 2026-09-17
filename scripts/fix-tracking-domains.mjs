@@ -11,14 +11,19 @@
 //             correct value is knowable, so fill it in.
 //   case      a hostname stored with capitals. DNS doesn't care, but it makes one
 //             domain look like two in every report.
-//   reverify  re-submit a value that is already correct, to nudge Smartlead into
-//             re-running a verification that went stale. Opt-in, and it requires
-//             --flagged: Smartlead exposes no verification state, so the only way to
-//             know which mailboxes are stale is the UI banner. Re-submitting blind
-//             would write to every healthy mailbox on the chance that a write resets
-//             a verified account back to unverified, turning a small problem into an
-//             account-wide one. Confirm in the banner afterwards, since the API
-//             cannot report whether it worked.
+//   reverify  re-submit a value that is already correct, to make Smartlead re-run a
+//             verification that went stale. Confirmed working on 2026-09-17: a
+//             re-submit on 10 stale mailboxes dropped the UI banner from 34 to 24,
+//             so writing custom_tracking_url re-runs the check rather than only
+//             storing the value. Nothing else has to happen for a mailbox to verify,
+//             which is also why setting the field on a fresh mailbox needs no
+//             follow-up click.
+//
+//             Requires --flagged, and the reason survives that result: Smartlead
+//             exposes no verification state through the API, so the UI banner is the
+//             only way to know which mailboxes are stale. Re-submitting blind would
+//             write to every healthy mailbox, and a write that re-runs verification
+//             can also fail it, so the blast radius must not default to everything.
 //
 // Mailboxes whose tracking domain does NOT resolve to the tracking edge are left
 // alone: that is a DNS problem, and writing a Smartlead field would only hide it.
@@ -202,7 +207,7 @@ async function main() {
   }
   console.log(`\n${ok}/${planned.length} applied.`);
   if (REVERIFY)
-    console.log("Smartlead exposes no verification state, so check the UI banner to confirm.");
+    console.log("Smartlead exposes no verification state through the API, so confirm in the UI banner.");
 }
 
 main().catch((err) => {

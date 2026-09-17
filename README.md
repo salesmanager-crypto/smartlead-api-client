@@ -115,9 +115,12 @@ instead of failing partway through.
 `fix-tracking-domains.mjs` fills in a missing tracking domain only where DNS already supports
 it, preferring whatever a working sibling on the same sending domain uses so one domain never
 splits across two tracking hostnames. It also normalises hostnames stored with capitals, and
-`--reverify` re-submits already-correct values to nudge a stale verification. It deliberately
-leaves alone any mailbox whose tracking domain doesn't resolve: that is a DNS problem, and
-writing the Smartlead field would only hide it.
+`--reverify` re-submits already-correct values to clear a stale verification, and needs
+`--flagged` so it only touches mailboxes the banner actually reports. Writing
+`custom_tracking_url` makes Smartlead re-run its check rather than just storing the value
+(confirmed against a live account), so a mailbox verifies itself once the field is set and
+never needs the Verify click. It deliberately leaves alone any mailbox whose tracking domain
+doesn't resolve: that is a DNS problem, and writing the Smartlead field would only hide it.
 
 ## Email verification (QuickEmailVerification)
 
