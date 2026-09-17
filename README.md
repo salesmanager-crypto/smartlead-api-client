@@ -98,6 +98,27 @@ node scripts/check-tracking-domains.mjs --flagged flagged.txt
 Anything it reports as "set and resolving correctly" needs no DNS work at all, only the Verify
 click in Smartlead.
 
+Two companion scripts do the repairs, both dry-run unless given `--apply`:
+
+```bash
+node scripts/setup-tracking-dns.mjs     # create the missing CNAMEs at Porkbun
+node scripts/fix-tracking-domains.mjs   # set the tracking domain on the Smartlead side
+```
+
+`setup-tracking-dns.mjs` derives the domains needing a record from Smartlead itself, so it
+only ever touches domains with inboxes actually sending without tracking. It checks for an
+explicit record through Porkbun's API rather than a DNS lookup, because a parked domain's
+wildcard makes every subdomain resolve. Per-domain API access is off by default at Porkbun and
+is separate from having a key, so the script names the domains needing that toggle up front
+instead of failing partway through.
+
+`fix-tracking-domains.mjs` fills in a missing tracking domain only where DNS already supports
+it, preferring whatever a working sibling on the same sending domain uses so one domain never
+splits across two tracking hostnames. It also normalises hostnames stored with capitals, and
+`--reverify` re-submits already-correct values to nudge a stale verification. It deliberately
+leaves alone any mailbox whose tracking domain doesn't resolve: that is a DNS problem, and
+writing the Smartlead field would only hide it.
+
 ## Email verification (QuickEmailVerification)
 
 A separate, minimal client for [QuickEmailVerification.com](https://www.quickemailverification.com/)
