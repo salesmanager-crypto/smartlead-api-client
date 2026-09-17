@@ -67,6 +67,24 @@ All methods map directly to Smartlead's documented REST endpoints
 (`https://api.smartlead.ai/reference`). Extend `SmartleadClient` with `client.get/post/patch/delete`
 for any endpoint not yet wrapped.
 
+## Tracking-domain (CNAME) audit
+
+Smartlead flags mailboxes with a "CNAME issue" without saying which half is broken, and the
+API exposes `custom_tracking_domain` as a plain string with no verification state. This script
+checks the three things that can actually be wrong: no tracking domain set, a hostname that
+doesn't CNAME to Smartlead's tracking edge (`open.sleadtrack.com`), or a CNAME that resolves
+but has no certificate covering it.
+
+```bash
+node scripts/check-tracking-domains.mjs
+```
+
+For mailboxes with nothing set it also probes the usual prefixes on the sending domain, so the
+output separates "DNS is ready, just fill in the field" from "DNS first". Registrar wildcards
+are the common trap: Porkbun parks `*.domain` at `uixie.porkbun.com`, so every prefix looks
+like it resolves, but to the parking host rather than the tracking edge. Exits non-zero when
+any mailbox needs attention, so it works as a scheduled check.
+
 ## Email verification (QuickEmailVerification)
 
 A separate, minimal client for [QuickEmailVerification.com](https://www.quickemailverification.com/)
