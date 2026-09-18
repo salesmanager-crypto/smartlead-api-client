@@ -10,7 +10,7 @@ This document is the full operating workflow currently run on Eikko's Claude acc
 
 Monitor SmartLead's Master Inbox for new lead replies, categorize each one correctly, sync qualifying leads into Pipedrive, and keep SmartLead's blocklist clean — all without manual copy-paste between the two systems.
 
-**Owner:** Yoni Lebovits (Pipedrive `owner_id: 26939288`)
+**Owner:** Yoni Lebovits — Pipedrive `owner_id: 25109251`. (Corrected 2026-09-18: this doc previously said `26939288`, which is actually **Eikko**, the API identity this automation runs as — it appears as `creator_user_id` on everything the automation writes. Other user ids seen in the account: `25102178` = Rachel.) Activities are assigned to Yoni (`25109251`); Orgs/Persons/Leads created by the automation currently stay on `26939288` per `scripts/scheduled-inbox-sync-prompt.md` Step 4 — see the 2026-09-14 note there.
 **Monitored inbox:** SmartLead Master Inbox (all campaigns except any owned by "Rachel")
 **Frequency:** Hourly during work hours; a full backlog scan back to the last confirmed checkpoint at least once a week
 
@@ -51,7 +51,7 @@ Monitor SmartLead's Master Inbox for new lead replies, categorize each one corre
    ```
    instead of a top-level `person_id`.
 6. **Every synced lead gets blocked in SmartLead** (email + domain, per rule 2) to prevent a duplicate campaign from re-contacting them later — except Do Not Contact/Not Interested/Ignore/Out of Office cases, which follow the table in Section 5.
-7. **One Person, one Lead per prospect — never per channel.** (Fixed 2026-08-28 — Rachel flagged duplicate Pipedrive entries: the same prospect landing once from SmartLead and again from Calendly.) SmartLead and Calendly are two entry points into the same pipeline, not two separate ones. Before creating an Organization, Person, or Lead in *either* flow, search Pipedrive first — `searchPersons` by email, then check that person's existing Leads (`searchLeads`) — and reuse whatever is already there. **SmartLead is the canonical source:** if a prospect already has a Person/Lead record because they replied to a campaign, a later Calendly booking must attach to that same record (reuse `person_id`/`org_id`/`lead_id`, log the booking as a new Activity) instead of creating a second `"Calendly Booking - {name}"` Lead. Only originate a fresh Lead from Calendly when no existing Person/Lead is found for that email at all.
+7. **One Person, one Lead per prospect — never per channel.** (Fixed 2026-08-28 — Rachel flagged duplicate Pipedrive entries: the same prospect landing once from SmartLead and again from Calendly.) SmartLead and Calendly are two entry points into the same pipeline, not two separate ones. Before creating an Organization, Person, or Lead in *either* flow, search Pipedrive first — `searchPersons` by email, then check that person's existing Leads with `getLeads(person_id)` — **not** `searchLeads` by name, which misses company-titled leads and created 7 duplicates on 2026-09-09 — and reuse whatever is already there. **SmartLead is the canonical source:** if a prospect already has a Person/Lead record because they replied to a campaign, a later Calendly booking must attach to that same record (reuse `person_id`/`org_id`/`lead_id`, log the booking as a new Activity) instead of creating a second `"Calendly Booking - {name}"` Lead. Only originate a fresh Lead from Calendly when no existing Person/Lead is found for that email at all.
 
 ---
 
@@ -79,14 +79,14 @@ See the reference table in Section 5. In general: qualifying replies (Interested
 ### Step 4 — Sync qualifying leads to Pipedrive
 1. `searchOrganization` by company name — if found, use that `org_id`; if not, `addOrganization`.
 2. `searchPersons` by email — if found, use that `person_id` (this also catches a person a prior Calendly booking already created — reuse it, don't re-add); if not, `addPerson` with first name, last name, email, and `org_id` (omit the 403-prone fields from rule 4 above).
-3. Check for an existing Lead on that person first (`searchLeads` by email/name) before creating one. If a Lead already exists — including one created by the Calendly flow (Section 6) — reuse its `lead_id`. Otherwise `addLead`: `title`: "<Category> - {name}", `person_id`, `organization_id` (if any), `owner_id: 26939288`. (Rule 7 — one Lead per prospect, not per channel.)
+3. Check for an existing Lead on that person first (`getLeads` filtered by `person_id` — not a name search) before creating one. If a Lead already exists — including one created by the Calendly flow (Section 6) — reuse its `lead_id`. Otherwise `addLead`: `title`: "<Category> - {name}", `person_id`, `organization_id` (if any), `owner_id: 26939288`. (Rule 7 — one Lead per prospect, not per channel.)
 4. `addActivity` with:
    - `type`: "Follow Up" or "Meeting" depending on category
    - `subject`: short description
    - `note`: the full inbound reply text, for context
    - `participants`: `[{ "person_id": <id>, "primary": true }]`
    - `lead_id`: the id from step 3 — link the activity to the **lead**, not just the person
-   - `owner_id`: 26939288 (Yoni)
+   - `owner_id`: 25109251 (Yoni — not 26939288, that's Eikko/the API user; corrected 2026-09-18)
 
 ### Step 5 — Block in SmartLead
 Categorize the lead in SmartLead's Master Inbox, then block email + domain (with the "block entire domain" checkbox) unless the lead falls under the Out of Office exception in rule 3.
@@ -125,9 +125,9 @@ separate from SmartLead replies, but resolve to the same Pipedrive sync pattern:
    "New Event:"/"Updated:" subject prefix is what distinguishes an actual booking notification.
 2. Extract: name, email, meeting date/time
 3. `searchPersons` by email → if found, **reuse that Person/Org as-is** (most often because they already replied to a SmartLead campaign and Step 4 created the record first) — update it, don't create a second one; if not found, `addOrganization` (if company known) + `addPerson`.
-4. Check whether this person already has a Lead in Pipedrive (`searchLeads` by email/name). **If one already exists — from a prior SmartLead sync or an earlier Calendly booking — reuse that `lead_id` and skip straight to step 6; do not call `addLead` again.** (Fixed 2026-08-28, rule 7 — SmartLead is the canonical source, so a Calendly booking from someone already in the pipeline must never spawn a second `"Calendly Booking - {name}"` Lead; it just adds a Meeting Activity to their existing Lead.)
+4. Check whether this person already has a Lead in Pipedrive (`getLeads` filtered by `person_id` — not a name search; company-titled leads like "Herbacin" don't match a person's name). **If one already exists — from a prior SmartLead sync or an earlier Calendly booking — reuse that `lead_id` and skip straight to step 6; do not call `addLead` again.** (Fixed 2026-08-28, rule 7 — SmartLead is the canonical source, so a Calendly booking from someone already in the pipeline must never spawn a second `"Calendly Booking - {name}"` Lead; it just adds a Meeting Activity to their existing Lead.)
 5. Only when step 4 found no existing Lead: **`addLead`** — `title`: `"Calendly Booking - {name}"`, `person_id` (from step 3), `organization_id` (if one was created/found), `owner_id: 26939288`. **This step must not be skipped for a genuinely new prospect:** steps 1–3 only get you a bare Person/Organization record; the booking doesn't become a Lead in Pipedrive's Leads Inbox until this call runs. (Fixed 2026-08-19 — this call was missing, so Calendly bookings were landing as contacts only, never as leads.)
-6. `addActivity`: type "Meeting", subject "Calendly Booking", date/time from the email, `participants` array (rule 5), owner_id 26939288 — link the activity to the **lead** from step 4 or 5 (`lead_id`), not just the person
+6. `addActivity`: type "Meeting", subject "Calendly Booking", date/time from the email, `participants` array (rule 5), owner_id 25109251 (Yoni) — link the activity to the **lead** from step 4 or 5 (`lead_id`), not just the person
 7. Add email + domain to SmartLead's blocklist so no campaign re-contacts them
 
 ---
@@ -139,7 +139,7 @@ separate from SmartLead replies, but resolve to the same Pipedrive sync pattern:
 1. Categorized "Interested" in SmartLead
 2. `searchOrganization("Bukit Sari Organic Plantation")` → not found → `addOrganization` → org_id 998
 3. `searchPersons("Ronald Goenawan")` → not found → `addPerson` (first/last name, email, org_id 998) → person_id 1719
-4. `addActivity`: type "Follow Up", note = full reply text, `participants: [{"person_id": 1719, "primary": true}]`, owner_id 26939288
+4. `addActivity`: type "Follow Up", note = full reply text, `participants: [{"person_id": 1719, "primary": true}]`, owner_id 25109251 (Yoni)
 5. Blocked ronald's domain in SmartLead (entire-domain checkbox checked)
 
 This exact pattern repeats for every Interested/Follow Up/Meeting Request lead.
@@ -155,5 +155,5 @@ This exact pattern repeats for every Interested/Follow Up/Meeting Request lead.
 
 ---
 
-**Last Updated:** August 28, 2026
+**Last Updated:** September 18, 2026
 **Source:** Compiled from Eikko's live SmartLead↔Pipedrive automation, in use since early August 2026

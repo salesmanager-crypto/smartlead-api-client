@@ -119,9 +119,14 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
    `birthday`** — these 403 on this account (contact sync isn't enabled). Put that context in the
    Activity note instead.
 3. **Dedup check (fixed 2026-08-28 — Rachel flagged duplicate Pipedrive entries between SmartLead
-   and Calendly): `searchLeads` by email/name before creating a Lead.** If this person already has
-   a Lead — from an earlier run of this step, or from a prior Calendly booking (Step 5) — reuse
-   that `lead_id` and skip straight to `addActivity` below; do not call `addLead` again. Otherwise
+   and Calendly): `getLeads` with `person_id: <the person_id from step 2>` before creating a Lead.**
+   Do NOT use `searchLeads` by email/name for this — existing leads are usually titled by company
+   ("Herbacin", "FoodYoung", "Airloons"), so a name/email search misses them; that gap is exactly
+   how 7 duplicate "Calendly Booking - {name}" leads got created on 2026-09-09 (fixed 2026-09-18).
+   `getLeads(person_id)` returns every non-archived lead on the person regardless of title. If it
+   returns one or more leads — from an earlier run of this step, a manual entry, or a prior Calendly
+   booking (Step 5) — reuse the existing `lead_id` (the oldest one, if several) and skip straight to
+   `addActivity` below; do not call `addLead` again. Otherwise
    `addLead`: `title`: "<Category> - {name}", `person_id`, `organization_id` (if any),
    `owner_id: 26939288`. One Person, one Lead per email address, regardless of which flow
    (SmartLead or Calendly) got there first — SmartLead is the canonical source, so never create a
@@ -158,9 +163,11 @@ booking found, extract name/email/date/time, then:
 1. `searchPersons` by email. If found — most often because this prospect already replied to a
    SmartLead campaign and Step 4 created their record first — **reuse that `person_id`/`org_id`; do
    not create a second Person or Organization.** If not found, create person+org as in Step 4.
-2. `searchLeads` by email/name. **If a Lead already exists for this person (from Step 4, or from an
-   earlier Calendly booking), reuse that `lead_id` and skip straight to the `addActivity` call below
-   — do not call `addLead` again.** This is the fix for the duplicate-entry issue Rachel flagged:
+2. `getLeads` with `person_id` from step 1 — **not** `searchLeads` by name (see Step 4.3 for why:
+   company-titled leads don't match a name search, which produced 7 duplicate leads on 2026-09-09).
+   **If any Lead already exists for this person (from Step 4, a manual entry, or an earlier Calendly
+   booking), reuse that `lead_id` and skip straight to the `addActivity` call below — do not call
+   `addLead` again.** This is the fix for the duplicate-entry issue Rachel flagged:
    SmartLead is the canonical source, so someone who already has a SmartLead-sourced Lead must never
    get a second `"Calendly Booking - {name}"` Lead just because they also booked a call.
 3. Only when step 2 found no existing Lead: **`addLead`** (`title`: `"Calendly Booking - {name}"`,
