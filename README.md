@@ -67,6 +67,67 @@ All methods map directly to Smartlead's documented REST endpoints
 (`https://api.smartlead.ai/reference`). Extend `SmartleadClient` with `client.get/post/patch/delete`
 for any endpoint not yet wrapped.
 
+## Tracking-domain (CNAME) audit
+
+Smartlead flags mailboxes with a "CNAME issue" without saying which half is broken, and the
+API exposes `custom_tracking_domain` as a plain string with no verification state. This script
+checks the three things that can actually be wrong: no tracking domain set, a hostname that
+doesn't CNAME to Smartlead's tracking edge (`open.sleadtrack.com`), or a CNAME that resolves
+but has no certificate covering it.
+
+```bash
+node scripts/check-tracking-domains.mjs
+```
+
+For mailboxes with nothing set it also probes the usual prefixes on the sending domain, so the
+output separates "DNS is ready, just fill in the field" from "DNS first". Registrar wildcards
+are the common trap: Porkbun parks `*.domain` at `uixie.porkbun.com`, so every prefix looks
+like it resolves, but to the parking host rather than the tracking edge. Exits non-zero when
+any mailbox needs attention, so it works as a scheduled check.
+
+The same audit runs inside `scripts/daily-deliverability-check.mjs`, across every inbox rather
+than that script's watched list, so a domain added without its CNAME gets caught on the next
+daily run instead of after it has been sending untracked for weeks. It stays silent when
+everything is clean and only flags what is genuinely broken in DNS or TLS, never a mailbox that
+Smartlead has merely not re-verified.
+
+Smartlead's "Custom Tracking Domain Needs Attention" banner lumps a fourth case in with these:
+a domain that is set and resolves fine, but that Smartlead hasn't verified yet. That state
+lives only in their UI and is tracked per mailbox rather than per domain, so two mailboxes
+sharing one healthy tracking domain can disagree. Paste the banner's emails into a file (one
+per line) to split their list against live DNS:
+
+```bash
+node scripts/check-tracking-domains.mjs --flagged flagged.txt
+```
+
+Anything it reports as "set and resolving correctly" needs no DNS work at all, only the Verify
+click in Smartlead.
+
+Two companion scripts do the repairs, both dry-run unless given `--apply`:
+
+```bash
+node scripts/setup-tracking-dns.mjs     # create the missing CNAMEs at Porkbun
+node scripts/fix-tracking-domains.mjs   # set the tracking domain on the Smartlead side
+```
+
+`setup-tracking-dns.mjs` derives the domains needing a record from Smartlead itself, so it
+only ever touches domains with inboxes actually sending without tracking. It checks for an
+explicit record through Porkbun's API rather than a DNS lookup, because a parked domain's
+wildcard makes every subdomain resolve. Per-domain API access is off by default at Porkbun and
+is separate from having a key, so the script names the domains needing that toggle up front
+instead of failing partway through.
+
+`fix-tracking-domains.mjs` fills in a missing tracking domain only where DNS already supports
+it, preferring whatever a working sibling on the same sending domain uses so one domain never
+splits across two tracking hostnames. It also normalises hostnames stored with capitals, and
+`--reverify` re-submits already-correct values to clear a stale verification, and needs
+`--flagged` so it only touches mailboxes the banner actually reports. Writing
+`custom_tracking_url` makes Smartlead re-run its check rather than just storing the value
+(confirmed against a live account), so a mailbox verifies itself once the field is set and
+never needs the Verify click. It deliberately leaves alone any mailbox whose tracking domain
+doesn't resolve: that is a DNS problem, and writing the Smartlead field would only hide it.
+
 ## Email verification (QuickEmailVerification)
 
 A separate, minimal client for [QuickEmailVerification.com](https://www.quickemailverification.com/)
