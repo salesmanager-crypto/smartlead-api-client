@@ -112,10 +112,11 @@ If not already present, block the **entire domain** (not just the email):
 POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list":["<domain>"],"client_id":null}`
 
 ## Step 4 — Pipedrive sync (only for Interested / Follow Up / Meeting Request)
-1. `searchOrganization` by company name → use `org_id` if found, else `addOrganization`.
+1. `searchOrganization` by company name → use `org_id` if found, else `addOrganization` with
+   `owner_id: 25109251` (Yoni).
 2. `searchPersons` by email → use `person_id` if found — this also catches a person already
    created by the Calendly step (Step 5) if they booked before replying — else `addPerson` with
-   first name, last name, email, `org_id`. **Omit `job_title`, `notes`, `postal_address`, `im`,
+   first name, last name, email, `org_id`, `owner_id: 25109251` (Yoni). **Omit `job_title`, `notes`, `postal_address`, `im`,
    `birthday`** — these 403 on this account (contact sync isn't enabled). Put that context in the
    Activity note instead.
 3. **Dedup check (fixed 2026-08-28 — Rachel flagged duplicate Pipedrive entries between SmartLead
@@ -128,7 +129,7 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
    booking (Step 5) — reuse the existing `lead_id` (the oldest one, if several) and skip straight to
    `addActivity` below; do not call `addLead` again. Otherwise
    `addLead`: `title`: "<Category> - {name}", `person_id`, `organization_id` (if any),
-   `owner_id: 26939288`. One Person, one Lead per email address, regardless of which flow
+   `owner_id: 25109251` (Yoni). One Person, one Lead per email address, regardless of which flow
    (SmartLead or Calendly) got there first — SmartLead is the canonical source, so never create a
    second Lead for someone who already has one.
 4. `addActivity`:
@@ -146,8 +147,11 @@ POST `${BASE}/leads/add-domain-block-list?api_key=...` body `{"domain_block_list
      API identity — it's also permanently baked into every record's immutable `creator_user_id`
      field no matter what `owner_id` is set to, so don't mistake that field for the assignee). Every
      Activity this automation had ever created was wrongly left on Eikko as owner until this fix;
-     all pre-existing ones were bulk-reassigned to 25109251 on 2026-09-14. The Org/Person/Lead
-     themselves stay on `owner_id: 26939288` (Eikko) as before — this fix is Activities only.
+     all pre-existing ones were bulk-reassigned to 25109251 on 2026-09-14.
+     **As of 2026-09-21 the same applies to every record this automation creates:** `addOrganization`,
+     `addPerson` and `addLead` in Step 4 and Step 5 all take `owner_id: 25109251` too, so the whole
+     Org → Person → Lead → Activity chain lands on Yoni (per Yoni's decision 2026-09-21; the earlier
+     "Activities only" scope is superseded). Never create anything with `owner_id: 26939288`.
    - `due_date`: today, ISO date
 
 ## Step 5 — Calendly (verified 2026-08-19; dedup fix 2026-08-28)
@@ -162,7 +166,8 @@ booking found, extract name/email/date/time, then:
 
 1. `searchPersons` by email. If found — most often because this prospect already replied to a
    SmartLead campaign and Step 4 created their record first — **reuse that `person_id`/`org_id`; do
-   not create a second Person or Organization.** If not found, create person+org as in Step 4.
+   not create a second Person or Organization.** If not found, create person+org as in Step 4
+   (`owner_id: 25109251`, Yoni).
 2. `getLeads` with `person_id` from step 1 — **not** `searchLeads` by name (see Step 4.3 for why:
    company-titled leads don't match a name search, which produced 7 duplicate leads on 2026-09-09).
    **If any Lead already exists for this person (from Step 4, a manual entry, or an earlier Calendly
@@ -171,13 +176,13 @@ booking found, extract name/email/date/time, then:
    SmartLead is the canonical source, so someone who already has a SmartLead-sourced Lead must never
    get a second `"Calendly Booking - {name}"` Lead just because they also booked a call.
 3. Only when step 2 found no existing Lead: **`addLead`** (`title`: `"Calendly Booking - {name}"`,
-   `person_id`, `organization_id` if present, `owner_id: 26939288`) — **required for a genuinely new
+   `person_id`, `organization_id` if present, `owner_id: 25109251` (Yoni)) — **required for a genuinely new
    prospect, do not skip**: without this call the booking is just a bare contact, not a Lead, which
    is exactly the bug flagged in the Aug 18 meeting ("Fix Calendly→Pipedrive: create leads, not
    contacts", fixed 2026-08-19).
 4. `addActivity` type "Meeting" subject "Calendly Booking" with the date/time, linked via `lead_id`
    (from step 2 or 3 above) rather than just `person_id`. `owner_id: 25109251` (Yoni) — same
-   Activity-owner fix as Step 4 (fixed 2026-09-14); the Lead/Person/Org stay on `26939288` (Eikko).
+   owner as the Lead/Person/Org above (Activities since 2026-09-14, all records since 2026-09-21).
 5. Block that domain+email in Smartlead so no campaign re-contacts them.
 
 ## Step 6 — Update checkpoint
