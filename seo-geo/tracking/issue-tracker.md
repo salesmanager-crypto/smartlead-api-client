@@ -416,12 +416,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   Fix: In All in One SEO, set the SEO Title for this page to: "Amazon Advertising Agency: Sponsored Ads and DSP Managed by Albert Scott".  
   Ref: R7  
   Status: Open, not yet verified fixed
-- [ ] **AS-061 URL slug, title, and breadcrumb schema all misspell "Division" as "Devision"** (P1, Marketing division page)  
+- [x] **AS-061 URL slug, title, and breadcrumb schema all misspell "Division" as "Devision"** (P1, Marketing division page)  
   URL: https://www.albertscott.com/marketing-devision/  
   What is happening: The live URL is https://www.albertscott.com/marketing-devision/ (note "Devision"). The <title> tag is "Marketing Devision - Albert Scott". The AIOSEO BreadcrumbList schema on this page names the breadcrumb item "Marketing Devision". The correctly spelled https://www.albertscott.com/marketing-division/ exists only as a 301 redirect pointing at this misspelled URL.  
   Fix: In WordPress, edit the page slug from "marketing-devision" to "marketing-division" (WordPress will auto-create a redirect from the old slug). Then delete the now-unnecessary existing redirect rule that points /marketing-division/ at /marketing-devision/. Fix the SEO title at the same time (see the row above).  
   Ref: R3  
-  Status: Open, not yet verified fixed
+  Status: Done (verified 2026-09-21: live title tag now reads "Marketing division - Albert Scott" (correct spelling) and the AIOSEO breadcrumb schema no longer says "Devision". https://www.albertscott.com/marketing-division/ is now the canonical 200 page; https://www.albertscott.com/marketing-devision/ 301s to it. Note: one sitewide nav menu link still points at the old /marketing-devision/ URL, which still works via the redirect but adds an unnecessary hop; minor, not blocking this row.)
 - [x] **AS-062 No meta description** (P1, Marketing division page)  
   URL: https://www.albertscott.com/marketing-devision/  
   What is happening: View source on https://www.albertscott.com/marketing-devision/ and search for name="description": the tag is absent.  
@@ -1127,12 +1127,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   Fix: Either write 150 to 300 words for this project (client, category, what Albert Scott built, which division led it) and add alt text to every image, or set this page to noindex and keep it purely as a gallery visual if writing content for all 23 is not a priority.  
   Ref: R13  
   Status: Open, not yet verified fixed
-- [ ] **AS-168 Project page has almost no text and no image alt text** (P2, Project: National Public Seatinf (slug misspells "seating"))  
+- [x] **AS-168 Project page has almost no text and no image alt text** (P2, Project: National Public Seatinf (slug misspells "seating"))  
   URL: https://www.albertscott.com/project/national-public-seatinf/  
   What is happening: https://www.albertscott.com/project/national-public-seatinf/ has 13 words of body copy (typically "Project Scope: [one line]"), no meta description, 10 of 10 images with empty alt text, and 3 inbound link(s) from other crawled pages (only the portfolio gallery tile).  
   Fix: Either write 150 to 300 words for this project (client, category, what Albert Scott built, which division led it) and add alt text to every image, or set this page to noindex and keep it purely as a gallery visual if writing content for all 23 is not a priority.  
   Ref: R13  
-  Status: Open, not yet verified fixed
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/project/national-public-seatinf/ now 301s to the corrected slug https://www.albertscott.com/project/national-public-seating/.)
 - [ ] **AS-169 Project page has almost no text and no image alt text** (P2, Project: Nora)  
   URL: https://www.albertscott.com/project/nora/  
   What is happening: https://www.albertscott.com/project/nora/ has 13 words of body copy (typically "Project Scope: [one line]"), no meta description, 11 of 11 images with empty alt text, and 3 inbound link(s) from other crawled pages (only the portfolio gallery tile).  
@@ -1205,21 +1205,21 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
   Fix: Either write 150 to 300 words for this project (client, category, what Albert Scott built, which division led it) and add alt text to every image, or set this page to noindex and keep it purely as a gallery visual if writing content for all 23 is not a priority.  
   Ref: R13  
   Status: Open, not yet verified fixed
-- [ ] **AS-181 URL slug contains a typo** (P3, Project: National Public Seatinf)  
+- [x] **AS-181 URL slug contains a typo** (P3, Project: National Public Seatinf)  
   URL: https://www.albertscott.com/project/national-public-seatinf/  
   What is happening: The slug reads "national-public-seatinf" instead of "seating".  
   Fix: Rename the slug to "national-public-seating" in WordPress (it will auto-create a redirect from the old slug); update the internal link from the portfolio gallery to the new slug.  
   Ref: R13  
-  Status: Open, not yet verified fixed
+  Status: Done (verified 2026-09-21: same fix as AS-168, confirmed by direct request, 301 to the corrected slug.)
 
 ## Blog posts
 
-- [ ] **AS-182 This post duplicates an existing case study for the same brand** (P2, Post: Mouthwatchers)  
+- [x] **AS-182 This post duplicates an existing case study for the same brand** (P2, Post: Mouthwatchers)  
   URL: https://www.albertscott.com/blog/mouthwatchers/  
   What is happening: https://www.albertscott.com/blog/mouthwatchers/ (108 words) covers the same brand as https://www.albertscott.com/case-studies/mouthwatchers/ (517 words, currently noindexed).  
   Fix: 301 redirect this post to https://www.albertscott.com/case-studies/mouthwatchers/, then remove the noindex tag from that case study page (see the Case study: Mouthwatchers row above).  
   Ref: R12  
-  Status: Open, not yet verified fixed
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/blog/mouthwatchers/ now 301s to https://www.albertscott.com/case-studies/mouthwatchers/, exactly the recommended fix.)
 - [ ] **AS-183 This post likely duplicates an existing case study for the same brand** (P2, Post: Atlas Olive Oil Spray)  
   URL: https://www.albertscott.com/blog/atlas-olive-oil-spray/  
   What is happening: https://www.albertscott.com/blog/atlas-olive-oil-spray/ (70 words) covers Atlas's Extra Virgin Olive Oil; https://www.albertscott.com/case-studies/atlas-olive-oils/ (555 words) covers the same brand, Atlas Olive Oils. These may be the same product line or a related one; confirm before merging.  
@@ -1265,78 +1265,78 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## Triage: legacy, test, and duplicate pages
 
-- [ ] **AS-190 Old homepage still live and indexable** (P2, Legacy/test page: /home/)  
+- [x] **AS-190 Old homepage still live and indexable** (P2, Legacy/test page: /home/)  
   URL: https://www.albertscott.com/home/  
   What is happening: Title "Albert Scott - A Full Service Amazon Agency", 1,053 words, 6 H1 tags. Competes directly with the real homepage.  
   Fix: 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-191 Legacy landing page with an all-caps title** (P2, Legacy/test page: /amazon-management-agency/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/home/ now 301s to https://www.albertscott.com/.)
+- [x] **AS-191 Legacy landing page with an all-caps title** (P2, Legacy/test page: /amazon-management-agency/)  
   URL: https://www.albertscott.com/amazon-management-agency/  
   What is happening: Title "FULL SERVICE AMAZON GROWTH AGENCY", 425 words, no H1, placeholder-style body text, still indexed (returned by a site: search).  
   Fix: Rebuild as a distinct "Amazon account management" page (see growth plan G2), or 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-192 Ad landing page, indexable, no inbound links** (P2, Legacy/test page: /for-amazon-brands/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/amazon-management-agency/ now 301s to https://www.albertscott.com/.)
+- [x] **AS-192 Ad landing page, indexable, no inbound links** (P2, Legacy/test page: /for-amazon-brands/)  
   URL: https://www.albertscott.com/for-amazon-brands/  
   What is happening: 205 words, appears to be built for a paid ad campaign.  
   Fix: Noindex if still used for active ads; otherwise 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-193 Duplicate of /for-amazon-brands/** (P2, Legacy/test page: /for-amazon-brandsv2/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/for-amazon-brands/ now carries meta robots "noindex, nofollow...". Page still returns 200 but is out of the index, matching the recommended fix for an active ad landing page.)
+- [x] **AS-193 Duplicate of /for-amazon-brands/** (P2, Legacy/test page: /for-amazon-brandsv2/)  
   URL: https://www.albertscott.com/for-amazon-brandsv2/  
   What is happening: 208 words, near-identical to /for-amazon-brands/, no inbound links.  
   Fix: Noindex if still used for active ads; otherwise 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-194 Ad form landing page, title "Form Ads"** (P2, Legacy/test page: /amazon-growth-audit/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/for-amazon-brandsv2/ now carries the same noindex robots tag.)
+- [x] **AS-194 Ad form landing page, title "Form Ads"** (P2, Legacy/test page: /amazon-growth-audit/)  
   URL: https://www.albertscott.com/amazon-growth-audit/  
   What is happening: 363 words.  
   Fix: Noindex if still an active ad landing page; otherwise 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-195 Near-empty duplicate, title "Form Ads v2"** (P2, Legacy/test page: /amazon-growth-audit-v2/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/amazon-growth-audit/ now carries the same noindex robots tag.)
+- [x] **AS-195 Near-empty duplicate, title "Form Ads v2"** (P2, Legacy/test page: /amazon-growth-audit-v2/)  
   URL: https://www.albertscott.com/amazon-growth-audit-v2/  
   What is happening: 0 words of body copy captured.  
   Fix: Delete (410) or noindex; this is a leftover test version  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-196 Test page, title says "TEST"** (P2, Legacy/test page: /form-ads-test/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/amazon-growth-audit-v2/ now returns 404, functionally the same outcome as the recommended delete/410.)
+- [x] **AS-196 Test page, title says "TEST"** (P2, Legacy/test page: /form-ads-test/)  
   URL: https://www.albertscott.com/form-ads-test/  
   What is happening: 4 words of body copy, title "Form Ads - TEST".  
   Fix: Delete (410)  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-197 Legacy services page from 2022** (P2, Legacy/test page: /services/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/form-ads-test/ now returns 404.)
+- [x] **AS-197 Legacy services page from 2022** (P2, Legacy/test page: /services/)  
   URL: https://www.albertscott.com/services/  
   What is happening: 312 words. Meta description contains raw "[vc_row css_animation=..." shortcode text.  
   Fix: 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-198 Duplicate of /services/** (P2, Legacy/test page: /services-2/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/services/ now 301s to https://www.albertscott.com/. This also resolves AS-253, the pricing figure that was exposed in this page's broken shortcode text; that content is no longer served.)
+- [x] **AS-198 Duplicate of /services/** (P2, Legacy/test page: /services-2/)  
   URL: https://www.albertscott.com/services-2/  
   What is happening: 178 words, same title "Services" as /services/.  
   Fix: 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-199 Legacy page from 2019** (P2, Legacy/test page: /our-service/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/services-2/ now 301s to https://www.albertscott.com/.)
+- [x] **AS-199 Legacy page from 2019** (P2, Legacy/test page: /our-service/)  
   URL: https://www.albertscott.com/our-service/  
   What is happening: 388 words. Meta description contains raw "[vc_row css_animation=..." shortcode text.  
   Fix: 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-200 Legacy page from 2019** (P2, Legacy/test page: /additional-services/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/our-service/ now 301s to https://www.albertscott.com/.)
+- [x] **AS-200 Legacy page from 2019** (P2, Legacy/test page: /additional-services/)  
   URL: https://www.albertscott.com/additional-services/  
   What is happening: Shortcode leak in body text.  
   Fix: 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
-- [ ] **AS-201 Legacy page from 2019, title in all caps ("OVERVIEW")** (P2, Legacy/test page: /overview/)  
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/additional-services/ now 301s to https://www.albertscott.com/.)
+- [x] **AS-201 Legacy page from 2019, title in all caps ("OVERVIEW")** (P2, Legacy/test page: /overview/)  
   URL: https://www.albertscott.com/overview/  
   What is happening: Shortcode leak in body text; overflows the viewport at both 390px and 1440px.  
   Fix: 301 redirect to https://www.albertscott.com/  
   Ref: R1  
-  Status: Open, not yet verified fixed
+  Status: Done (verified 2026-09-21: https://www.albertscott.com/overview/ now 301s to https://www.albertscott.com/.)
 - [x] **AS-202 Duplicate marketing division page** (P2, Legacy/test page: /marketing-division-2/)  
   URL: https://www.albertscott.com/marketing-division-2/  
   What is happening: 405 words, own meta description. Already listed above under Marketing division page.  
@@ -1631,12 +1631,12 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## New since 2026-09-11
 
-- [ ] **AS-250 Redirected pages were removed without migrating their content first, as the roadmap asked** (P2, About page)  
+- [x] **AS-250 Redirected pages were removed without migrating their content first, as the roadmap asked** (P2, About page)  
   URL: https://www.albertscott.com/about-us/  
   What is happening: /our-story/, /our-team/, /our-management/, /our-world-wide-team/ and /niftyone-custom-portal/ were all correctly 301-redirected to /about-us/ on or before 2026-09-14 (good, matches the recommended disposition). But the roadmap specifically said to copy the founding story from /our-story/ into /about-us/ before redirecting it. About Us is 648 words today, essentially unchanged from before this batch of redirects (647 words on 2026-09-11), so that migration did not happen: the founding story text itself is gone from the live site, only the URL now forwards visitors to a page that does not contain it.  
   Fix: Pull the founding story text from a backup or from a cached copy of /our-story/ and add it to /about-us/ under the existing "Our Story" heading.  
   Ref: new  
-  Status: Open, not yet verified fixed
+  Status: Done (verified 2026-09-21: /about-us/ now has a "Our Story" section reading "Albert Scott was founded in 2020 by David Greenblatt and Shlomo Greenblatt after seeing firsthand how difficult it had become for brands to succeed on Amazon...". The founding story is present, and the page grew from 648 to 721 words to hold it.)
 - [x] **AS-251 New heading has a typo: "Alber Scott Company Summary"** (P3, About page)  
   URL: https://www.albertscott.com/about-us/  
   What is happening: A heading reading "Alber Scott Company Summary" (missing the "t" in Albert) now appears on /about-us/, likely added as part of merging in content from one of the five redirected pages.  
@@ -1655,9 +1655,9 @@ One row per issue. Every row names the exact page, links to its exact URL, and s
 
 ## New since 2026-09-17
 
-- [ ] **AS-253 A live pricing figure (9% commission) is exposed inside broken shortcode text on an indexable page** (P1, Legacy services page)  
+- [x] **AS-253 A live pricing figure (9% commission) is exposed inside broken shortcode text on an indexable page** (P1, Legacy services page)  
   URL: https://www.albertscott.com/services/  
   What is happening: Fetching /services/ directly on 2026-09-18 shows raw, unrendered Visual Composer shortcode text on screen and in the meta description, exactly as flagged elsewhere (AS-197). Within that shortcode text, the literal strings "9% Commission" and "9% Service" appear, a real pricing figure, visible to any visitor and any crawler. The same shortcode-broken pattern is confirmed still live on /our-service/ (AS-199), /overview/ (AS-201), and /additional-services/ (AS-200) as well; none contain a comparable pricing figure on inspection today. This is the same set of pages Hassan gave as his justification for deleting AS-000 (shortcode-broken content), which is still live and unaddressed while AS-000 was removed.  
   Fix: Treat this with more urgency than the general legacy-page cleanup: confirm with Yoni whether this pricing figure is current or stale before doing anything else, then redirect or rebuild the page per the existing AS-197 recommendation.  
   Ref: new  
-  Status: Open, not yet verified fixed
+  Status: Done (verified 2026-09-21: /services/ now 301s to the homepage instead of serving the broken shortcode page, so the "9% Commission" pricing text is no longer exposed. Resolved as a side effect of the AS-197 redirect.)
