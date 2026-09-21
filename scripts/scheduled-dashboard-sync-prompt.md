@@ -85,8 +85,9 @@ dashboard that quietly goes stale is fine; one that quietly goes wrong is not.
   with no `org_id` renders their email domain in the org column instead (matches the existing
   Calendly-sourced rows). Row shape: `[due_date, days_overdue, type, subject, lead_name, org_name,
   String(owner_id)]` — `owner_id` stays a string (the render code keys off it as one).
-- Owner ID → label mapping is hardcoded in the dashboard's JS (`ownerLabel()`): `26939288` → Yoni,
-  `25102178` → "Owner A", `25109251` → "Owner B", anything else → `"#" + id`. Don't duplicate that
+- Owner ID → label mapping is hardcoded in the dashboard's JS (`repName()` / `REP_NAME`):
+  `25109251` → Yoni, `25102178` → Rachel, `26939288` → Eikko (the automation's own API identity —
+  it should own nothing after the 2026-09-21 reassignment), anything else → `"Rep " + id`. Don't duplicate that
   mapping in the DATA block — just pass the raw numeric-string owner_id and let the page resolve it.
   If Eikko has confirmed real names for Owner A / Owner B since this was last true, update the JS
   function itself, not the data.
