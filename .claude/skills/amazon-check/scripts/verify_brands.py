@@ -20,9 +20,11 @@ UAS=['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like 
 PJS='''() => {let b=document.querySelector('#bylineInfo');
  let fb='';
  if(!b||!b.innerText.trim()){ const row=[...document.querySelectorAll('#productOverview_feature_div tr, #productDetails_techSpec_section_1 tr, #detailBullets_feature_div li')].find(r=>/^\s*Brand\b/i.test(r.innerText)); if(row){const td=row.querySelector('td, span:last-child'); fb='Brand: '+(td?td.innerText:row.innerText.replace(/^\s*Brand\s*:?/i,'')).trim();} }
- const byline=b&&b.innerText.trim()?b.innerText:fb;
+ let byline=b&&b.innerText.trim()?b.innerText:fb;
+ if(!byline.trim()){ const m=document.documentElement.innerHTML.match(/Visit the ([^<"]{1,80}?) Store/); if(m) byline='Visit the '+m[1]+' Store'; }
+ let bhref=(b&&b.href)?b.href:''; if(!bhref){ const sa=document.querySelector('a#bylineInfo, #bylineInfo a, a[href*="/stores/"][class*="byline"], #bylineInfo_feature_div a[href*="/stores/"]'); if(sa) bhref=sa.href; }
  const s=document.querySelector('#sellerProfileTriggerId')||document.querySelector('[offer-display-feature-name="desktop-merchant-info"] .offer-display-feature-text')||document.querySelector('#merchantInfo, #merchant-info');
- return {title:(document.querySelector('#productTitle')||{}).innerText||'', byline:byline, byline_href:(b&&b.href)?b.href.split('?')[0].split('/ref=')[0]:'', sold_by:s?s.innerText.replace(/\\s+/g,' ').trim().slice(0,120):'', captcha:!!document.querySelector('form[action*="validateCaptcha"]'), dog:/Sorry! Something went wrong|Looking for something\\?|Page Not Found/i.test(document.body.innerText.slice(0,3000))}}'''
+ return {title:(document.querySelector('#productTitle')||{}).innerText||'', byline:byline, byline_href:bhref?bhref.split('?')[0].split('/ref=')[0]:'', sold_by:s?s.innerText.replace(/\\s+/g,' ').trim().slice(0,120):'', captcha:!!document.querySelector('form[action*="validateCaptcha"]'), dog:/Sorry! Something went wrong|Looking for something\\?|Page Not Found/i.test(document.body.innerText.slice(0,3000))}}'''
 SJS='''() => {const items=[...document.querySelectorAll('div[data-component-type="s-search-result"]')].slice(0,12).map(d=>({asin:d.dataset.asin,title:((d.querySelector('[data-cy="title-recipe"]')||d.querySelector('h2')||{}).innerText||'').replace(/\\n/g,' | ').slice(0,160),sponsored:/Sponsored/.test(d.innerText.slice(0,200))}));
  return {items,captcha:!!document.querySelector('form[action*="validateCaptcha"]'),noresults:/No results for/.test(document.body.innerText)}}'''
 STJS='''() => {const links=[...new Set([...document.querySelectorAll('a[href*="/dp/"]')].map(a=>(a.href.match(/\\/dp\\/([A-Z0-9]{10})/)||[])[1]).filter(Boolean))].slice(0,5);
