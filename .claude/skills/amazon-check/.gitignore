@@ -1,0 +1,5 @@
+*.xlsx
+*.csv
+out*.json
+queue*.json
+__pycache__/
