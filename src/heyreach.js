@@ -80,11 +80,20 @@ export class HeyReachClient {
       if (v !== undefined && v !== null) url.searchParams.set(k, v);
     }
 
-    const res = await fetch(url, {
-      method,
-      headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
+    let res;
+    for (let attempt = 0; ; attempt++) {
+      res = await fetch(url, {
+        method,
+        headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+      // retry rate limits and server errors 3 times with backoff
+      if ((res.status === 429 || res.status >= 500) && attempt < 3) {
+        await new Promise((r) => setTimeout(r, (Number(res.headers.get("retry-after")) || 2 ** attempt) * 1000));
+        continue;
+      }
+      break;
+    }
 
     const text = await res.text();
     const data = text ? safeJsonParse(text) : null;

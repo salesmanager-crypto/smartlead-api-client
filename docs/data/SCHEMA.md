@@ -135,8 +135,8 @@ One row per campaign per day, only for campaigns that sent something in the wind
 |---|---|---|
 | `date` | date | the day |
 | `campaignId` | number | SmartLead campaign id |
-| `sent` | number | emails sent that day |
-| `replies` | number | replies received that day |
+| `sent` | number or null | emails sent that day (null: that day's analytics call failed) |
+| `replies` | number or null | replies SmartLead counted for that day (null: the call failed) |
 
 ### `yesterday` -> artifact `YESTERDAY`
 
@@ -298,7 +298,8 @@ real response; any field HeyReach does not return is set to `null` and listed he
 ## `semrush.json`
 
 Written by `scripts/pull/semrush.mjs`. Needs `SEMRUSH_API_KEY`; `SEMRUSH_SITE_AUDIT_ID`
-optional. One fixed call set per run (never a loop that can grow): `domain_organic` for
+optional. One fixed call set, at most once per Eastern day (a second run the same day
+keeps the morning's file unless `SEMRUSH_FORCE=1`): `domain_ranks` and `domain_organic` for
 albertscott.com, `phrase_organic` with `display_limit=1` for each keyword in
 `seo_keywords.json`, and the Site Audit snapshot when the project id is set.
 
@@ -319,7 +320,9 @@ albertscott.com, `phrase_organic` with `display_limit=1` for each keyword in
 |---|---|---|
 | `pulledAt` | timestamp | Semrush call time. Artifact `SEO_PULLED` is this, formatted `"Sep 25, 2026"` |
 | `baselineAt` | date | baseline the page compares against. Artifact `SEO_BASELINE`, formatted |
-| `unitsUsed` | number | API units this run spent (logged so cost is visible) |
+| `unitsUsed` | number | API units this run spent: the balance before minus after, or an estimate of 10 per row if the balance could not be read |
+| `unitsLeft` | number or null | the account's remaining API units after the run |
+| `rankedKeywords` | number | how many keywords albertscott.com ranks for in the database (sets how many `domain_organic` rows are bought, capped at 100) |
 | `keywords[]` | array | artifact `SEO_KEYWORDS`, one row per keyword in `seo_keywords.json`, same order |
 | `keywords[].q` | string | the keyword |
 | `keywords[].pos` | number or null | albertscott.com's organic position in the Semrush US database; null = not in the top 100 |

@@ -11,7 +11,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { GoogleAuth } from "./vendor/google-auth.js";
+import { GoogleAuth } from "../../src/google-auth.js";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const DASH = path.join(ROOT, "command-center.html");
