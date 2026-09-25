@@ -31,3 +31,4 @@ phase*_*.xlsx
 AAPEX_SEMA_MASTER.xlsx
 smartscout_cache.json
 pipeline/work/
+__pycache__/
