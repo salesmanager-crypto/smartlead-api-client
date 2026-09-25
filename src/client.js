@@ -26,7 +26,7 @@ export class SmartleadClient {
    * @param {object} opts
    * @param {string} [opts.apiKey] - defaults to process.env.SMARTLEAD_API_KEY
    * @param {string} [opts.baseUrl] - defaults to process.env.SMARTLEAD_BASE_URL or the public API
-   * @param {number} [opts.maxRetries] - retries on 429 with exponential backoff (default 3)
+   * @param {number} [opts.maxRetries] - retries on 429 and 5xx with exponential backoff (default 3)
    */
   constructor({ apiKey, baseUrl, maxRetries = 3 } = {}) {
     this.apiKey = apiKey || process.env.SMARTLEAD_API_KEY;
@@ -58,7 +58,7 @@ export class SmartleadClient {
         body: body !== undefined ? JSON.stringify(body) : undefined,
       });
 
-      if (res.status === 429 && attempt < this.maxRetries) {
+      if ((res.status === 429 || res.status >= 500) && attempt < this.maxRetries) {
         const retryAfter = Number(res.headers.get("retry-after")) || 2 ** attempt;
         await new Promise((r) => setTimeout(r, retryAfter * 1000));
         attempt += 1;

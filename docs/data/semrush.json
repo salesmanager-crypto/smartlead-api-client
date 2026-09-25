@@ -1,0 +1,151 @@
+{
+  "pulledAt": "2026-09-03",
+  "source": "manual",
+  "sourceNote": "Live Google search pulse (WebSearch/WebFetch), not Semrush. Replaced by the first Semrush pull from the Claude task.",
+  "baselineAt": "2026-08-27",
+  "domain": "albertscott.com",
+  "database": "us",
+  "keywords": [
+    {
+      "q": "Amazon agency",
+      "pos": null,
+      "top": "My Amazon Guy",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Full service Amazon agency",
+      "pos": null,
+      "top": "My Amazon Guy",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon account management agency",
+      "pos": null,
+      "top": "Netpeak Agency USA",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon growth agency",
+      "pos": null,
+      "top": "Newswire (Amazon Growth Lab feature)",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon marketplace management company",
+      "pos": null,
+      "top": "Springbord",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon PPC management agency",
+      "pos": null,
+      "top": "1Digital Agency",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon DSP agency",
+      "pos": null,
+      "top": "Nuanced Media",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon listing optimization service",
+      "pos": null,
+      "top": "Netpeak Agency USA",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon catalog management service",
+      "pos": null,
+      "top": "SellerApp (guide)",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon vendor central management",
+      "pos": null,
+      "top": "LinkedIn (SPCTEK guide)",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon FBA prep and logistics service",
+      "pos": null,
+      "top": "Getida",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Amazon agency vs in house",
+      "pos": null,
+      "top": "Code3",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "How much does an Amazon agency cost",
+      "pos": null,
+      "top": "SupplyKick",
+      "branded": false,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Albert Scott Amazon agency",
+      "pos": 8,
+      "top": "ZoomInfo",
+      "branded": true,
+      "url": null,
+      "volume": null
+    },
+    {
+      "q": "Albert Scott agency reviews",
+      "pos": 8,
+      "top": "ZoomInfo",
+      "branded": true,
+      "url": null,
+      "volume": null
+    }
+  ],
+  "health": {
+    "source": "manual",
+    "checkedAt": "2026-09-03",
+    "items": [
+      {
+        "item": "XML sitemap (/sitemap.xml)",
+        "status": "good",
+        "note": "7 sub-sitemaps, regenerated today by All in One SEO Pro v5.0.1. No junk, broken, or unexpected URLs at the index level."
+      },
+      {
+        "item": "Homepage",
+        "status": "good",
+        "note": "Loads correctly. H1 \u201cWin on Amazon. Everywhere.\u201d Primary CTA \u201cGET MY FREE AUDIT\u201d present and linked."
+      },
+      {
+        "item": "/marketing-devision/ URL + title tag",
+        "status": "bad",
+        "note": "Still live at the misspelled slug; title tag still reads \u201cMarketing Devision - Albert Scott\u201d. Flagged Aug 27, unfixed 7 days later."
+      }
+    ]
+  }
+}

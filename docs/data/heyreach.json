@@ -1,0 +1,46 @@
+{
+  "pulledAt": "2026-09-25T21:26:18.084Z",
+  "primaryCampaignId": 561604,
+  "linkedin": {
+    "campaigns": 1,
+    "campaignName": "Global Brands",
+    "status": "In progress",
+    "started": "2026-08-20",
+    "listName": "Global Brands 4",
+    "senders": 2,
+    "leads": 1992,
+    "processed": 573,
+    "pending": 1419,
+    "connectionsSent": 454,
+    "accepted": 49,
+    "connNone": 119,
+    "messagesSent": 58,
+    "replies": 10,
+    "inSequence": 235,
+    "pendingInBatch": 58,
+    "failed": 61,
+    "finished": 219
+  },
+  "campaigns": [
+    {
+      "id": 561604,
+      "campaignName": "Global Brands",
+      "status": "In progress",
+      "started": "2026-08-20",
+      "listName": "Global Brands 4",
+      "senders": 2,
+      "leads": 1992,
+      "processed": 573,
+      "pending": 1419,
+      "connectionsSent": 454,
+      "accepted": 49,
+      "connNone": 119,
+      "messagesSent": 58,
+      "replies": 10,
+      "inSequence": 235,
+      "pendingInBatch": 58,
+      "failed": 61,
+      "finished": 219
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "updatedAt": "2026-09-12",
+  "checkedAt": "Sep 12, 2026",
+  "platformTools": [
+    {
+      "name": "Smartlead",
+      "state": "verified",
+      "purpose": "Cold email sending, all {{INBOXES.total}} mailboxes",
+      "plan": "Smartlead.ai, billed monthly",
+      "monthly": 333.7,
+      "annual": 4004.4,
+      "renewal": "1st of each month",
+      "last": "$333.70 on Sep 1, 2026",
+      "ref": "Stripe receipt #2828-0582",
+      "note": "The only tool here with a confirmed recurring price. Identical $333.70 on every receipt from Mar 1 through Sep 1, 2026, so the annual figure is a real run rate, not a projection."
+    },
+    {
+      "name": "SmartScout",
+      "state": "partial",
+      "purpose": "Amazon brand and market research, plus the MCP data connection",
+      "plan": "Business-2026, billed annually",
+      "monthly": null,
+      "annual": null,
+      "renewal": "Term ends Jan 29, 2027",
+      "last": "$398.95 on Sep 1, 2026",
+      "ref": "Stripe receipt #2124-7282",
+      "note": "That charge is a mid-term upgrade, not the annual rate: $1,178.38 for the remainder of the term on Business-2026, less a $779.43 credit for unused time on the old Business plan. The base annual price appears in no receipt in this mailbox. The MCP add-on was quoted at about $900 a year before the upgrade went through."
+    },
+    {
+      "name": "MillionVerifier",
+      "state": "usage",
+      "purpose": "Email list verification before a send",
+      "plan": "Pay-as-you-go credits, no subscription",
+      "monthly": null,
+      "annual": null,
+      "renewal": "None, bought per batch",
+      "last": "110,000 credits on Aug 18, 2026",
+      "ref": "Two payment confirmations, no amounts",
+      "note": "Two purchases the same day: 10,000 credits, then 100,000. Both emails confirm the credits landed but neither states a price. The amounts are behind the login at app.millionverifier.com/invoices."
+    },
+    {
+      "name": "Pipedrive",
+      "state": "none",
+      "purpose": "CRM: {{PD_META.leadsTotal}} leads, {{PD_META.openTotal}} open activities, {{PD_META.personsTotal}} contacts",
+      "plan": "Not billed to this mailbox",
+      "monthly": null,
+      "annual": null,
+      "renewal": "Unknown",
+      "last": "No charge ever received here",
+      "ref": "No receipt found",
+      "note": "Every Pipedrive email in this account is a trial notice, a webinar, or a product announcement. No invoice has ever arrived, so the seat count, tier and price all sit on whichever account carries the billing."
+    },
+    {
+      "name": "HeyReach",
+      "state": "none",
+      "purpose": "LinkedIn outreach: {{LINKEDIN.campaigns}} campaign, {{LINKEDIN.leads}} leads loaded",
+      "plan": "Not billed to this mailbox",
+      "monthly": null,
+      "annual": null,
+      "renewal": "Unknown",
+      "last": "No charge ever received here",
+      "ref": "No receipt found",
+      "note": "The only HeyReach email in this account is the registration confirmation from Aug 19, 2026. No invoice, no receipt, no plan confirmation, and the campaign it runs is currently paused."
+    }
+  ],
+  "vendors": [
+    {
+      "name": "Microsoft 365",
+      "purpose": "36 Outlook mailboxes (24 Business Basic + 12 Exchange Online P1)",
+      "monthly": 230.4,
+      "annual": 2764.8,
+      "coverage": "36 seats",
+      "renewal": "Per-seat, monthly",
+      "ref": "Confirmed seat order"
+    },
+    {
+      "name": "GoDaddy",
+      "purpose": "12 sending domains",
+      "monthly": 22.19,
+      "annual": 266.28,
+      "coverage": "12 domains",
+      "renewal": "Staggered, see below",
+      "ref": "Order #3931643853 / #3965647774"
+    },
+    {
+      "name": "Namecheap",
+      "purpose": "17 sending domains",
+      "monthly": 16.26,
+      "annual": 195.16,
+      "coverage": "17 domains",
+      "renewal": "2027-06-18",
+      "ref": "Order #205782920"
+    },
+    {
+      "name": "Porkbun",
+      "purpose": "8 sending domains",
+      "monthly": 7.39,
+      "annual": 88.64,
+      "coverage": "8 domains",
+      "renewal": "2027-06-12",
+      "ref": "Order #10638583"
+    },
+    {
+      "name": "Google Workspace",
+      "purpose": "Business Starter, 24 older Gmail mailboxes",
+      "monthly": null,
+      "annual": null,
+      "coverage": "24 mailboxes",
+      "renewal": "Monthly",
+      "ref": "Invoice 5640776065, amount in PDF"
+    },
+    {
+      "name": "Premium Inboxes",
+      "purpose": "Provisioned the 51 newest Google mailboxes",
+      "monthly": null,
+      "annual": null,
+      "coverage": "51 mailboxes",
+      "renewal": "Unknown",
+      "ref": "No receipt found"
+    }
+  ],
+  "domainWaves": [
+    {
+      "wave": "Namecheap, Jun 2026",
+      "registrar": "Namecheap",
+      "count": 17,
+      "mailboxProvider": "Gmail",
+      "perYear": 11.48,
+      "renewal": "2027-06-18"
+    },
+    {
+      "wave": "Porkbun, Jun 2025",
+      "registrar": "Porkbun",
+      "count": 8,
+      "mailboxProvider": "Gmail / Outlook",
+      "perYear": 11.08,
+      "renewal": "2027-06-12"
+    },
+    {
+      "wave": "GoDaddy, Oct to Dec 2023",
+      "registrar": "GoDaddy",
+      "count": 8,
+      "mailboxProvider": "Outlook",
+      "perYear": 22.19,
+      "renewal": "Staggered, Sep to Dec"
+    },
+    {
+      "wave": "GoDaddy, Sep 2023 (original set)",
+      "registrar": "GoDaddy",
+      "count": 4,
+      "mailboxProvider": "Gmail",
+      "perYear": 22.19,
+      "renewal": "Staggered, Sep to Apr"
+    }
+  ],
+  "otherTools": [
+    {
+      "name": "Arcads (Freshr SAS)",
+      "state": "verified",
+      "purpose": "AI video ad creative, STARTER, 8,000 credits",
+      "monthly": 110,
+      "day": "14th",
+      "last": "$77.00 on Aug 14, 2026",
+      "ref": "Stripe receipt #2410-3327",
+      "note": "List price is $110.00/mo. The Aug 14 charge was $77.00 because of a 30% first-month discount, so $110.00 is the real rate from Sep 14 onward."
+    },
+    {
+      "name": "Store Leads",
+      "state": "verified",
+      "purpose": "Shopify store prospecting data",
+      "monthly": 75,
+      "day": "18th",
+      "last": "$75.00 on Jul 18, 2026",
+      "ref": "Invoice TNGPJJSL-0002",
+      "note": "Billed to AMEX ending 4019. Receipt states “Subscription (at $75.00 / month)”."
+    },
+    {
+      "name": "Apify",
+      "state": "verified",
+      "purpose": "Web scraping actors",
+      "monthly": 29,
+      "day": "17th",
+      "last": "$31.50 on Aug 17, 2026",
+      "ref": "Invoice #202608172810",
+      "note": "Plan is $29.00/mo and auto-renews Sep 17; the Aug 17 charge came to $31.50, so there is a small usage component on top of the plan."
+    },
+    {
+      "name": "Time Doctor",
+      "state": "verified",
+      "purpose": "Time tracking, Basic plan",
+      "monthly": 26.07,
+      "day": "8th",
+      "last": "$26.07 on Sep 8, 2026",
+      "ref": "Paddle receipt",
+      "note": "Started Jun 8 at $17.38, changed to $26.07/mo on Jun 12 and has billed that amount every month since."
+    },
+    {
+      "name": "Calendly",
+      "state": "verified",
+      "purpose": "Meeting booking links, Essentials",
+      "monthly": 10.86,
+      "day": "28th",
+      "last": "$10.86 on Aug 28, 2026",
+      "ref": "Stripe receipt #2922-8171",
+      "note": "$10.00 plus $0.86 New York sales tax. Billed on the 28th without a break since at least May."
+    },
+    {
+      "name": "ChatGPT Business",
+      "state": "partial",
+      "purpose": "2 Standard seats on the Albertscott workspace",
+      "monthly": null,
+      "day": "5th",
+      "last": "Renewal notice for Sep 5, 2026",
+      "ref": "OpenAI notice, no amount",
+      "note": "OpenAI sends a renewal notice naming the seat count but never the price, and no receipt arrives in any albertscott mailbox. Goes to yoni.l@, not yoni@."
+    },
+    {
+      "name": "Google Workspace (PR account)",
+      "state": "partial",
+      "purpose": "Separate Workspace for albertscotthq.com, “Albert Scott LLC (PR Account)”",
+      "monthly": null,
+      "day": "1st",
+      "last": "Invoice 5670337155, Sep 1, 2026",
+      "ref": "Amount inside the PDF",
+      "note": "This is a second Google Workspace, distinct from the one behind the sending mailboxes. The monthly invoice arrives on the 1st but the amount is only inside the attached PDF, so it is not readable from the email body."
+    },
+    {
+      "name": "DocuSign",
+      "state": "partial",
+      "purpose": "Contract signing",
+      "monthly": null,
+      "day": "Unknown",
+      "last": "No receipt, only a plan-change notice",
+      "ref": "Notice dated Sep 8, 2026",
+      "note": "DocuSign wrote that from Oct 23, 2026 the plan becomes unlimited agreements for $30 per month. What is being paid today is not stated anywhere in the mailbox."
+    }
+  ],
+  "metaAds": {
+    "charges": 7,
+    "total": 1403,
+    "from": "Aug 2",
+    "to": "Aug 14, 2026",
+    "since": "Sep 12, 2026"
+  }
+}

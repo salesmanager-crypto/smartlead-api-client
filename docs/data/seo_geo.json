@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-09-03",
+  "baselineAt": "2026-08-27",
+  "sources": [
+    {
+      "source": "novadata.io/resources/best-amazon-agencies",
+      "status": "checked",
+      "listed": false,
+      "note": "Checked in full — not listed among 119 ranked agencies. Unchanged since the Aug 27 baseline."
+    },
+    {
+      "source": "clutch.co/agencies/ppc/amazon",
+      "status": "blocked",
+      "listed": null,
+      "note": "Returned HTTP 403 this run, the fetch was blocked. Inconclusive — last confirmed status at the Aug 27 baseline was not listed."
+    }
+  ]
+}

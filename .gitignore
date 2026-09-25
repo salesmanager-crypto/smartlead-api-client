@@ -22,3 +22,6 @@ token*.json
 
 # built dashboard, contains live lead data
 dashboard/_site/
+
+# plaintext copies of encrypted dashboard data and the built artifact (person-level data)
+.private/
