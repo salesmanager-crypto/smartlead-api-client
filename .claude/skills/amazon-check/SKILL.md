@@ -54,7 +54,7 @@ Match must be the same company: brand name resembles the Company or its email do
 
 When asked to set Company to Amazon's spelling: copy the byline text exactly (capitalisation, punctuation, ®). If a product page has no byline but Amazon's search results label the brand consistently (Cressi, vineyard vines, Maui Jim), use that label and say so in the notes. Never write a guessed name; write NOT FOUND and leave Company alone. Do the offline fill first: earlier scrape passes often already hold the byline for brands a later pass missed.
 
-Review by hand every name whose normalised form doesn't contain a piece of the company name. Dead store links are common (several redirected to a Duracell page); treat those as "no result", not as the brand.
+Review by hand every name whose normalised form doesn't contain a piece of the company name, and every name that only shares a generic word with it (marine, systems, solutions, power, water, quick, metro, love, natural). On a marine trade show list those generic words produced 40 wrong matches (New Douglas Marine -> Marine Tex, Escardo Marine -> a snail brand, Frigibar -> Frigidaire); the exhibitor's distinctive token has to appear in the Amazon name. Dead store links are common (several redirected to a Duracell page); treat those as "no result", not as the brand.
 
 ## Report to Yoni
 

@@ -46,3 +46,10 @@ Accepted spellings that differ from the company and were right: DRGINGER'S -> Do
 ## Process hygiene
 
 `pkill -f <pattern>` matches the calling shell's own command line and kills it (exit 144). Kill by PID from `ps -eo pid,args | grep ... | grep -v grep`. Stop every watcher when its run is replaced; Yoni saw four stale wait loops as "4 running tasks".
+
+## FLIBS / Las Vegas Gift / FNCE run (Sept 2026, 993 brands)
+
+- Search-first lookups run ~14 brands/min at 8 workers while the IP is fresh; after ~2 hours Amazon throttled to 28%, then 75% blank pages. A 45-minute pause brought it back to 9%. Budget a cool-down into any run over ~500 brands, or split it across sessions.
+- Never let a blank page become "No": mark UNVERIFIED and retry after the cool-down. 386 brands were retried that way; 62 turned out to be on Amazon.
+- Generic-word matches are the main source of wrong names on B2B/marine lists; 40 rejected by hand. Reject when the only shared token is generic.
+- Deliver an interim sheet with honest UNVERIFIED flags rather than holding everything for the retry.
