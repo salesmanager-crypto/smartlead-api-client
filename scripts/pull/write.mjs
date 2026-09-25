@@ -112,17 +112,21 @@ export function writeHistory(entry) {
  * Pulls one source, writes its file and records the attempt in the manifest.
  * Never throws: a failure is returned as { ok: false, error } and recorded.
  * `pull(env, ctx)` returns the data object; it may set `ctx.records`, `ctx.note`, and
- * `ctx.skipped = true` to leave the existing file alone (nothing to do this run).
+ * `ctx.skipped = true` to leave the existing file alone (nothing to do this run), or
+ * `ctx.unchanged = true` for a successful check of a file it must not rewrite.
  */
 export async function runSource(source, pull, env = process.env, ctx = {}, manifest = readManifest()) {
   const started = Date.now();
   const at = new Date().toISOString();
-  const sctx = Object.assign(ctx, { records: null, note: null, skipped: false });
+  const sctx = Object.assign(ctx, { records: null, note: null, skipped: false, unchanged: false });
   let result;
   try {
     const data = await pull(env, sctx);
     if (sctx.skipped) {
       result = { ok: false, skipped: true, records: sctx.records, note: sctx.note, wrote: null, data: null };
+    } else if (sctx.unchanged) {
+      // validated in place: the source file is maintained elsewhere and is not rewritten
+      result = { ok: true, records: sctx.records, note: sctx.note, wrote: "unchanged", data };
     } else {
       const wrote = await writeSource(source, data, env);
       result = { ok: true, records: sctx.records, note: sctx.note, wrote, data };

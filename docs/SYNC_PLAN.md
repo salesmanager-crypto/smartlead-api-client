@@ -301,3 +301,20 @@ and the Pages source switch to `main` + `/docs` at the end of stage 5.
   Wholesome Hippy, Katjes, Zoya.
 - `refresh-data.yml` and `deploy-pages.yml` are removed in stage 4; Pages moves to
   `main` + `/docs` after stage 5.
+
+## 10. Additions (Yoni, 2026-09-25)
+
+- **Trade Shows page on both dashboards**, in the sidebar directly below SmartScout: a
+  calendar of the shows in `docs/data/tradeshows.json` (226 US shows, Sep 25, 2026 to
+  Aug 18, 2027, delivered as `tradeshow_calendar_FINAL.xlsx` + `tradeshows.json` and
+  committed unchanged).
+- **Attendance notes**: per show, who is attending (Yoni, Maria, Rachel) and a free-text
+  note. Edited in the **Claude artifact**, where the page saves them to the artifact's
+  shared store (the artifact's `db` runtime capability: the one exception to "no runtime
+  calls", since a static page cannot save anything). The daily Claude task copies them into
+  `docs/data/tradeshow_notes.json`, so the Pages calendar shows them read-only, at most a
+  day behind.
+- **Semrush**: the key provided is a v4 key (`semrtkn-pat-...`). Semrush's v4 SEO API
+  covers backlinks and keyword metrics only; domain positions and the #1 result per
+  keyword are only in the v3 Standard API, which needs the legacy 32-hex key. Open item:
+  a legacy key, or pull Semrush through the Claude Semrush connector in the daily task.

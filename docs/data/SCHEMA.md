@@ -431,46 +431,75 @@ Wholesome Hippy, Katjes, Zoya.
 
 ---
 
-## `tradeshows.json` (hand-edited)
+## `tradeshows.json` (the trade show calendar, maintained outside this pipeline)
 
-No trade show calendar existed in the repo when this contract was written, so the file
-starts empty. `scripts/pull/tradeshows.mjs` only validates it and updates
-`manifest.sources.tradeshows`.
+The calendar produced by the trade show calendar project (the Calendar tab of
+`tradeshow_calendar_FINAL.xlsx`, as JSON), committed exactly as delivered.
+`scripts/pull/tradeshows.mjs` only validates it and updates `manifest.sources.tradeshows`;
+it never rewrites the file. The shape is that project's, kept as-is: a JSON **array** of
+shows (an object `{ "shows": [...] }` is also accepted).
+
+| Field | Type | Meaning |
+|---|---|---|
+| `showName` | string | show name (required) |
+| `startDate` | date | first day (required) |
+| `endDate` | date | last day, not before `startDate` |
+| `city`, `state`, `venue` | string | location; `""` when unknown |
+| `website` | string | official site |
+| `exhibitorListUrl` | string | public exhibitor list, `""` if none |
+| `industryCategories` | string | what the show covers |
+| `whyAmazonRelevant` | string | why the exhibitors are Amazon prospects |
+| `estExhibitors`, `estAttendees` | string | published counts as text (`"1,200+"`), `""` if none |
+| `relevance` | string | `High`, `Medium`, `Low` |
+| `status` | string | the calendar project's verification status: `Verified`, `New`, `Date changed`, or `""` |
+| `sourceUrls` | string[] | where the dates and counts came from |
+| `notes` | string | the calendar project's research notes (not attendance notes) |
+| `lastVerified` | date | when the row was last checked |
+
+**Show id.** Rows carry no id, so both dashboards and the notes file use
+`showId = slug(showName) + "-" + startDate`, e.g. `coffee-fest-2026-10-17` (the slug is the
+name lowercased, accents stripped, every run of non-alphanumerics turned into `-`). The
+name and start date together are unique (Coffee Fest appears twice, on different dates).
+If a show's start date changes, its id changes; the notes file keeps the old entry and the
+dashboards flag it as an orphaned note.
+
+The validator rejects the file for a missing `showName` or `startDate`, a bad date,
+`endDate` before `startDate`, a non-array `sourceUrls`, or two rows with the same id.
+
+---
+
+## `tradeshow_notes.json` (attendance notes, written by the Claude task)
+
+Who is going to which show, and notes about it. Yoni edits these on the Trade Shows page of
+the Claude artifact, where they are saved immediately in the artifact's own shared store.
+The daily Claude task copies them into this file, so the GitHub Pages calendar shows them
+(read-only) at most a day later. Kept separate from `tradeshows.json` so a new calendar
+delivery never overwrites anyone's notes.
 
 ```json
 {
-  "updatedAt": "2026-09-25",
-  "shows": [
-    {
-      "id": "example-show-2026",
-      "name": "Example Show 2026",
-      "startDate": "2026-11-03",
-      "endDate": "2026-11-05",
-      "city": "Las Vegas",
-      "country": "US",
-      "venue": null,
-      "industry": null,
-      "url": null,
-      "campaignIds": [],
-      "notes": null
+  "updatedAt": "2026-09-26T10:20:00.000Z",
+  "people": ["Yoni", "Maria", "Rachel"],
+  "notes": {
+    "example-show-2026-11-03": {
+      "attending": ["Yoni"],
+      "note": "Booth meetings booked Tuesday",
+      "updatedBy": "Yoni",
+      "updatedAt": "2026-09-26T09:58:12.000Z"
     }
-  ]
+  }
 }
 ```
 
 | Field | Type | Meaning |
 |---|---|---|
-| `updatedAt` | date or null | last hand edit |
-| `shows[].id` | string | unique, lowercase slug |
-| `shows[].name` | string | show name |
-| `shows[].startDate`, `endDate` | date | show dates (`endDate` >= `startDate`) |
-| `shows[].city`, `country`, `venue`, `industry` | string or null | where and what |
-| `shows[].url` | string or null | official site |
-| `shows[].campaignIds` | number[] | SmartLead campaigns built for this show (links the calendar to `smartlead.json`) |
-| `shows[].notes` | string or null | free text |
-
-The validator rejects a file with a missing `id`/`name`/`startDate`, a duplicate `id`,
-a bad date, or `endDate` before `startDate`, and records the reason in the manifest.
+| `updatedAt` | timestamp or null | when the Claude task last copied notes into this file |
+| `people` | string[] | who can be marked as attending: Yoni, Maria, Rachel |
+| `notes` | object | keyed by show id (see above) |
+| `notes.<id>.attending` | string[] | people attending, each one of `people`; `[]` = nobody yet |
+| `notes.<id>.note` | string | free-text note, `""` when none |
+| `notes.<id>.updatedBy` | string or null | who last saved it, when the artifact knows |
+| `notes.<id>.updatedAt` | timestamp | when it was last saved in the artifact |
 
 ---
 
