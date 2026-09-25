@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-09-25T19:55:17.635Z",
+  "today": "2026-09-25",
+  "sources": {
+    "smartlead": {
+      "lastSuccess": null,
+      "lastAttempt": "2026-09-25T19:51:02.237Z",
+      "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
+      "records": null,
+      "note": null,
+      "status": "error"
+    },
+    "pipedrive": {
+      "lastSuccess": null,
+      "lastAttempt": "2026-09-25T19:51:00.661Z",
+      "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
+      "records": null,
+      "note": null,
+      "status": "error"
+    },
+    "heyreach": {
+      "lastSuccess": "2026-09-25T19:55:06.452Z",
+      "lastAttempt": "2026-09-25T19:55:06.452Z",
+      "error": null,
+      "records": 1,
+      "note": null,
+      "status": "ok"
+    },
+    "semrush": {
+      "lastSuccess": null,
+      "lastAttempt": "2026-09-25T19:55:17.465Z",
+      "error": "Semrush domain_ranks: 403 ERROR 120 :: WRONG KEY - ID PAIR",
+      "records": null,
+      "note": null,
+      "status": "error"
+    },
+    "seoIssues": {
+      "lastSuccess": null,
+      "lastAttempt": "2026-09-25T19:55:17.632Z",
+      "error": null,
+      "records": 239,
+      "note": "Google secrets not set; showing the 2026-09-11 snapshot",
+      "status": "stale"
+    },
+    "smartscout": {
+      "lastSuccess": null,
+      "lastAttempt": null,
+      "status": "stale",
+      "error": null,
+      "records": null,
+      "note": null
+    },
+    "tradeshows": {
+      "lastSuccess": "2026-09-25T19:55:17.634Z",
+      "lastAttempt": "2026-09-25T19:55:17.634Z",
+      "error": null,
+      "records": 0,
+      "note": "no shows entered yet",
+      "status": "ok"
+    }
+  }
+}
