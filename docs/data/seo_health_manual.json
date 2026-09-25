@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-09-03",
+  "items": [
+    {
+      "item": "XML sitemap (/sitemap.xml)",
+      "status": "good",
+      "note": "7 sub-sitemaps, regenerated today by All in One SEO Pro v5.0.1. No junk, broken, or unexpected URLs at the index level."
+    },
+    {
+      "item": "Homepage",
+      "status": "good",
+      "note": "Loads correctly. H1 “Win on Amazon. Everywhere.” Primary CTA “GET MY FREE AUDIT” present and linked."
+    },
+    {
+      "item": "/marketing-devision/ URL + title tag",
+      "status": "bad",
+      "note": "Still live at the misspelled slug; title tag still reads “Marketing Devision - Albert Scott”. Flagged Aug 27, unfixed 7 days later."
+    }
+  ]
+}

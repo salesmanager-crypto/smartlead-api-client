@@ -282,3 +282,22 @@ from clients visible in the repo and artifact (won deals and client call recordi
 
 Also confirm: delete `refresh-data.yml` and `deploy-pages.yml` in stage 4 (section 7),
 and the Pages source switch to `main` + `/docs` at the end of stage 5.
+
+---
+
+## 9. Decisions (Yoni, 2026-09-25)
+
+- **D1: B.** `pipedrive.json` and `smartlead.json` are committed encrypted (`.enc`) under
+  the login's content key; the built artifact is committed encrypted too. Everything
+  else is plain JSON.
+- **D2:** Yoni recovers the content key locally with `scripts/recover-content-key.mjs`
+  and stores it as the Actions secret `DASHBOARD_CONTENT_KEY`.
+- **D3:** one page codebase. The artifact is generated from `dashboard/command-center.html`
+  with the data inlined; the old artifact template is kept only as the reference for
+  constant names and shapes.
+- **D4:** Semrush call set as proposed. No Site Audit project id given yet, so
+  `SEO_HEALTH` falls back to `seo_health_manual.json` until `SEMRUSH_SITE_AUDIT_ID` is set.
+- **D5:** watchlist seeded with Scentco, Mexico's Finest, Art of Beauty, Rufus Teague,
+  Wholesome Hippy, Katjes, Zoya.
+- `refresh-data.yml` and `deploy-pages.yml` are removed in stage 4; Pages moves to
+  `main` + `/docs` after stage 5.
