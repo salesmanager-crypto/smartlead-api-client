@@ -13,7 +13,8 @@
  *   3. phrase_organic with display_limit=1 for each keyword in docs/data/seo_keywords.json
  *      -> the #1 result (refuses to run above SEMRUSH_MAX_KEYWORDS, default 30)
  *   4. Site Audit snapshot info, only when SEMRUSH_SITE_AUDIT_ID is set
- * The unit balance is read before and after (that endpoint is free) to report unitsUsed.
+ * The unit balance is read before and after (that endpoint is free, legacy keys only) to report
+ * unitsUsed; with a v4 key it is estimated at 10 units per row.
  * GEO checks are not Semrush data: they are copied from seo_geo.json.
  */
 import path from "node:path";
@@ -24,10 +25,16 @@ const API = "https://api.semrush.com/";
 const DOMAIN = "albertscott.com";
 const DATABASE = "us";
 
+/** Semrush has two key kinds: the legacy 32-hex key (sent as ?key=) and v4 keys
+ * (personal access tokens, "semrtkn-..."), which go in an `Authorization: Apikey` header. */
+export const isLegacyKey = (key) => /^[0-9a-f]{32}$/i.test(key);
+const auth = (key) => (isLegacyKey(key) ? { query: { key }, headers: {} } : { query: {}, headers: { Authorization: `Apikey ${key}` } });
+
 async function call(key, params, label) {
   const url = new URL(API);
-  for (const [k, v] of Object.entries({ ...params, key })) url.searchParams.set(k, v);
-  const res = await fetchRetry(url, {}, { label: `Semrush ${label}` });
+  const a = auth(key);
+  for (const [k, v] of Object.entries({ ...params, ...a.query })) url.searchParams.set(k, v);
+  const res = await fetchRetry(url, { headers: a.headers }, { label: `Semrush ${label}` });
   const text = (await res.text()).trim();
   if (/^ERROR 50 ::/.test(text)) return []; // NOTHING FOUND
   if (!res.ok || /^ERROR \d+/.test(text)) throw new Error(`Semrush ${label}: ${res.status} ${text.slice(0, 120)}`);
@@ -39,6 +46,7 @@ async function call(key, params, label) {
 }
 
 async function unitsLeft(key) {
+  if (!isLegacyKey(key)) return null; // the balance endpoint only takes legacy keys; unitsUsed is then estimated
   try {
     const res = await fetchRetry(`https://www.semrush.com/users/countapiunits.html?key=${encodeURIComponent(key)}`, {}, { label: "Semrush unit balance" });
     const n = Number((await res.text()).trim());
@@ -47,8 +55,9 @@ async function unitsLeft(key) {
 }
 
 async function siteAudit(key, projectId) {
-  const url = `${API}reports/v1/projects/${encodeURIComponent(projectId)}/siteaudit/info?key=${encodeURIComponent(key)}`;
-  const res = await fetchRetry(url, {}, { label: "Semrush Site Audit" });
+  const a = auth(key);
+  const url = `${API}reports/v1/projects/${encodeURIComponent(projectId)}/siteaudit/info${a.query.key ? `?key=${encodeURIComponent(key)}` : ""}`;
+  const res = await fetchRetry(url, { headers: a.headers }, { label: "Semrush Site Audit" });
   const j = await res.json().catch(() => null);
   if (!res.ok || !j) throw new Error(`Semrush Site Audit: ${res.status}`);
   const q = numOrNull(j.quality?.value ?? j.quality);
@@ -92,7 +101,8 @@ export async function pull(env, ctx = {}) {
     // describe the key's shape (never its value) so a wrong secret is easy to spot
     if (/ERROR 120|ERROR 13[0-9]/.test(err.message)) {
       const raw = env.SEMRUSH_API_KEY;
-      const shape = `key is ${key.length} chars${raw !== key ? ", had surrounding whitespace" : ""}, ${/^[0-9a-f]{32}$/i.test(key) ? "looks like a Semrush API key (32 hex)" : "does not look like a Semrush API key (expected 32 hex characters)"}`;
+      const kind = isLegacyKey(key) ? "legacy 32-hex key, sent as ?key=" : key.startsWith("semrtkn-") ? "v4 key, sent as an Authorization: Apikey header" : "unrecognised key format (expected a 32-hex legacy key or a semrtkn- v4 key)";
+      const shape = `key is ${key.length} chars${raw !== key ? ", had surrounding whitespace" : ""}, ${kind}`;
       throw new Error(`${err.message} (${shape}; units balance ${before == null ? "unreadable" : before})`);
     }
     throw err;
