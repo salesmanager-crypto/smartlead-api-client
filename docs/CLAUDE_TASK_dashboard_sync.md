@@ -8,21 +8,22 @@ this task does not pull it yet.
 
 ## Set it up once
 
-In any Claude chat: *"Create a scheduled task named 'Dashboard sync: SmartScout + artifact'
-that runs daily at 10:15 UTC with the prompt below, notifications on, automatic approval."*
+The task runs as a **Claude Code Routine** in the same cloud environment as this repository
+(a fresh session every day at 10:15 UTC, an hour after the GitHub refresh).
 
-The task's session needs:
-- the **SmartScout** connector;
-- the **Artifact** tool and **ArtifactData** (to read the notes the dashboard stores);
-- a shell with `git` and Node 18+ (to clone the public repo and run the builder);
-- GitHub write access to `salesmanager-crypto/smartlead-api-client` to commit its data files
-  (without it, the artifact still refreshes and the report says the commit was skipped).
+1. **Key in the environment, not in the prompt.** In Claude Code on the web, open the cloud
+   environment menu in the session title bar, choose **Edit**, and add an environment variable
+   `DASHBOARD_CONTENT_KEY` with the same value as the GitHub Actions secret. New sessions pick
+   it up; the prompt below only ever refers to it as `$DASHBOARD_CONTENT_KEY`.
+2. **The Routine**: daily at 10:15 UTC, a fresh session per run, with the **SmartScout**
+   connector, and the prompt below. (Claude can create it with `create_trigger`.)
 
-Replace `<DASHBOARD_CONTENT_KEY>` in the prompt with the value of the Actions secret of the
-same name (the output of `node scripts/recover-content-key.mjs`). It decrypts the dashboard's
-person-level data, so keep this task private.
+The session needs the SmartScout connector, the Artifact and ArtifactData tools, a shell with
+`git` and Node 18+, and push access to `main` of `salesmanager-crypto/smartlead-api-client`
+for its data commit (without it, the artifact still refreshes and the report says the commit
+was skipped).
 
-## The prompt (paste exactly, after filling in the key)
+## The prompt (paste exactly)
 
 You are running the daily dashboard sync for Albert Scott. No one is watching: do not ask
 questions, make the safe choice, and report what you did at the end. Do not skip steps. If a
@@ -35,12 +36,15 @@ Context:
 - Artifact to republish: https://claude.ai/artifact/Vei7Pm31JHf9QmzR4bJo5G ("Alberscott Dashboard").
 - SmartScout is reachable only through the SmartScout connector, so this task is the only thing
   that refreshes `docs/data/smartscout.json`.
-- DASHBOARD_CONTENT_KEY = `<DASHBOARD_CONTENT_KEY>`. Use it only as an environment variable for
-  the build command in step 5. Never print it, write it to a file, or put it in the report.
+- The dashboard's content key is in the environment variable `DASHBOARD_CONTENT_KEY`. Check
+  only that it is set (`test -n "$DASHBOARD_CONTENT_KEY"`); never print it, write it to a file,
+  or put it in the report. If it is not set, skip steps 5 and 6 and report that.
 
-Step 1. Get the repo. `git clone --depth 1 https://github.com/salesmanager-crypto/smartlead-api-client.git`
-and work inside it. Read `docs/data/manifest.json` and note `generatedAt`. If it is older than
-36 hours, note "GitHub refresh did not run today" for the report and continue.
+Step 1. Get the repo on the latest `main`: in the checked-out repository run
+`git fetch origin main && git checkout -B main origin/main` (or `git clone
+https://github.com/salesmanager-crypto/smartlead-api-client.git` if there is no checkout) and
+work inside it. This task has explicit permission to commit its data files to `main`.
+Read `docs/data/manifest.json` and note `generatedAt`. If it is older than 36 hours, note "GitHub refresh did not run today" for the report and continue.
 
 Step 2. SmartScout. Read `docs/data/smartscout_watchlist.json` (if it has more than 150 brands,
 use the first 150 and say so). Call `get_account_capabilities` once. Then call `query_analytics`
@@ -70,13 +74,16 @@ Step 4. Commit. `git add docs/data` and commit to `main` with the message
 session cannot push, skip it and say so; the next steps still work from the local files.
 
 Step 5. Build the artifact page. Run
-`DASHBOARD_CONTENT_KEY=<key> node scripts/build-artifact.mjs --plain-out /tmp/alberscott-dashboard.html`.
+`node scripts/build-artifact.mjs --plain-out /tmp/alberscott-dashboard.html` (it reads the key
+from the environment).
 It rebuilds the whole page from today's data (including your SmartScout and notes files) and
 checks it. If it fails, report the error and stop before publishing: never publish a page you
 did not build this way, and never edit the page by hand.
 
-Step 6. Republish. Read `/tmp/alberscott-dashboard.html` in full with the Read tool (the Artifact
-tool requires it), then publish it with the Artifact tool to the URL above (`url` set to that
+Step 6. Republish. First read the live artifact with the Artifact tool (`action: "read"` on the
+URL above) so this session may update it. Read `/tmp/alberscott-dashboard.html` in full with the
+Read tool, in consecutive chunks until the last line (the Artifact tool requires it; no line is
+over 2,000 characters), then publish it with the Artifact tool to the URL above (`url` set to that
 URL, so the link stays the same; never create a new artifact) with
 `capabilities: {"db": {}}`, which lets the Trade Shows page save attendance notes. Then open it
 and confirm the top bar shows today's "Data as of" date and the SmartScout page lists the
