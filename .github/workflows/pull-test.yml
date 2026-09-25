@@ -11,6 +11,8 @@ on:
       - "src/client.js"
       - "src/heyreach.js"
       - "src/pipedrive.js"
+      - "scripts/build-*.mjs"
+      - "dashboard/**"
       - ".github/workflows/pull-test.yml"
 
 permissions:
@@ -40,6 +42,12 @@ jobs:
           SEO_TRACKER_TAB: ${{ secrets.SEO_TRACKER_TAB }}
           DASHBOARD_CONTENT_KEY: ${{ secrets.DASHBOARD_CONTENT_KEY }}
         run: node scripts/pull/run-all.mjs
+      - name: Build both dashboards
+        env:
+          DASHBOARD_CONTENT_KEY: ${{ secrets.DASHBOARD_CONTENT_KEY }}
+        run: |
+          node scripts/build-pages.mjs
+          node scripts/build-artifact.mjs
       - name: Commit the data files
         run: |
           git config user.name "github-actions[bot]"
