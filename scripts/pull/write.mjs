@@ -9,6 +9,8 @@ import { DATA_DIR, PRIVATE_DIR, encryptString, readJson, today as todayFn, addDa
 export const MANIFEST = path.join(DATA_DIR, "manifest.json");
 export const HISTORY_DIR = path.join(DATA_DIR, "history");
 export const SOURCES = ["smartlead", "pipedrive", "heyreach", "semrush", "seoIssues", "smartscout", "tradeshows"];
+/** Sources the daily Claude task writes (through its connectors), never GitHub. */
+export const CLAUDE_SOURCES = new Set(["smartscout", "semrush"]);
 /** Sources whose files carry person-level data: committed encrypted only. */
 export const ENCRYPTED = new Set(["smartlead", "pipedrive"]);
 /** File name for each source. */

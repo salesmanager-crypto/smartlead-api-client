@@ -7,10 +7,11 @@
  * Reads credentials from the environment or ROOT/.env (see .env.example). One
  * failing source never blocks the others; its failure is recorded in
  * docs/data/manifest.json and shown on both dashboards. Exits non-zero only when
- * every API source failed (SmartLead, Pipedrive, HeyReach, Semrush), which is what
+ * every API source failed (SmartLead, Pipedrive, HeyReach), which is what
  * makes the GitHub workflow fail and email the repo owner.
  *
- * SmartScout is not pulled here: the Claude scheduled task writes smartscout.json.
+ * SmartScout and Semrush are not pulled here: the daily Claude scheduled task pulls both
+ * through their Claude connectors and writes smartscout.json and semrush.json.
  */
 import path from "node:path";
 import { loadEnv, today as todayFn, readJson, DATA_DIR, ymd } from "./lib.mjs";
@@ -18,7 +19,6 @@ import { readManifest, runSource, saveManifest, writeHistory } from "./write.mjs
 import * as pipedrive from "./pipedrive.mjs";
 import * as smartlead from "./smartlead.mjs";
 import * as heyreach from "./heyreach.mjs";
-import * as semrush from "./semrush.mjs";
 import * as seoIssues from "./seo-issues.mjs";
 import * as tradeshows from "./tradeshows.mjs";
 
@@ -33,7 +33,6 @@ const results = {};
 results.pipedrive = await runSource("pipedrive", pipedrive.pull, env, ctx, manifest);
 results.smartlead = await runSource("smartlead", smartlead.pull, env, ctx, manifest);
 results.heyreach = await runSource("heyreach", heyreach.pull, env, ctx, manifest);
-results.semrush = await runSource("semrush", semrush.pull, env, ctx, manifest);
 results.seoIssues = await runSource("seoIssues", seoIssues.pull, env, ctx, manifest);
 results.tradeshows = await runSource("tradeshows", tradeshows.pull, env, ctx, manifest);
 
@@ -65,7 +64,7 @@ for (const [name, s] of Object.entries(saved.sources)) {
 }
 if (pruned.length) console.error(`history: pruned ${pruned.length} file(s) older than 180 days`);
 
-const API_SOURCES = ["smartlead", "pipedrive", "heyreach", "semrush"];
+const API_SOURCES = ["smartlead", "pipedrive", "heyreach"];
 const allFailed = API_SOURCES.every((s) => !results[s].ok && !results[s].skipped);
 if (allFailed) {
   console.error("\nevery API source failed");

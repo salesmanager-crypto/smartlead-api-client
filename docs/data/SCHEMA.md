@@ -52,8 +52,8 @@ JSON documented below. When run locally, the pull scripts also write the plainte
 
 ## `manifest.json`
 
-Written last by `scripts/pull/run-all.mjs`. `smartscout` is updated by the Claude
-scheduled task.
+Written last by `scripts/pull/run-all.mjs`. The `smartscout` and `semrush` entries are
+updated by the Claude scheduled task, which pulls both through Claude connectors.
 
 ```json
 {
@@ -295,47 +295,59 @@ real response; any field HeyReach does not return is set to `null` and listed he
 
 ---
 
-## `semrush.json`
+## `semrush.json` (written by the Claude scheduled task, not by GitHub)
 
-Written by `scripts/pull/semrush.mjs`. Needs `SEMRUSH_API_KEY`; `SEMRUSH_SITE_AUDIT_ID`
-optional. One fixed call set, at most once per Eastern day (a second run the same day
-keeps the morning's file unless `SEMRUSH_FORCE=1`): `domain_ranks` and `domain_organic` for
-albertscott.com, `phrase_organic` with `display_limit=1` for each keyword in
-`seo_keywords.json`, and the Site Audit snapshot when the project id is set.
+Semrush is pulled by the daily Claude task through the **Semrush connector**, the same
+way as SmartScout, not by the GitHub workflow. Semrush API units are required either way
+(the connector draws on the account's API unit balance), and each report costs units, so
+the task runs one fixed set of reports per day. Until the first Semrush pull the file
+holds the Sep 3, 2026 manual Google check that both dashboards already showed, with
+`source: "manual"`.
 
 ```json
 {
-  "pulledAt": "...",
+  "pulledAt": "2026-09-26T10:18:00.000Z",
+  "source": "semrush",
+  "sourceNote": null,
   "baselineAt": "2026-08-27",
   "domain": "albertscott.com",
   "database": "us",
-  "unitsUsed": 180,
-  "keywords": [ { "q": "Amazon agency", "pos": null, "top": "myamazonguy.com", "branded": false, "url": null, "volume": 2900 } ],
-  "geo": { "checkedAt": "2026-09-03", "baselineAt": "2026-08-27", "sources": [ ... ] },
-  "health": { "source": "semrush" , "checkedAt": "...", "items": [ ... ] }
+  "keywords": [ { "q": "Amazon agency", "pos": null, "top": "example.com", "branded": false, "url": null, "volume": 1000 } ],
+  "health": { "source": "semrush", "checkedAt": "2026-09-25", "items": [ { "item": "Site Health score", "status": "good", "note": "..." } ] }
 }
 ```
 
 | Field | Type | Meaning |
 |---|---|---|
-| `pulledAt` | timestamp | Semrush call time. Artifact `SEO_PULLED` is this, formatted `"Sep 25, 2026"` |
-| `baselineAt` | date | baseline the page compares against. Artifact `SEO_BASELINE`, formatted |
-| `unitsUsed` | number | API units this run spent: the balance before minus after, or an estimate of 10 per row if the balance could not be read |
-| `unitsLeft` | number or null | the account's remaining API units after the run |
-| `rankedKeywords` | number | how many keywords albertscott.com ranks for in the database (sets how many `domain_organic` rows are bought, capped at 100) |
-| `keywords[]` | array | artifact `SEO_KEYWORDS`, one row per keyword in `seo_keywords.json`, same order |
+| `pulledAt` | timestamp, or a date for a manual check | when the data was collected. Artifact `SEO_PULLED` is this, formatted `"Sep 26, 2026"` |
+| `source` | `semrush` or `manual` | where `keywords` came from |
+| `sourceNote` | string or null | how a `manual` check was done |
+| `baselineAt` | date | the baseline the SEO page compares against. Artifact `SEO_BASELINE`, formatted |
+| `keywords[]` | array | artifact `SEO_KEYWORDS`: one row per keyword in `seo_keywords.json`, same order |
 | `keywords[].q` | string | the keyword |
-| `keywords[].pos` | number or null | albertscott.com's organic position in the Semrush US database; null = not in the top 100 |
-| `keywords[].top` | string or null | the #1 organic result's domain |
+| `keywords[].pos` | number or null | albertscott.com's organic position (Semrush US database); null = not in the top 100 |
+| `keywords[].top` | string or null | the #1 organic result (a domain from Semrush; a site name in the manual check) |
 | `keywords[].branded` | boolean | from `seo_keywords.json` |
 | `keywords[].url` | string or null | the albertscott.com URL that ranks |
-| `keywords[].volume` | number or null | monthly search volume |
-| `geo` | object | artifact `SEO_GEO` / Pages `SEO_GEO_SOURCES` is `geo.sources`. **Not from Semrush**: copied as-is from `seo_geo.json` |
-| `health.source` | `semrush` or `manual` | `manual` when `SEMRUSH_SITE_AUDIT_ID` is not set: items are copied from `seo_health_manual.json` |
+| `keywords[].volume` | number or null | monthly US search volume |
+| `health.source` | `semrush` or `manual` | `semrush` when a Site Audit project exists for albertscott.com, else copied from `seo_health_manual.json` |
 | `health.items[]` | array | artifact `SEO_HEALTH`: `{ item, status: "good" or "bad", note }` |
 
-Positions are Semrush database positions (updated on Semrush's schedule), not a live
-Google check like the Sep 3 pulse, so they can differ from what a browser shows.
+GEO checks (artifact `SEO_GEO`, Pages `SEO_GEO_SOURCES`) are not Semrush data and are
+read straight from `seo_geo.json`.
+
+**How the Claude task fills it** (reports named as the connector lists them):
+1. Organic Research: the organic keyword positions report for `albertscott.com`,
+   database `us`, sorted by position, at most 100 rows. Match each tracked keyword
+   (case-insensitive) to set `pos`, `url`, `volume`.
+2. Organic Research / keyword SERP: the top organic result for each tracked keyword
+   (one row each) to set `top`.
+3. Projects: find a project whose domain is albertscott.com; if it has Site Audit, the
+   Site Audit summary sets `health` (site health score, errors, warnings). Otherwise
+   `health` is copied from `seo_health_manual.json`.
+If Semrush returns `no_api_units` or any error, the task leaves this file as it is and
+records the error in `manifest.sources.semrush`. Positions are Semrush database positions,
+which update on Semrush's schedule, so they can differ from a live Google search.
 
 ---
 
@@ -534,7 +546,7 @@ included, Sep 2 receipt) is retired.
 
 | File | Shape | Used by |
 |---|---|---|
-| `seo_keywords.json` | `[{ q, branded }]` | the keyword list `semrush.mjs` tracks. Seeded from the artifact's 15 `SEO_KEYWORDS`. Every keyword added costs about 10 Semrush units per day |
+| `seo_keywords.json` | `[{ q, branded }]` | the keyword list the Claude task tracks in Semrush. Seeded from the artifact's 15 `SEO_KEYWORDS`. Every keyword added costs Semrush API units every day |
 | `seo_geo.json` | `{ checkedAt, baselineAt, sources: [{ source, status: "checked" or "blocked", listed: true/false/null, note }] }` | AI-search directory checks. No API provides these; update by hand or with the SEO skill |
 | `seo_health_manual.json` | `{ checkedAt, items: [{ item, status, note }] }` | fallback for `semrush.json` `health` when no Site Audit project is configured |
 

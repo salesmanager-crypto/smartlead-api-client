@@ -318,3 +318,8 @@ and the Pages source switch to `main` + `/docs` at the end of stage 5.
   covers backlinks and keyword metrics only; domain positions and the #1 result per
   keyword are only in the v3 Standard API, which needs the legacy 32-hex key. Open item:
   a legacy key, or pull Semrush through the Claude Semrush connector in the daily task.
+- **Semrush decision (Yoni): pull it through the Semrush connector in the daily Claude
+  task**, like SmartScout, instead of the GitHub workflow. `scripts/pull/semrush.mjs` and
+  the `SEMRUSH_*` secrets are dropped. Checked 2026-09-25: the connector also needs Semrush
+  API units and the account has none (`no_api_units`), so until units are added the SEO
+  page shows the Sep 3 manual check, labeled as such.

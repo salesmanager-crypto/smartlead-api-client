@@ -101,7 +101,7 @@ export function describeError(err) {
   let msg = err?.message || String(err);
   // belt and braces: strip anything that looks like a credential in a URL
   msg = msg.replace(/([?&](api_key|api_token|key|token)=)[^&\s]+/gi, "$1***");
-  for (const k of ["SMARTLEAD_API_KEY", "PIPEDRIVE_API_TOKEN", "HEYREACH_API_KEY", "SEMRUSH_API_KEY", "DASHBOARD_CONTENT_KEY"]) {
+  for (const k of ["SMARTLEAD_API_KEY", "PIPEDRIVE_API_TOKEN", "HEYREACH_API_KEY", "DASHBOARD_CONTENT_KEY"]) {
     const v = process.env[k];
     if (v && v.length > 6) msg = msg.split(v).join("***");
   }

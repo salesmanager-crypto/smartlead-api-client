@@ -13,7 +13,6 @@
     "pull:smartlead": "node scripts/pull/smartlead.mjs",
     "pull:pipedrive": "node scripts/pull/pipedrive.mjs",
     "pull:heyreach": "node scripts/pull/heyreach.mjs",
-    "pull:semrush": "node scripts/pull/semrush.mjs",
     "pull:seo-issues": "node scripts/pull/seo-issues.mjs",
     "pull:tradeshows": "node scripts/pull/tradeshows.mjs"
   },

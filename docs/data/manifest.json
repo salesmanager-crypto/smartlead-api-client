@@ -28,11 +28,11 @@
     },
     "semrush": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:27:56.707Z",
-      "error": "Semrush domain_ranks: 403 ERROR 120 :: WRONG KEY - ID PAIR (key is 67 chars, v4 key, sent as an Authorization: Apikey header; units balance unreadable)",
-      "records": null,
-      "note": null,
-      "status": "error"
+      "lastAttempt": null,
+      "status": "stale",
+      "error": null,
+      "records": 15,
+      "note": "Pulled by the daily Claude task through the Semrush connector; waiting for Semrush API units. Showing the Sep 3 manual check."
     },
     "seoIssues": {
       "lastSuccess": null,
