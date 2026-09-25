@@ -22,3 +22,12 @@ token*.json
 
 # built dashboard, contains live lead data
 dashboard/_site/
+
+# AAPEX + SEMA exhibitor pipeline: scraped data, caches and outputs stay local (public repo)
+cache/
+run_state.json
+phase*_checkpoint.csv
+phase*_*.xlsx
+AAPEX_SEMA_MASTER.xlsx
+smartscout_cache.json
+pipeline/work/
