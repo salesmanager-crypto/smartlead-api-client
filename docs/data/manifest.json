@@ -1,26 +1,26 @@
 {
-  "generatedAt": "2026-09-25T20:58:55.054Z",
+  "generatedAt": "2026-09-25T21:26:18.089Z",
   "today": "2026-09-25",
   "sources": {
     "smartlead": {
-      "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:54:45.993Z",
-      "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
-      "records": null,
+      "lastSuccess": "2026-09-25T21:22:09.388Z",
+      "lastAttempt": "2026-09-25T21:22:09.388Z",
+      "error": null,
+      "records": 150,
       "note": null,
-      "status": "error"
+      "status": "ok"
     },
     "pipedrive": {
-      "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:54:44.573Z",
-      "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
-      "records": null,
+      "lastSuccess": "2026-09-25T21:22:08.495Z",
+      "lastAttempt": "2026-09-25T21:22:08.495Z",
+      "error": null,
+      "records": 198,
       "note": null,
-      "status": "error"
+      "status": "ok"
     },
     "heyreach": {
-      "lastSuccess": "2026-09-25T20:58:48.305Z",
-      "lastAttempt": "2026-09-25T20:58:48.305Z",
+      "lastSuccess": "2026-09-25T21:26:06.928Z",
+      "lastAttempt": "2026-09-25T21:26:06.928Z",
       "error": null,
       "records": 1,
       "note": null,
@@ -36,7 +36,7 @@
     },
     "seoIssues": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:58:55.050Z",
+      "lastAttempt": "2026-09-25T21:26:18.085Z",
       "error": null,
       "records": 239,
       "note": "Google secrets not set; showing the 2026-09-11 snapshot",
@@ -51,8 +51,8 @@
       "note": null
     },
     "tradeshows": {
-      "lastSuccess": "2026-09-25T20:58:55.051Z",
-      "lastAttempt": "2026-09-25T20:58:55.051Z",
+      "lastSuccess": "2026-09-25T21:26:18.086Z",
+      "lastAttempt": "2026-09-25T21:26:18.086Z",
       "error": null,
       "records": 226,
       "note": null,

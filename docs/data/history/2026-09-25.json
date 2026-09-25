@@ -1,11 +1,11 @@
 {
   "date": "2026-09-25",
-  "generatedAt": "2026-09-25T20:58:55.054Z",
-  "sent": null,
-  "replies": null,
-  "interested": null,
-  "overdue": null,
-  "dealsOpen": null,
+  "generatedAt": "2026-09-25T21:26:18.089Z",
+  "sent": 2272,
+  "replies": 17,
+  "interested": 0,
+  "overdue": 103,
+  "dealsOpen": 1,
   "linkedinAccepted": 49,
   "smartscoutWatchlistRevenue": null
 }
