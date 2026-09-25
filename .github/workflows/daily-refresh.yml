@@ -1,0 +1,82 @@
+name: Daily dashboard refresh
+
+# Pulls SmartLead, Pipedrive and HeyReach, validates the trade show calendar, writes
+# docs/data/*.json (Pipedrive and SmartLead encrypted under the dashboard's content key),
+# rebuilds the GitHub Pages dashboard (docs/index.html) and the Claude artifact file
+# (docs/artifact/), and commits docs/ only when something changed. Pages serves main /docs,
+# so that push is the deploy. SmartScout and Semrush are pulled later by the daily Claude
+# task through its connectors. See README.md, "Daily refresh".
+on:
+  schedule:
+    - cron: "15 9 * * *" # 09:15 UTC: early morning US East, 17:15 Manila
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write # to request a Pages rebuild after the data commit
+
+concurrency:
+  group: daily-dashboard-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Pull every source
+        # Fails the job (and GitHub emails the repo owner) only when SmartLead, Pipedrive
+        # and HeyReach all failed; partial failures show in docs/data/manifest.json and
+        # as red pills on both dashboards.
+        env:
+          SMARTLEAD_API_KEY: ${{ secrets.SMARTLEAD_API_KEY }}
+          SMARTLEAD_BASE_URL: ${{ secrets.SMARTLEAD_BASE_URL }}
+          PIPEDRIVE_API_TOKEN: ${{ secrets.PIPEDRIVE_API_TOKEN }}
+          PIPEDRIVE_COMPANY_DOMAIN: ${{ secrets.PIPEDRIVE_COMPANY_DOMAIN }}
+          HEYREACH_API_KEY: ${{ secrets.HEYREACH_API_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          SEO_TRACKER_FILE_ID: ${{ secrets.SEO_TRACKER_FILE_ID }}
+          SEO_TRACKER_TAB: ${{ secrets.SEO_TRACKER_TAB }}
+          DASHBOARD_CONTENT_KEY: ${{ secrets.DASHBOARD_CONTENT_KEY }}
+        run: node scripts/pull/run-all.mjs
+
+      - name: Rebuild the dashboards
+        if: ${{ !cancelled() }}
+        env:
+          DASHBOARD_CONTENT_KEY: ${{ secrets.DASHBOARD_CONTENT_KEY }}
+        run: |
+          if [ -z "$DASHBOARD_CONTENT_KEY" ]; then
+            echo "::error::DASHBOARD_CONTENT_KEY is not set; the dashboards were not rebuilt. See scripts/recover-content-key.mjs."
+            exit 1
+          fi
+          node scripts/build-pages.mjs
+          node scripts/build-artifact.mjs
+
+      - name: Commit and push if docs/ changed
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if git diff --cached --quiet; then echo "nothing changed"; exit 0; fi
+          git commit -m "data: daily refresh $(date -u +%Y-%m-%d)"
+          # the Claude task or a person may have pushed meanwhile; data files are only written here
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Ask GitHub Pages to redeploy
+        if: ${{ !cancelled() }}
+        # A push made with the workflow token may not start a Pages build on its own.
+        # Non-fatal: if Pages is not set to main /docs yet this just reports and moves on.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -sS -o /dev/null -w "Pages build request: HTTP %{http_code}\n" -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true
