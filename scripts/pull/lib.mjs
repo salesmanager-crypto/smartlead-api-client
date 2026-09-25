@@ -110,10 +110,30 @@ export function describeError(err) {
 
 /* ---------- encryption (same scheme as the dashboard sign-in page) ---------- */
 
-async function contentKey(b64) {
-  const raw = Buffer.from(b64 || "", "base64");
-  if (raw.length !== 32) throw new Error("DASHBOARD_CONTENT_KEY must be a base64 32-byte key (see scripts/recover-content-key.mjs)");
-  return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
+/**
+ * The content key as 32 raw bytes. Forgives the usual paste mistakes in the secret
+ * (surrounding spaces or newlines, quotes, the "DASHBOARD_CONTENT_KEY (verified):"
+ * label copied along) by taking the one 44-character base64 token in it. On failure
+ * the error describes the value's shape, never the value.
+ */
+export function contentKeyBytes(value) {
+  const v = String(value || "");
+  const tokens = v.match(/[A-Za-z0-9+/]{43}=/g) || [];
+  const raw = tokens.length === 1 ? Buffer.from(tokens[0], "base64") : null;
+  if (raw && raw.length === 32) return raw;
+  const shape = [
+    `${v.length} characters`,
+    `${v.split(/\r?\n/).length} line(s)`,
+    /\s/.test(v) ? "contains spaces or line breaks" : "no whitespace",
+    /["']/.test(v) ? "contains quote marks" : null,
+    /:/.test(v) ? "contains a colon (label copied?)" : null,
+    `${tokens.length} key-shaped token(s) found`,
+  ].filter(Boolean).join(", ");
+  throw new Error(`DASHBOARD_CONTENT_KEY is not a 44-character base64 key ending in "=" (${shape}). Re-copy just the key line printed by scripts/recover-content-key.mjs or the browser snippet.`);
+}
+
+async function contentKey(value) {
+  return crypto.subtle.importKey("raw", contentKeyBytes(value), "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
 /** Encrypts a string into the `.enc` envelope documented in docs/data/SCHEMA.md. */

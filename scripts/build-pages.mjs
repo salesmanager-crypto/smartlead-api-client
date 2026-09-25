@@ -21,7 +21,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { webcrypto as crypto } from "node:crypto";
-import { ROOT, loadEnv, encryptString } from "./pull/lib.mjs";
+import { ROOT, loadEnv, encryptString, contentKeyBytes } from "./pull/lib.mjs";
 
 const APP = path.join(ROOT, "dashboard", "command-center.html");
 const SIGNIN = path.join(ROOT, "dashboard", "signin.html");
@@ -137,7 +137,7 @@ async function main() {
   const testUser = opt("--test-user");
   if (testUser) {
     const [u, p] = testUser.split(":");
-    const rec = await wrapKey(u.toLowerCase(), p, Buffer.from(key, "base64"));
+    const rec = await wrapKey(u.toLowerCase(), p, contentKeyBytes(key));
     signin = signin.replace(/var U=\{.*?\};\n/, `var U=${JSON.stringify({ [u.toLowerCase()]: rec })};\n`);
   }
   if (!signin.includes("/*%%PAYLOAD%%*/null")) throw new Error("payload marker not found in dashboard/signin.html");
