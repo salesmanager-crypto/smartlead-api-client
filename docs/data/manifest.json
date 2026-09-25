@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-09-25T20:10:19.071Z",
+  "generatedAt": "2026-09-25T20:15:25.216Z",
   "today": "2026-09-25",
   "sources": {
     "smartlead": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:05:57.939Z",
+      "lastAttempt": "2026-09-25T20:11:07.747Z",
       "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
       "records": null,
       "note": null,
@@ -12,15 +12,15 @@
     },
     "pipedrive": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:05:56.738Z",
+      "lastAttempt": "2026-09-25T20:11:06.754Z",
       "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
       "records": null,
       "note": null,
       "status": "error"
     },
     "heyreach": {
-      "lastSuccess": "2026-09-25T20:10:03.958Z",
-      "lastAttempt": "2026-09-25T20:10:03.958Z",
+      "lastSuccess": "2026-09-25T20:15:04.904Z",
+      "lastAttempt": "2026-09-25T20:15:04.904Z",
       "error": null,
       "records": 1,
       "note": null,
@@ -28,15 +28,15 @@
     },
     "semrush": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:10:18.757Z",
-      "error": "Semrush domain_ranks: 403 ERROR 120 :: WRONG KEY - ID PAIR",
+      "lastAttempt": "2026-09-25T20:15:24.836Z",
+      "error": "Semrush domain_ranks: 403 ERROR 120 :: WRONG KEY - ID PAIR (key is 67 chars, does not look like a Semrush API key (expected 32 hex characters); units balance unreadable)",
       "records": null,
       "note": null,
       "status": "error"
     },
     "seoIssues": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T20:10:19.069Z",
+      "lastAttempt": "2026-09-25T20:15:25.214Z",
       "error": null,
       "records": 239,
       "note": "Google secrets not set; showing the 2026-09-11 snapshot",
@@ -51,8 +51,8 @@
       "note": null
     },
     "tradeshows": {
-      "lastSuccess": "2026-09-25T20:10:19.070Z",
-      "lastAttempt": "2026-09-25T20:10:19.070Z",
+      "lastSuccess": "2026-09-25T20:15:25.215Z",
+      "lastAttempt": "2026-09-25T20:15:25.215Z",
       "error": null,
       "records": 0,
       "note": "no shows entered yet",
