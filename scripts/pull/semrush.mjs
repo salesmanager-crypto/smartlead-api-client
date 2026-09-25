@@ -79,13 +79,24 @@ export async function pull(env, ctx = {}) {
   }
 
   if (!env.SEMRUSH_API_KEY) throw new Error("SEMRUSH_API_KEY not set");
-  const key = env.SEMRUSH_API_KEY;
+  const key = env.SEMRUSH_API_KEY.trim(); // a pasted secret often carries a trailing newline
   const maxKw = Number(env.SEMRUSH_MAX_KEYWORDS || 30);
   if (tracked.length > maxKw) throw new Error(`seo_keywords.json has ${tracked.length} keywords, above the ${maxKw} cap (SEMRUSH_MAX_KEYWORDS). Each costs about 10 units a day.`);
 
   const before = await unitsLeft(key);
 
-  const ranks = await call(key, { type: "domain_ranks", domain: DOMAIN, database: DATABASE, export_columns: "Dn,Or" }, "domain_ranks");
+  let ranks;
+  try {
+    ranks = await call(key, { type: "domain_ranks", domain: DOMAIN, database: DATABASE, export_columns: "Dn,Or" }, "domain_ranks");
+  } catch (err) {
+    // describe the key's shape (never its value) so a wrong secret is easy to spot
+    if (/ERROR 120|ERROR 13[0-9]/.test(err.message)) {
+      const raw = env.SEMRUSH_API_KEY;
+      const shape = `key is ${key.length} chars${raw !== key ? ", had surrounding whitespace" : ""}, ${/^[0-9a-f]{32}$/i.test(key) ? "looks like a Semrush API key (32 hex)" : "does not look like a Semrush API key (expected 32 hex characters)"}`;
+      throw new Error(`${err.message} (${shape}; units balance ${before == null ? "unreadable" : before})`);
+    }
+    throw err;
+  }
   const rankedCount = numOrNull(ranks[0]?.Or) ?? 0;
   const limit = Math.min(rankedCount, Number(env.SEMRUSH_DOMAIN_LIMIT || 100));
   const ours = limit
