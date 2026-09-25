@@ -4,7 +4,8 @@
  *
  *   node dashboard/build.mjs
  *
- * Fills the DATA BLOCK from the live APIs, writes _site/index.html, then puts
+ * Fills the DATA BLOCK from the live APIs, writes _site/index.html (plus
+ * tradeshows.json, which the Trade Show Calendar tab loads at runtime), then puts
  * the tracked file back to its data-free state so the fill is never committed.
  * _site/ is gitignored. Point any static host at it.
  */
@@ -30,6 +31,8 @@ try {
 
   fs.mkdirSync(SITE, { recursive: true });
   fs.writeFileSync(path.join(SITE, "index.html"), built);
+  // The Trade Show Calendar tab fetches this file at runtime from next to the page.
+  fs.copyFileSync(path.join(HERE, "tradeshows.json"), path.join(SITE, "tradeshows.json"));
 
   const emails = new Set(built.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/g) || []);
   console.error(`\nwrote ${path.relative(process.cwd(), path.join(SITE, "index.html"))}`);

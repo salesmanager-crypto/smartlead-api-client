@@ -414,6 +414,10 @@
   .log-table tbody tr.row-gap td { background: var(--danger-bg); }
   .log-table tbody tr.row-gap:hover td { background: var(--danger-bg); }
   .kpi-card.hero .kpi-value small { color: rgba(255,255,255,.72); }
+  /* Trade Show Calendar */
+  .ts-table td.ts-nowrap { white-space: nowrap; }
+  .ts-table td.ts-why { min-width: 280px; max-width: 420px; line-height: 1.45; }
+  .ts-table td a.ext { white-space: nowrap; }
 </style>
 
 <div class="shell">
@@ -445,6 +449,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-5-5"/></svg>
         <span class="lbl">SmartScout</span>
       </a>
+      <a class="rail-btn" href="#/tradeshows" data-nav="tradeshows" title="Trade Show Calendar" aria-label="Trade Show Calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+        <span class="lbl">Trade Shows</span>
+      </a>
       <a class="rail-btn" href="#/general" data-nav="general" title="Resources: software and infrastructure" aria-label="Resources: software and infrastructure">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="6" rx="1.6"/><rect x="4" y="14" width="16" height="6" rx="1.6"/><path d="M7.5 7h.01M7.5 17h.01"/></svg>
         <span class="lbl">Resources</span>
@@ -474,6 +482,7 @@
         <a href="#/linkedin" data-nav="linkedin">LinkedIn</a>
         <a href="#/seo" data-nav="seo">SEO GEO</a>
         <a href="#/smartscout" data-nav="smartscout">SmartScout</a>
+        <a href="#/tradeshows" data-nav="tradeshows">Trade Shows</a>
         <a href="#/general" data-nav="general">Resources</a>
       </nav>
     </header>
@@ -541,7 +550,7 @@ function linkedTo(row) {
 }
 
 /* ================= routing ================= */
-const ROUTES = ["overview", "smartlead", "linkedin", "pipedrive", "seo", "smartscout", "general", "automation"];
+const ROUTES = ["overview", "smartlead", "linkedin", "pipedrive", "seo", "smartscout", "tradeshows", "general", "automation"];
 function pageFromHash() {
   const p = location.hash.replace(/^#\/?/, "").split("/")[0];
   return ROUTES.indexOf(p) !== -1 ? p : "overview";
@@ -558,6 +567,7 @@ function renderPage() {
   else if (route === "pipedrive") renderPipedrivePage(page);
   else if (route === "seo") renderSeoPage(page);
   else if (route === "smartscout") renderPlaceholder(page, "smartscout");
+  else if (route === "tradeshows") renderTradeShowsPage(page);
   else if (route === "general") renderGeneralPage(page);
   else if (route === "automation") renderPlaceholder(page, "automation");
   else renderOverviewPage(page);
@@ -631,6 +641,154 @@ function renderPlaceholder(page, key) {
   page.innerHTML = pageHead(p.title, p.sub, false) +
     '<div class="empty-page"><h3>Not built yet, on purpose</h3><p>' + p.body + '</p>' +
     '<p style="margin-top:14px"><strong style="color:var(--text)">To turn this on:</strong> ' + esc(p.need) + '</p></div>';
+}
+
+/* ================= Trade Show Calendar ================= */
+/* Rows are read at runtime from tradeshows.json, which sits next to this page.
+   To update the calendar, replace that one file. Nothing here needs editing. */
+const TS_SRC = "tradeshows.json";
+const TS_MONTHS = [["All", "All"], ["2026-10", "Oct 2026"], ["2026-11", "Nov 2026"], ["2026-12", "Dec 2026"], ["2027", "2027"]];
+const TS_REL_PILL = { High: "success", Medium: "warning", Low: "neutral" };
+let tsRows = null, tsLoadError = null, tsMonth = "All", tsRel = "All";
+
+function tsToday() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function tsDates(s, e) {
+  if (!s) return "TBD";
+  e = e || s;
+  const a = new Date(s + "T12:00:00Z"), b = new Date(e + "T12:00:00Z");
+  const mon = function (d) { return d.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" }); };
+  const ya = a.getUTCFullYear(), yb = b.getUTCFullYear();
+  if (s === e) return mon(a) + " " + a.getUTCDate() + ", " + ya;
+  if (ya !== yb) return mon(a) + " " + a.getUTCDate() + ", " + ya + " - " + mon(b) + " " + b.getUTCDate() + ", " + yb;
+  if (a.getUTCMonth() === b.getUTCMonth()) return mon(a) + " " + a.getUTCDate() + "-" + b.getUTCDate() + ", " + ya;
+  return mon(a) + " " + a.getUTCDate() + " - " + mon(b) + " " + b.getUTCDate() + ", " + ya;
+}
+function tsInMonth(r, m) {
+  if (m === "All") return true;
+  return (r.startDate || "").indexOf(m) === 0;
+}
+function tsRelPill(rel) {
+  return rel ? '<span class="pill ' + (TS_REL_PILL[rel] || "neutral") + '"><span class="dot"></span>' + esc(rel) + '</span>' : '<span class="seo-of">-</span>';
+}
+function tsStatusPill(st) {
+  const cls = st === "Verified" ? "success" : st === "Date changed" ? "warning" : "neutral";
+  return '<span class="pill ' + cls + '"><span class="dot"></span>' + esc(st || "Unconfirmed") + '</span>';
+}
+function tsLink(url, label) {
+  return url ? '<a class="ext" href="' + esc(url) + '" target="_blank" rel="noopener">' + label + '</a>' : '<span class="seo-of">-</span>';
+}
+function tsPlace(r) { return esc([r.city, r.state].filter(Boolean).join(", ")); }
+
+function renderTradeShowsPage(page) {
+  if (tsRows === null && tsLoadError === null) {
+    page.innerHTML = pageHead("Trade Show Calendar", "Loading the calendar...", false) + '<div class="empty-page"><p>Loading ' + TS_SRC + '...</p></div>';
+    fetch(TS_SRC, { cache: "no-cache" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) throw new Error("expected an array");
+        tsRows = rows.slice().sort(function (a, b) { return (a.startDate || "9999") < (b.startDate || "9999") ? -1 : (a.startDate || "9999") > (b.startDate || "9999") ? 1 : 0; });
+      })
+      .catch(function (err) { tsLoadError = err.message || String(err); })
+      .then(function () { if (pageFromHash() === "tradeshows") renderTradeShowsPage(document.getElementById("page")); });
+    return;
+  }
+  if (tsLoadError !== null) {
+    page.innerHTML = pageHead("Trade Show Calendar", "The calendar file could not be loaded.", false) +
+      '<div class="empty-page"><h3>No calendar data</h3><p>' + esc(TS_SRC) + ' did not load (' + esc(tsLoadError) + '). It has to sit in the same folder as this page and be served over http(s); opening the page straight from disk blocks the request.</p></div>';
+    return;
+  }
+
+  const today = tsToday(), in30 = addDays(today, 30);
+  const upcoming = tsRows.filter(function (r) { return (r.endDate || r.startDate) >= today; });
+  const soon = tsRows.filter(function (r) { return r.startDate && r.startDate <= in30 && (r.endDate || r.startDate) >= today; });
+  const lastVerified = tsRows.reduce(function (m, r) { return r.lastVerified && r.lastVerified > m ? r.lastVerified : m; }, "");
+
+  page.innerHTML = '<div id="tsRoot">' +
+    pageHead("Trade Show Calendar", "US trade shows where consumer product brands exhibit: the places to meet brands that sell, or should sell, on Amazon. " + tsRows.length + " shows" + (lastVerified ? ", last verified " + fmtDay(lastVerified) + ", " + lastVerified.slice(0, 4) : "") + ". Loaded from " + TS_SRC + ".", false) +
+
+    '<div class="table-card">' +
+      '<div class="table-head"><h3>Upcoming in the next 30 days</h3><span class="count-badge tnum">' + soon.length + '</span>' +
+        '<p class="table-head-sub">Shows running between ' + fmtDay(today) + ' and ' + fmtDay(in30) + ', including any already under way. ' + soon.filter(function (r) { return r.relevance === "High"; }).length + ' of them are High relevance.</p></div>' +
+      (soon.length ?
+        '<div class="table-scroll thin-scroll"><table class="data-table ts-table"><thead><tr><th>Show</th><th>Dates</th><th>City/State</th><th>Relevance</th><th>Website</th><th>Exhibitor list</th></tr></thead><tbody>' +
+        soon.map(function (r) {
+          return '<tr><td class="subject">' + esc(r.showName) + '</td><td class="ts-nowrap">' + tsDates(r.startDate, r.endDate) + '</td><td class="ts-nowrap">' + tsPlace(r) + '</td>' +
+            '<td>' + tsRelPill(r.relevance) + '</td><td>' + tsLink(r.website, "Website") + '</td><td>' + tsLink(r.exhibitorListUrl, "Exhibitors") + '</td></tr>';
+        }).join("") + '</tbody></table></div>'
+        : '<div class="empty-state">No shows start in the next 30 days.</div>') +
+    '</div>' +
+
+    '<div class="table-card" id="tsTableCard">' +
+      '<div class="table-head"><h3>All shows</h3><span class="count-badge tnum" id="tsCount"></span>' +
+        '<p class="table-head-sub">Sorted by start date. ' + upcoming.length + ' of ' + tsRows.length + ' have not ended yet. Relevance: High means exhibitors are overwhelmingly consumer product brands; Low rows are kept for a reason given in the source sheet. The search box at the top of the page filters this table too.</p>' +
+      '</div>' +
+      '<div class="chip-row in-head"><div class="segmented" role="tablist" aria-label="Month">' +
+        TS_MONTHS.map(function (m) {
+          const n = tsRows.filter(function (r) { return tsInMonth(r, m[0]); }).length;
+          return '<button class="' + (tsMonth === m[0] ? "active" : "") + '" role="tab" data-ts-month="' + m[0] + '">' + m[1] + '<span class="n tnum">' + n + '</span></button>';
+        }).join("") +
+      '</div></div>' +
+      '<div class="chip-row in-head" style="padding-top:0">' +
+        [["All", "All relevance"], ["High", "High"], ["Medium", "Medium"], ["Low", "Low"]].map(function (t) {
+          return '<button class="chip' + (tsRel === t[0] ? " active" : "") + '" data-ts-rel="' + t[0] + '">' + t[1] + '</button>';
+        }).join("") +
+      '</div>' +
+      '<div class="table-scroll thin-scroll"><table class="data-table ts-table" id="tsTable"><thead><tr>' +
+        '<th>Show</th><th>Dates</th><th>City/State</th><th>Venue</th><th>Relevance</th><th>Status</th><th>Website</th><th>Exhibitor list</th><th>Why Amazon-relevant</th>' +
+      '</tr></thead><tbody id="tsBody"></tbody></table></div>' +
+      '<div class="empty-state" id="tsEmpty" style="display:none">No shows match this filter.</div>' +
+    '</div>' +
+    '<footer class="page-foot">To update this page, replace ' + esc(TS_SRC) + ' next to the dashboard. Each row lists its sources in the file.</footer>' +
+  '</div>';
+
+  function tsFiltered() {
+    const search = document.getElementById("globalSearch");
+    const q = search ? search.value.trim().toLowerCase() : "";
+    return tsRows.filter(function (r) {
+      if (!tsInMonth(r, tsMonth)) return false;
+      if (tsRel !== "All" && r.relevance !== tsRel) return false;
+      if (q && [r.showName, r.city, r.state, r.venue, r.industryCategories, r.whyAmazonRelevant].join(" ").toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+  }
+  function renderTsTable() {
+    if (!document.getElementById("tsBody")) return;
+    const rows = tsFiltered();
+    document.getElementById("tsCount").textContent = rows.length + (rows.length === 1 ? " show" : " shows");
+    document.getElementById("tsEmpty").style.display = rows.length ? "none" : "block";
+    document.getElementById("tsBody").innerHTML = rows.map(function (r) {
+      return '<tr><td class="subject">' + esc(r.showName) + '</td>' +
+        '<td class="ts-nowrap">' + tsDates(r.startDate, r.endDate) + '</td>' +
+        '<td class="ts-nowrap">' + tsPlace(r) + '</td>' +
+        '<td class="trunc" title="' + esc(r.venue || "") + '">' + esc(r.venue || "") + '</td>' +
+        '<td>' + tsRelPill(r.relevance) + '</td>' +
+        '<td>' + tsStatusPill(r.status) + '</td>' +
+        '<td>' + tsLink(r.website, "Website") + '</td>' +
+        '<td>' + tsLink(r.exhibitorListUrl, "Exhibitors") + '</td>' +
+        '<td class="ts-why">' + esc(r.whyAmazonRelevant || "") + '</td></tr>';
+    }).join("");
+  }
+
+  document.getElementById("tsRoot").addEventListener("click", function (e) {
+    const m = e.target.closest("[data-ts-month]");
+    if (m) {
+      tsMonth = m.getAttribute("data-ts-month");
+      document.querySelectorAll("[data-ts-month]").forEach(function (x) { x.classList.toggle("active", x === m); });
+      renderTsTable();
+      return;
+    }
+    const rel = e.target.closest("[data-ts-rel]");
+    if (rel) {
+      tsRel = rel.getAttribute("data-ts-rel");
+      document.querySelectorAll("[data-ts-rel]").forEach(function (x) { x.classList.toggle("active", x === rel); });
+      renderTsTable();
+    }
+  });
+  document.getElementById("globalSearch").addEventListener("input", renderTsTable);
+  renderTsTable();
 }
 
 /* ================= SEO & GEO ================= */
