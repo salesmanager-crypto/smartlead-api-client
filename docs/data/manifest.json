@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-09-25T19:55:17.635Z",
+  "generatedAt": "2026-09-25T20:10:19.071Z",
   "today": "2026-09-25",
   "sources": {
     "smartlead": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T19:51:02.237Z",
+      "lastAttempt": "2026-09-25T20:05:57.939Z",
       "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
       "records": null,
       "note": null,
@@ -12,15 +12,15 @@
     },
     "pipedrive": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T19:51:00.661Z",
+      "lastAttempt": "2026-09-25T20:05:56.738Z",
       "error": "DASHBOARD_CONTENT_KEY not set, so the encrypted file was not written (plaintext kept in .private/data/)",
       "records": null,
       "note": null,
       "status": "error"
     },
     "heyreach": {
-      "lastSuccess": "2026-09-25T19:55:06.452Z",
-      "lastAttempt": "2026-09-25T19:55:06.452Z",
+      "lastSuccess": "2026-09-25T20:10:03.958Z",
+      "lastAttempt": "2026-09-25T20:10:03.958Z",
       "error": null,
       "records": 1,
       "note": null,
@@ -28,7 +28,7 @@
     },
     "semrush": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T19:55:17.465Z",
+      "lastAttempt": "2026-09-25T20:10:18.757Z",
       "error": "Semrush domain_ranks: 403 ERROR 120 :: WRONG KEY - ID PAIR",
       "records": null,
       "note": null,
@@ -36,7 +36,7 @@
     },
     "seoIssues": {
       "lastSuccess": null,
-      "lastAttempt": "2026-09-25T19:55:17.632Z",
+      "lastAttempt": "2026-09-25T20:10:19.069Z",
       "error": null,
       "records": 239,
       "note": "Google secrets not set; showing the 2026-09-11 snapshot",
@@ -51,8 +51,8 @@
       "note": null
     },
     "tradeshows": {
-      "lastSuccess": "2026-09-25T19:55:17.634Z",
-      "lastAttempt": "2026-09-25T19:55:17.634Z",
+      "lastSuccess": "2026-09-25T20:10:19.070Z",
+      "lastAttempt": "2026-09-25T20:10:19.070Z",
       "error": null,
       "records": 0,
       "note": "no shows entered yet",
