@@ -43,6 +43,30 @@ def load_raw():
     return df
 
 
+def collapse_within_show(df):
+    """Merge rows in the same show that share a normalized name (one company, several listings)."""
+    out = []
+    for (show, nn), g in df.groupby(["Show", "_nn"], sort=False):
+        if not nn or len(g) == 1:
+            out.extend(g.to_dict("records"))
+            continue
+        recs = g.to_dict("records")
+        base = dict(max(recs, key=lambda r: len(r["About"])))
+        base["Key"] = "+".join(r["Key"] for r in recs)
+        base["Booth"] = "; ".join(dict.fromkeys(b for r in recs for b in split_list(r["Booth"])))
+        base["Detail URL"] = " | ".join(r["Detail URL"] for r in recs)
+        base["Categories"] = "; ".join(dict.fromkeys(c for r in recs for c in split_list(r["Categories"])))
+        base["Show Brands"] = "; ".join(dict.fromkeys(c for r in recs for c in split_list(r["Show Brands"])))
+        for f in ("Website", "LinkedIn", "Address City", "Address State", "Address Country"):
+            base[f] = base[f] or next((r[f] for r in recs if r[f]), "")
+        base["_dom"] = base["_dom"] or next((r["_dom"] for r in recs if r["_dom"]), "")
+        base["Notes"] = "; ".join(filter(None, [f"Listed {len(recs)} times in {show} (exhids "
+                                                + ", ".join(r["exhid"] for r in recs) + "); merged"]
+                                             + [r["Notes"] for r in recs if r["Notes"]]))
+        out.append(base)
+    return pd.DataFrame(out)
+
+
 def match(df):
     a = df[df.Show == "AAPEX"].copy()
     s = df[df.Show == "SEMA"].copy()
@@ -144,7 +168,13 @@ def single_row(r, extra_notes):
 
 def main():
     state = load_state()
-    df = load_raw()
+    raw = load_raw()
+    qa = os.path.join(ROOT, "pipeline", "work", "qa_notes.csv")
+    if os.path.exists(qa):
+        for k, note in pd.read_csv(qa, dtype=str, keep_default_na=False).values:
+            m = raw.Key == k
+            raw.loc[m, "Notes"] = raw.loc[m, "Notes"].map(lambda n: "; ".join(filter(None, [n, note])))
+    df = collapse_within_show(raw)
     pairs, basis, notes, used_a, used_s = match(df)
     rows = {r["Key"]: r for r in df.to_dict("records")}
     out = []
@@ -197,8 +227,8 @@ def main():
                 "Categories", "All Categories Count", "Show Brands", "Address City",
                 "Address State", "Address Country", "Detail URL", "Gallery Name",
                 "Gallery Booths", "Fetched At", "Notes"]
-    raw_a = df[df.Show == "AAPEX"][raw_cols]
-    raw_s = df[df.Show == "SEMA"][raw_cols]
+    raw_a = raw[raw.Show == "AAPEX"][raw_cols]
+    raw_s = raw[raw.Show == "SEMA"][raw_cols]
     ex, raw_a, raw_s = (excel_safe(t) for t in (ex, raw_a, raw_s))
     with pd.ExcelWriter(OUT, engine="openpyxl") as xw:
         ex.to_excel(xw, sheet_name="Exhibitors", index=False)
