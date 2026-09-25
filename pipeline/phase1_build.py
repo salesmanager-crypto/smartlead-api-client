@@ -193,6 +193,11 @@ def main():
     for r in out:
         if r["About"]:
             s = summ.get(about_key(r["About"]), "")
+            tag = "[About text describes another company]"
+            if s.startswith(tag):
+                s = s[len(tag):].strip()
+                r["Notes"] = "; ".join(filter(None, [r["Notes"], "About text on show page names a "
+                                                     "different company; verify before relying on it"]))
             r["About Summary"] = s
             if not s:
                 missing_summary += 1
