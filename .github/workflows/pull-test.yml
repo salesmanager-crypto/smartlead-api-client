@@ -49,4 +49,6 @@ jobs:
           git add docs/data
           if git diff --cached --quiet; then echo "no data changes"; exit 0; fi
           git commit -m "data: pull test $(date -u +%Y-%m-%d)"
+          # the branch may have moved while the pull ran; data files are only ever written here
+          git pull --rebase origin ${{ github.ref_name }}
           git push origin HEAD:${{ github.ref_name }}
