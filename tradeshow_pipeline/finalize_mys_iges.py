@@ -43,6 +43,8 @@ def main(sumdir, sids):
         merged, by_n, by_d = [], {}, {}
         for r in rows:
             r = {c: nodash(r.get(c, '')) for c in COLS}
+            if re.search(r'\btest booth\b', r['Exhibitor Name'], re.I):
+                print(sid, 'dropping test entry', r['Exhibitor Name']); continue
             if r['About'] and not re.search(r'[A-Za-z0-9]', r['About']):
                 r['About'] = ''
                 r['Notes'] = '; '.join(x for x in [r['Notes'], 'description field held only punctuation'] if x)
