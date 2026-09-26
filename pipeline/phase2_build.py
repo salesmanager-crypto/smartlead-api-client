@@ -34,6 +34,12 @@ def main():
     cp = pd.read_csv(CP, dtype=str, keep_default_na=False).drop_duplicates("Exhibitor ID") \
         .set_index("Exhibitor ID") if os.path.exists(CP) else pd.DataFrame()
 
+    overrides = {}
+    ov_path = os.path.join(ROOT, "pipeline", "work", "p2_overrides.csv")
+    if os.path.exists(ov_path):
+        for o in pd.read_csv(ov_path, dtype=str, keep_default_na=False).to_dict("records"):
+            overrides.setdefault(o["Exhibitor ID"], []).append(o)
+
     rows = []
     for r in ex.to_dict("records"):
         eid = r["Exhibitor ID"]
@@ -69,6 +75,14 @@ def main():
                                       c["Parent Source"], c["Parent Query"])
             if c.get("Notes"):
                 notes.append(c["Notes"])
+            for o in overrides.get(eid, []):
+                if o["Field"] == "Parent Company":
+                    parent = o["Value"]
+                    pdom, psrc = "", ("" if not parent else "show page exhibitor name")
+                elif o["Field"] == "Exhibitor Type":
+                    etype = o["Value"]
+                if o["Note"]:
+                    notes.append(o["Note"])
             if parent and any(a in psrc.lower() for a in AGGREGATORS):
                 notes.append("Parent source is a data-aggregator profile; verify")
         rows.append({
