@@ -1,0 +1,29 @@
+You are researching trade show exhibitors (AAPEX / SEMA 2026, automotive aftermarket) for an Amazon agency: which brands each exhibitor owns, and whether each brand sells on Amazon US. Do NOT use WebSearch or WebFetch (the session's search limit is used up) and do not query any search engine. Your only outside tool is SmartScout: load it with ToolSearch ("select:mcp__SmartScout__run_query,mcp__SmartScout__query_analytics").
+
+Input: /home/user/smartlead-api-client/pipeline/work/p3_in_{NN}.jsonl, one exhibitor per line: id, name, domain, website, type, type_reason, summary, about, categories, show_brands (the "Brands" section the exhibitor filled in on the show page), parent, brand_links (link texts on its homepage mentioning brands), brand_pages (text, headings, link texts and image alt texts from its own brand pages).
+
+Output: /home/user/smartlead-api-client/pipeline/work/p3_out_{NN}.csv with EXACTLY these columns:
+Exhibitor ID,Brand,Brand Source,Amazon Check Method,SmartScout Brand,SmartScout Match,SS Primary Category,SS Primary Subcategory,SS Monthly Revenue,Amazon URL,Amazon Sold By,Amazon Confidence,On Amazon,Notes
+Long format: one row per (exhibitor, brand), at least one row per exhibitor, rows for an exhibitor written together and exhibitors in input order. Write with Python's csv module and append after every batch so progress is saved. If the file already exists, read it and skip exhibitors already present (you may be resuming). Also append every raw SmartScout result row you receive (one JSON object per line, exactly as returned) to /home/user/smartlead-api-client/pipeline/work/ss_raw_{NN}.jsonl.
+
+Work in batches of about 25 exhibitors:
+
+STEP 1, brands owned (from the input data only, never from memory):
+- A brand counts when the exhibitor sells products under it: its own brand names, house brands of a distributor, brands named in show_brands or on its own brand pages as its own, brands the summary/about say it makes or owns. Third-party brands a distributor merely carries do NOT count (e.g. "distributes Bosch, Valeo" does not make Bosch a brand of that exhibitor).
+- The exhibitor name (shortened to the brand form, e.g. "KYB Americas Corporation" -> "KYB", "Hot Shot's Secret" -> "Hot Shot's Secret") is a brand only if products are sold under that name. For factories that only do OEM/private label with no brand of their own, write one row with Brand blank.
+- If the exhibitor owns 15 brands, list all 15. Use the brand's own spelling. Skip product lines/model names unless presented as brands.
+- Brand Source: the brand page URL, or "show page Brands section", "show page About", "exhibitor name", or the company website URL. Blank-brand rows: Brand Source blank and Notes "No own brand identified in show page or website data".
+STEP 2, SmartScout check for every non-blank brand:
+- Handle: qh_2N1_0tDm-Syg (a "Full profile of the brand <X>" query). Call mcp__SmartScout__run_query with handle "qh_2N1_0tDm-Syg", filterValues = up to 40 brand names at once, limit 200. It returns one row per brand it knows (field "Brand Name"); brands missing from the result are not in SmartScout under that exact name.
+- For brands not returned, build at most two name variants each (with/without spaces or hyphens, with/without a suffix such as USA, Performance, Racing, Products, Inc, Automotive, Tools, Tire) and run one more batched call with the variants.
+- If run_query returns an error, retry once; if it still fails, call mcp__SmartScout__query_analytics with question "Full profile of the brand <one brand>" to get a fresh handle and continue with that handle.
+- Judge each returned row: the match counts only if Primary Category and Primary Subcategory plausibly fit the exhibitor's product type (automotive, powersports, tools, car care, RV, outdoor, electronics, apparel etc. as the exhibitor's data shows). An automotive lighting brand matching a cosmetics brand of the same name is a wrong match.
+- SmartScout Match: exact (original name returned and fits), close (a variant returned and fits), wrong match (returned but category does not fit), not found. SmartScout Brand: the returned Brand Name (blank if not found). Fill SS Primary Category, SS Primary Subcategory, SS Monthly Revenue (the "Total Monthly Revenue" number, plain number, no $) for exact/close/wrong match rows.
+STEP 3, the remaining columns:
+- exact or close: Amazon Check Method "SmartScout", Amazon Confidence blank, On Amazon "Yes".
+- not found or wrong match: Amazon Check Method "SmartScout; amazon.com pending", Amazon Confidence "Amazon check pending", On Amazon "Pending", Notes include "Amazon check pending" (amazon.com is currently blocked by a robot check; it will be retried later).
+- Blank brand: Amazon Check Method blank, On Amazon "No".
+- Amazon URL and Amazon Sold By: leave blank.
+- Notes: a few words on anything unusual (e.g. "SmartScout also has same-name cosmetics brand; ignored").
+
+Rules: no em dashes or en dashes anywhere. Other agents run in parallel and share the scratchpad: name helper files with a `p3c{NN}_` prefix, keep them in the scratchpad directory (never in pipeline/work) and never touch other files. At the end verify: every input id has at least one row, no duplicate (Exhibitor ID, Brand) pairs, SmartScout Match values are only exact/close/wrong match/not found/blank; then report: exhibitors, brands found, brands exact/close, wrong match, not found, blank-brand exhibitors.
