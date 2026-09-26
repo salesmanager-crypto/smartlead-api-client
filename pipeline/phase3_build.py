@@ -6,7 +6,7 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT, load_state, save_state
 from phase1_build import excel_safe, format_workbook
-from phase3_work import CP
+from phase3_work import CP, SS_CACHE
 
 OUT = os.path.join(ROOT, "phase3_brands_amazon.xlsx")
 
@@ -20,6 +20,16 @@ def main():
     b.insert(1, "Exhibitor Name", b["Exhibitor ID"].map(scope["Exhibitor Name"]))
     b["SS Monthly Revenue"] = pd.to_numeric(b["SS Monthly Revenue"].str.replace(r"[$,]", "", regex=True),
                                             errors="coerce")
+    # brands SmartScout knows but with no current products or revenue: downgrade Yes -> Possible
+    import json
+    cache = json.load(open(SS_CACHE)) if os.path.exists(SS_CACHE) else {}
+    idle = {k.lower() for k, v in cache.items()
+            if not v.get("profile", {}).get("Total Products") and not v.get("profile", {}).get("Total Monthly Revenue")}
+    m = (b["On Amazon"] == "Yes") & b["SmartScout Brand"].str.lower().isin(idle)
+    b.loc[m, "On Amazon"] = "Possible"
+    b.loc[m, "Amazon Confidence"] = "possible"
+    b.loc[m, "Notes"] = b.loc[m, "Notes"].map(lambda n: "; ".join(filter(None, [
+        n, "SmartScout knows the brand but shows no current products or revenue"])))
     b = b.sort_values(["Exhibitor ID", "Brand"])
 
     roll = []
@@ -53,7 +63,8 @@ def main():
         "amazon.com check: amazon.com served a robot-check page to this session's browser, so per the run rules "
         "that source was paused and brands not found in SmartScout are marked 'Amazon check pending' / On Amazon "
         "'Pending'. They still need a manual or later amazon.com check.",
-        "On Amazon: Yes = SmartScout exact/close match. Pending = not in SmartScout (or wrong match), amazon.com "
+        "On Amazon: Yes = SmartScout exact/close match with current products. Possible = SmartScout knows the brand "
+        "but shows no current products or revenue. Pending = not in SmartScout (or wrong match), amazon.com "
         "check still to do. No = no own brand identified.",
         "Any Brand On Amazon (rollup): Yes / Possible / Pending / No, best status across the exhibitor's brands.",
     ]})
