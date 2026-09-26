@@ -43,6 +43,8 @@ def main(sumdir, sids):
         merged, by_n, by_d = [], {}, {}
         for r in rows:
             r = {c: nodash(r.get(c, '')) for c in COLS}
+            m = re.search(r'linkedin\.com/company/([^/?#\s]+)', r['LinkedIn'], re.I)
+            r['LinkedIn'] = f'https://www.linkedin.com/company/{m.group(1)}' if m else ''
             if re.search(r'\btest booth\b', r['Exhibitor Name'], re.I):
                 print(sid, 'dropping test entry', r['Exhibitor Name']); continue
             if r['About'] and not re.search(r'[A-Za-z0-9]', r['About']):
@@ -55,7 +57,12 @@ def main(sumdir, sids):
             if idx is None:
                 merged.append(r); idx = len(merged) - 1
             else:
+                other_name = r['Exhibitor Name'] if norm_name(r['Exhibitor Name']) != norm_name(merged[idx]['Exhibitor Name']) else ''
+                keep_name = merged[idx]['Exhibitor Name']
                 merged[idx] = merge(merged[idx], r)
+                if other_name:
+                    alt = other_name if merged[idx]['Exhibitor Name'] != other_name else keep_name
+                    merged[idx]['Notes'] = '; '.join(x for x in [merged[idx]['Notes'], f'merged with separate listing "{alt}" (same website domain)'] if x)
             by_n.setdefault(n, idx)
             if d: by_d.setdefault(d, idx)
         missing = 0
