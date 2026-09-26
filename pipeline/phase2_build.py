@@ -12,6 +12,8 @@ from phase1_build import excel_safe, format_workbook
 from phase2_work import CP, company_host
 
 OUT = os.path.join(ROOT, "phase2_domains.xlsx")
+AGGREGATORS = ("cbinsights.", "pitchbook.", "zoominfo.", "crunchbase.", "mergr.", "craft.co", "owler.",
+               "rocketreach.", "dnb.com", "tracxn.", "apollo.io", "signalhire.", "leadiq.", "growjo.")
 SCOPE = {"Brand / Manufacturer": "Research", "Distributor / Wholesaler": "Research", "Unclear": "Research",
          "Service / Software / Media / Association": "Skip", "Tool & Equipment / Shop Supplier": "Skip"}
 
@@ -19,8 +21,16 @@ SCOPE = {"Brand / Manufacturer": "Research", "Distributor / Wholesaler": "Resear
 def main():
     ex = pd.read_excel(os.path.join(ROOT, "phase1_exhibitors.xlsx"), sheet_name="Exhibitors",
                        dtype=str).fillna("")
-    sig = pd.read_csv(os.path.join(ROOT, "pipeline", "work", "site_signals.csv"), dtype=str,
-                      keep_default_na=False).drop_duplicates("Exhibitor ID").set_index("Exhibitor ID")
+    import gzip, json
+    from phase2_fetch_sites import SITE_CACHE, signals
+
+    def site_sig(website):
+        h = company_host(website)
+        path = os.path.join(SITE_CACHE, h + ".json.gz") if h else ""
+        if not path or not os.path.exists(path):
+            return {}
+        with gzip.open(path, "rt", encoding="utf-8") as fh:
+            return {k: str(v) for k, v in signals(json.load(fh)).items()}
     cp = pd.read_csv(CP, dtype=str, keep_default_na=False).drop_duplicates("Exhibitor ID") \
         .set_index("Exhibitor ID") if os.path.exists(CP) else pd.DataFrame()
 
@@ -29,7 +39,7 @@ def main():
         eid = r["Exhibitor ID"]
         notes = [r["Notes"]] if r["Notes"] else []
         c = cp.loc[eid].to_dict() if eid in cp.index else None
-        s = sig.loc[eid].to_dict() if eid in sig.index else {}
+        s = site_sig(r["Website"])
 
         host = company_host(r["Website"])
         if host:
@@ -59,6 +69,8 @@ def main():
                                       c["Parent Source"], c["Parent Query"])
             if c.get("Notes"):
                 notes.append(c["Notes"])
+            if parent and any(a in psrc.lower() for a in AGGREGATORS):
+                notes.append("Parent source is a data-aggregator profile; verify")
         rows.append({
             "Exhibitor ID": eid, "Exhibitor Name": r["Exhibitor Name"], "Shows": r["Shows"],
             "AAPEX Booth": r["AAPEX Booth"], "SEMA Booth": r["SEMA Booth"], "Website": r["Website"],
