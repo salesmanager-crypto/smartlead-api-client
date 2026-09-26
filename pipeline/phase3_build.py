@@ -30,6 +30,8 @@ def main():
     b.loc[m, "Amazon Confidence"] = "possible"
     b.loc[m, "Notes"] = b.loc[m, "Notes"].map(lambda n: "; ".join(filter(None, [
         n, "SmartScout knows the brand but shows no current products or revenue"])))
+    b.insert(3, "Ownership", b["Notes"].str.contains(r"licens", case=False).map({True: "Licensed", False: "Owned"}))
+    b.loc[b["Brand"] == "", "Ownership"] = ""
     b = b.sort_values(["Exhibitor ID", "Brand"])
 
     roll = []
@@ -37,6 +39,7 @@ def main():
         g = b[b["Exhibitor ID"] == eid]
         named = g[g["Brand"] != ""]
         yes = named[named["On Amazon"] == "Yes"]
+        owned_yes = yes[yes["Ownership"] != "Licensed"]
         poss = named[named["On Amazon"] == "Possible"]
         pend = named[named["On Amazon"] == "Pending"]
         if g.empty:
@@ -50,7 +53,7 @@ def main():
             "Brands Found": len(named), "Brands On Amazon": len(yes),
             "Amazon Brand List": "; ".join(yes["Brand"]), "Any Brand On Amazon": anyb,
             "Amazon Checks Pending": len(pend),
-            "SmartScout Monthly Revenue (Amazon brands)": yes["SS Monthly Revenue"].sum() if len(yes) else None,
+            "SmartScout Monthly Revenue (owned Amazon brands)": owned_yes["SS Monthly Revenue"].sum() if len(owned_yes) else None,
             "Notes": note,
         })
     roll = pd.DataFrame(roll)
@@ -66,6 +69,8 @@ def main():
         "On Amazon: Yes = SmartScout exact/close match with current products. Possible = SmartScout knows the brand "
         "but shows no current products or revenue. Pending = not in SmartScout (or wrong match), amazon.com "
         "check still to do. No = no own brand identified.",
+        "Ownership: 'Licensed' when the brand is used under license (SmartScout revenue for that name covers every "
+        "seller of the brand, so it is excluded from the exhibitor's revenue total).",
         "Any Brand On Amazon (rollup): Yes / Possible / Pending / No, best status across the exhibitor's brands.",
     ]})
     with pd.ExcelWriter(OUT, engine="openpyxl") as xw:
