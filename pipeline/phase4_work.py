@@ -90,6 +90,16 @@ def collect():
             score = bool(r.get("sellers")) + bool(r.get("subcats"))
             if key not in best or score >= best[key][0]:
                 best[key] = (score, {k: v for k, v in r.items() if k != "subcat_lists"})
+    # exact-rank backfill: replace subcats with the rank-bearing version when available
+    for path in sorted(glob.glob(os.path.join(WORK, "p4rank_out_*.jsonl"))):
+        for line in open(path):
+            try:
+                fx = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            key = (fx.get("brand") or "").lower()
+            if key in best and fx.get("subcats"):
+                best[key][1]["subcats"] = fx["subcats"]
     with open(CP + ".tmp", "w") as out:
         for key, (score, r) in best.items():
             out.write(json.dumps(r, ensure_ascii=False) + "\n")
