@@ -4,7 +4,7 @@ Reads phase1_checkpoint.csv (from phase1_scrape.py) and pipeline/work/summaries.
 (About Summary per About text hash). Exhibitor IDs are assigned once and persisted in
 run_state.json (phase1.exhibitor_ids keyed by the sorted member keys), so reruns keep them.
 """
-import hashlib, os, sys
+import hashlib, os, re, sys
 from collections import defaultdict
 
 import pandas as pd
@@ -36,9 +36,16 @@ def split_list(s):
     return [x.strip() for x in (s or "").split(";") if x.strip()]
 
 
+def clean_linkedin(url):
+    """Trim admin/dashboard or tracking paths to the public page: linkedin.com/company/<slug>/."""
+    m = re.search(r"linkedin\.com/(company|school|showcase|in)/([^/?#]+)", url or "", re.I)
+    return f"https://www.linkedin.com/{m.group(1).lower()}/{m.group(2)}/" if m else (url or "")
+
+
 def load_raw():
     df = pd.read_csv(CP_PATH, dtype=str, keep_default_na=False)
     df = df.drop_duplicates("Key", keep="last")
+    df["LinkedIn"] = df["LinkedIn"].map(clean_linkedin)
     df["_nn"] = df["Exhibitor Name"].map(norm_name)
     df["_dom"] = df["Website"].map(company_domain)
     return df
@@ -275,6 +282,15 @@ def main():
         ex.to_excel(xw, sheet_name="Exhibitors", index=False)
         raw_a.to_excel(xw, sheet_name="Raw AAPEX", index=False)
         raw_s.to_excel(xw, sheet_name="Raw SEMA", index=False)
+        pd.DataFrame({"Note": [
+            "Source: aapex2026.mapyourshow.com and sema26.mapyourshow.com exhibitor galleries and detail pages.",
+            "Address City / State / Country are blank on every row: none of the detail pages publish an address.",
+            "Categories: first 5 product categories as listed on each show page; merged rows carry the union of both shows' top 5.",
+            "Show Brands: the 'Brands' section of the show page, when the exhibitor filled it in (extra column, useful for phase 3).",
+            "About Summary: written from the show page About text only; rows without About text have no summary (see Notes).",
+            "Match Basis: name = normalized name match, domain = same website domain, both = name and domain agree.",
+            "LinkedIn: company page link from the show page, trimmed to the public URL; other social links ignored.",
+        ]}).to_excel(xw, sheet_name="Read Me", index=False)
     format_workbook(OUT)
 
     both = ex[ex.Shows == "AAPEX; SEMA"]
