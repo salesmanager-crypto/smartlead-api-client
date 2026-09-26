@@ -1,0 +1,8 @@
+cache/
+raw/
+*.xlsx
+*.csv
+run_state.json
+smartscout_cache.json
+.proxy_spki
+__pycache__/
