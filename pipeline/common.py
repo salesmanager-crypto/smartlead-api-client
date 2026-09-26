@@ -75,6 +75,7 @@ NON_COMPANY_DOMAINS = {
     "amazon.com", "ebay.com", "alibaba.com", "aliexpress.com", "google.com", "sites.google.com",
     "mapyourshow.com", "wixsite.com", "godaddysites.com", "tiktok.com", "made-in-china.com",
     "etsy.com", "walmart.com", "shopify.com", "myshopify.com", "linktr.ee", "bit.ly",
+    "1688.com", "taobao.com", "tmall.com", "globalsources.com", "tradeindia.com", "indiamart.com",
 }
 
 
@@ -89,3 +90,31 @@ def domain_of(url):
     if "." not in s or " " in s:
         return ""
     return s
+
+
+SECOND_LEVEL = {"co", "com", "net", "org", "ac", "gov", "ne", "or", "edu"}
+
+
+def registrable_domain(d):
+    """autometer.com from test.autometer.com; adbs.co.th stays adbs.co.th."""
+    p = d.split(".")
+    if len(p) >= 3 and p[-2] in SECOND_LEVEL and len(p[-1]) == 2:
+        return ".".join(p[-3:])
+    return ".".join(p[-2:]) if len(p) >= 2 else d
+
+
+def domain_label(d):
+    """The brand part of a registrable domain: liqui-moly from liqui-moly.us."""
+    return registrable_domain(d).split(".")[0] if d else ""
+
+
+NAME_FILLER = {"usa", "us", "america", "americas", "north", "aftermarket", "technology",
+               "technologies", "products", "brands", "group", "international", "industries",
+               "enterprises", "the", "corporation", "incorporated"}
+
+
+def loose_name(name):
+    s = re.sub(r"\(.*?\)", " ", (name or "").lower()).replace("&", " and ")
+    s = re.sub(r"[^a-z0-9 ]+", " ", s)
+    toks = [t for t in s.split() if t not in NAME_FILLER]
+    return norm_name(" ".join(toks))

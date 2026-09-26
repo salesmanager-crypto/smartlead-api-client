@@ -10,7 +10,8 @@ from collections import defaultdict
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import NON_COMPANY_DOMAINS, ROOT, domain_of, load_state, norm_name, save_state
+from common import (NON_COMPANY_DOMAINS, ROOT, domain_label, domain_of, load_state, loose_name,
+                    norm_name, registrable_domain, save_state)
 
 CP_PATH = os.path.join(ROOT, "phase1_checkpoint.csv")
 SUMMARIES = os.path.join(ROOT, "pipeline", "work", "summaries.csv")
@@ -28,7 +29,7 @@ def company_domain(url):
     for bad in NON_COMPANY_DOMAINS:
         if d == bad or d.endswith("." + bad):
             return ""
-    return d
+    return registrable_domain(d)
 
 
 def split_list(s):
@@ -103,6 +104,40 @@ def match(df):
         else:
             for k in ka + ks:
                 notes[k].append(f"Shares website domain {dom} with another exhibitor; not merged on domain")
+
+    lookup = df.set_index("Key")
+
+    # 3) same domain label on a different TLD (liqui-moly.com vs liqui-moly.us), unique both sides
+    def unique_map(frame, used, keyfn):
+        rest = frame[~frame.Key.isin(used)]
+        m = defaultdict(list)
+        for k, v in zip(rest.Key, rest.apply(keyfn, axis=1)):
+            if v:
+                m[v].append(k)
+        return {v: ks[0] for v, ks in m.items() if len(ks) == 1}
+
+    for keyfn, label in ((lambda r: domain_label(r["_dom"]) if len(domain_label(r["_dom"])) >= 4 else "",
+                          "domain"),
+                         (lambda r: loose_name(r["Exhibitor Name"]) if len(loose_name(r["Exhibitor Name"])) >= 4 else "",
+                          "name")):
+        ua, us = unique_map(a, used_a, keyfn), unique_map(s, used_s, keyfn)
+        for v, ka in ua.items():
+            ks = us.get(v)
+            if ks and label == "name":
+                da, ds = lookup.at[ka, "_dom"], lookup.at[ks, "_dom"]
+                if da and ds and domain_label(da) != domain_label(ds):
+                    notes[ka].append(f"Similar name to SEMA exhibitor '{lookup.at[ks, 'Exhibitor Name']}' "
+                                     f"but different website ({ds}); kept separate")
+                    notes[ks].append(f"Similar name to AAPEX exhibitor '{lookup.at[ka, 'Exhibitor Name']}' "
+                                     f"but different website ({da}); kept separate")
+                    continue
+            if ks:
+                pairs.append((ka, ks))
+                used_a.add(ka)
+                used_s.add(ks)
+                basis[(ka, ks)] = label
+                notes[ka].append(f"Matched across shows on {'domain name' if label == 'domain' else 'name'} "
+                                 f"ignoring TLD/suffixes ('{v}'); check")
 
     # upgrade name matches whose domains also agree
     lookup = df.set_index("Key")
@@ -221,6 +256,7 @@ def main():
             next_n += 1
         ids[mk] = eid
         r["Exhibitor ID"] = eid
+    assert len({r["Exhibitor ID"] for r in out}) == len(out), "duplicate Exhibitor IDs"
     save_state(state)
 
     cols = ["Exhibitor ID", "Exhibitor Name", "Shows", "AAPEX Booth", "SEMA Booth", "Website",
