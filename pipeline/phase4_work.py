@@ -72,35 +72,36 @@ def export(chunk):
 
 
 def collect():
-    have = done()
+    """Rebuild phase4_checkpoint.jsonl from all raw files; per brand prefer the record with data."""
     cache = json.load(open(SS_CACHE)) if os.path.exists(SS_CACHE) else {}
     ranks = json.load(open(RANK_CACHE)) if os.path.exists(RANK_CACHE) else {}
-    added = 0
-    with open(CP, "a") as out:
-        for path in sorted(glob.glob(os.path.join(WORK, "p4_raw_*.jsonl"))):
-            for line in open(path):
-                try:
-                    r = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                key = (r.get("brand") or "").lower()
-                if not key:
-                    continue
-                for sub, lst in (r.get("subcat_lists") or {}).items():
-                    ranks.setdefault(sub, lst)
-                if key in have:
-                    continue
-                if r.get("profile"):
-                    cache.setdefault(r["brand"], {})["profile"] = r["profile"]
-                cache.setdefault(r["brand"], {})["sellers"] = r.get("sellers", [])
-                cache.setdefault(r["brand"], {})["subcats"] = r.get("subcats", [])
-                slim = {k: v for k, v in r.items() if k != "subcat_lists"}
-                out.write(json.dumps(slim, ensure_ascii=False) + "\n")
-                have[key] = slim
-                added += 1
+    best = {}
+    for path in sorted(glob.glob(os.path.join(WORK, "p4_raw_*.jsonl"))):
+        for line in open(path):
+            try:
+                r = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            key = (r.get("brand") or "").lower()
+            if not key:
+                continue
+            for sub, lst in (r.get("subcat_lists") or {}).items():
+                ranks.setdefault(sub, lst)
+            score = bool(r.get("sellers")) + bool(r.get("subcats"))
+            if key not in best or score >= best[key][0]:
+                best[key] = (score, {k: v for k, v in r.items() if k != "subcat_lists"})
+    with open(CP + ".tmp", "w") as out:
+        for key, (score, r) in best.items():
+            out.write(json.dumps(r, ensure_ascii=False) + "\n")
+            c = cache.setdefault(r["brand"], {})
+            if r.get("profile"):
+                c["profile"] = r["profile"]
+            c["sellers"] = r.get("sellers", [])
+            c["subcats"] = r.get("subcats", [])
+    os.replace(CP + ".tmp", CP)
     json.dump(cache, open(SS_CACHE, "w"))
     json.dump(ranks, open(RANK_CACHE, "w"))
-    print(f"collected {added} brands; checkpoint {len(have)}; subcategory rank lists {len(ranks)}")
+    print(f"checkpoint {len(best)} brands; subcategory rank lists {len(ranks)}")
 
 
 def status():
