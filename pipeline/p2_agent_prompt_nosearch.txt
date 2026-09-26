@@ -1,0 +1,21 @@
+You are classifying trade show exhibitors (AAPEX / SEMA 2026, automotive aftermarket, Las Vegas) for an Amazon agency's prospect list. This session's web search limit is used up: do NOT call WebSearch, and do not use WebFetch or any other way to query a search engine. Work only from the data in the input file.
+
+Input: /home/user/smartlead-api-client/pipeline/work/p2_in_{NN}.jsonl, one JSON object per line: id, name, website, domain, needs_domain, shows, summary (of the show-page About text), categories, show_brands, linkedin, site (title | description || text snippet from the company's own website), site_about_url, site_status, site_error, parent_hints (sentences from the company's own website and About page containing ownership words; often noise).
+
+Output: /home/user/smartlead-api-client/pipeline/work/p2_out_{NN}.csv with EXACTLY these columns:
+Exhibitor ID,Domain Found,Domain Source,Exhibitor Type,Type Reason,Parent Company,Parent Domain,Parent Source,Parent Query,Notes
+One row per input line (Exhibitor ID = id). Write with Python's csv module, appending every 10 exhibitors. If the output file already exists, read it and skip ids already present (you may be resuming).
+
+For each exhibitor:
+1. Domain Found / Domain Source: always blank. If needs_domain is true, Notes must include "Domain search not run (session search limit)".
+2. Exhibitor Type, exactly one of these five strings:
+   - `Brand / Manufacturer`: makes and sells products under its own brand name(s). Includes factories making parts/accessories (even OEM/private label), chemical and car-care makers, tire makers, performance parts brands, and tool brands sold to consumers/retail.
+   - `Distributor / Wholesaler`: sells other companies' brands (may also own house brands): importers, exporters, trading companies, parts warehouses, online parts retailers, buying groups of distributors.
+   - `Service / Software / Media / Association`: software/SaaS, marketplaces, logistics, finance, insurance, consulting, marketing agencies, publications/media, trade associations, government or trade-promotion agencies, schools, testing/certification, events, show features and pavilions.
+   - `Tool & Equipment / Shop Supplier`: capital equipment and supplies sold to repair, body and tire shops: lifts, alignment, tire changers/balancers, paint booths, body-shop spray equipment, diagnostic scan tools, ADAS calibration, A/C service machines, shop furniture, fluid-handling, collision and welding equipment, shop consumables sold only to pros.
+   - `Unclear`: too little information to decide.
+   When torn between Brand / Manufacturer and Tool & Equipment (e.g. hand tools), choose Brand / Manufacturer if the products plausibly sell to consumers or through retail. Type Reason: one short line of evidence (e.g. "Makes KYB-branded shocks for the aftermarket").
+3. Parent company, from the provided data only: fill Parent Company ONLY when summary, site or parent_hints state plainly that this exhibitor is owned by, a subsidiary/division/brand of, part of a named group, or was acquired by another company (e.g. "a subsidiary of KYB Corporation", "part of the FOUR E's Industrial Group", "a Dorman Products company", "a Lincoln Electric company" in the name or text). Not a parent: family-owned, founders, distribution partners, customers, "member of SEMA", brands the company sells. Parent Domain: only if a parent URL/domain appears in the data, else blank. Parent Source: site_about_url if the statement came from parent_hints and it is set, else the company website URL; write "show page About" if it came from the summary. Parent Query: blank. Every row's Notes must include "Parent web search not run (session search limit)".
+4. Notes: the required phrases above, plus a few words on anything unusual ("Website did not load", "Show-page About describes another company"). Join with "; ".
+
+Rules: never fill from memory; if the data does not say it, leave it blank. No em dashes or en dashes anywhere. Other agents run in parallel and share the scratchpad directory: name any helper file with a `p2c{NN}_` prefix and never touch other files; prefer inline python heredocs. At the end, verify the output has exactly one row per input id, no duplicates, and every Exhibitor Type is one of the five exact strings; then report: rows written, type counts, parents found.
