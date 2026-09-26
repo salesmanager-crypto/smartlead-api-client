@@ -20,7 +20,8 @@ P4_COLS = ["Monthly Revenue", "Annual Revenue (TTM)", "Dominant Seller", "Domina
            "Sub 3 Market Share", "Sub 3 Brand Rank", "Primary Category", "Primary Subcategory",
            "Total Products", "Total Reviews", "Average Rating", "Average Price", "Seller Count",
            "Reseller Share %", "Amazon 1P %", "MoM Growth", "12-Month MoM Growth", "Has Storefront",
-           "Storefront URL", "Top 5 Sellers", "Data Pulled At"]
+           "Storefront URL", "Top 5 Sellers", "Data Pulled At", "Data Quality Flag"]
+FLAG_RE = __import__("re").compile(r"collision|unrelated|homonym|not the exhibitor|same.name|different company|looks like", __import__("re").I)
 
 
 def num(v):
@@ -98,6 +99,9 @@ def main():
                     out[f"Sub {i} Brand Rank"] = rank_val(sc.get("Rank"))
                 if p4.get("notes"):
                     notes.append(p4["notes"])
+                    if FLAG_RE.search(p4["notes"]):
+                        out["Data Quality Flag"] = ("SmartScout brand name overlaps another company's products; "
+                                                    "revenue may include them")
             if r.get("Ownership") == "Licensed":
                 notes.append("Licensed brand: SmartScout figures cover every seller of the brand name")
         elif r["On Amazon"] == "Yes":
@@ -120,7 +124,9 @@ def main():
                      "Largest Brand": g["Brand"].iloc[0], "Largest Brand Monthly Revenue": g["Monthly Revenue"].iloc[0],
                      "Largest Brand Dominant Seller": g["Dominant Seller"].iloc[0],
                      "Largest Brand Dominant Seller Type": g["Dominant Seller Type"].iloc[0],
-                     "Amazon Brand List": "; ".join(g["Brand"])})
+                     "Amazon Brand List": "; ".join(g["Brand"]),
+                     "Data Quality Flag": "; ".join(sorted(set(f"{b}: same-name overlap" for b, fl in
+                                                              zip(g["Brand"], g["Data Quality Flag"]) if fl)))})
     roll = pd.DataFrame(roll).sort_values("Total Monthly Revenue", ascending=False)
     readme = pd.DataFrame({"Note": [
         "Source: SmartScout MCP, Amazon US, Business plan (no revenue history, no ad data). Pulled " + pulled + ".",
@@ -136,6 +142,9 @@ def main():
         "Top Subcategories: the brand's top 3 subcategories by the brand's revenue, with market share in %. Brand "
         "Rank = position among the subcategory's top 30 brands by revenue; '>30' when outside the top 30. (SmartScout's "
         "single query cannot return rank directly.)",
+        "Data Quality Flag: SmartScout groups products by brand name, so a brand that shares its name with another "
+        "company (e.g. Lucas, Monroe, Fox) can show revenue and subcategories that belong to the other company. "
+        "Treat flagged revenue as an upper bound.",
         "Exhibitor Rollup: sums owned Amazon brands only (licensed brands excluded). Two exhibitors that list the "
         "same brand (e.g. a parent and its division) each show that brand's revenue.",
     ]})

@@ -32,6 +32,12 @@ def main():
         n, "SmartScout knows the brand but shows no current products or revenue"])))
     b.insert(3, "Ownership", b["Notes"].str.contains(r"licens", case=False).map({True: "Licensed", False: "Owned"}))
     b.loc[b["Brand"] == "", "Ownership"] = ""
+    ov = os.path.join(ROOT, "pipeline", "work", "p3_overrides.csv")
+    if os.path.exists(ov):
+        for o in pd.read_csv(ov, dtype=str, keep_default_na=False).to_dict("records"):
+            m = (b["Exhibitor ID"] == o["Exhibitor ID"]) & (b["Brand"].str.lower() == o["Brand"].lower())
+            b.loc[m, "Ownership"] = o["Ownership"]
+            b.loc[m, "Notes"] = b.loc[m, "Notes"].map(lambda n: "; ".join(filter(None, [n, o["Note"]])))
     b = b.sort_values(["Exhibitor ID", "Brand"])
 
     roll = []
