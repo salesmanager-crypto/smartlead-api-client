@@ -43,6 +43,9 @@ def main(sumdir, sids):
         merged, by_n, by_d = [], {}, {}
         for r in rows:
             r = {c: nodash(r.get(c, '')) for c in COLS}
+            if r['About'] and not re.search(r'[A-Za-z0-9]', r['About']):
+                r['About'] = ''
+                r['Notes'] = '; '.join(x for x in [r['Notes'], 'description field held only punctuation'] if x)
             n = norm_name(r['Exhibitor Name']); d = domain_of(r['Website'])
             d = d if d and d not in GENERIC else ''
             idx = by_n.get(n)
