@@ -75,6 +75,8 @@ def main():
                                       c["Parent Source"], c["Parent Query"])
             if c.get("Notes"):
                 notes.append(c["Notes"])
+            if psrc.strip().lower() in ("site_about_url", "site about url"):
+                psrc = s.get("About URL", "") or r["Website"]
             for o in overrides.get(eid, []):
                 if o["Field"] == "Parent Company":
                     parent = o["Value"]
