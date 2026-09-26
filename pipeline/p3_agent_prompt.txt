@@ -11,6 +11,7 @@ Work in batches of about 25 exhibitors:
 STEP 1, brands owned (from the input data only, never from memory):
 - A brand counts when the exhibitor sells products under it: its own brand names, house brands of a distributor, brands named in show_brands or on its own brand pages as its own, brands the summary/about say it makes or owns. Third-party brands a distributor merely carries do NOT count (e.g. "distributes Bosch, Valeo" does not make Bosch a brand of that exhibitor).
 - The exhibitor name (shortened to the brand form, e.g. "KYB Americas Corporation" -> "KYB", "Hot Shot's Secret" -> "Hot Shot's Secret") is a brand only if products are sold under that name. For factories that only do OEM/private label with no brand of their own, write one row with Brand blank.
+- type_reason was written in phase 2 from the exhibitor's own show page and website text, so brand names stated there as the exhibitor's own (e.g. "under the X brand") are a valid source (Brand Source: the company website URL).
 - If the exhibitor owns 15 brands, list all 15. Use the brand's own spelling. Skip product lines/model names unless presented as brands.
 - Brand Source: the brand page URL, or "show page Brands section", "show page About", "exhibitor name", or the company website URL. Blank-brand rows: Brand Source blank and Notes "No own brand identified in show page or website data".
 STEP 2, SmartScout check for every non-blank brand:
