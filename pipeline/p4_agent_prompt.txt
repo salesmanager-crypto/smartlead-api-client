@@ -1,0 +1,18 @@
+You are pulling SmartScout (Amazon US) data for brands owned by AAPEX / SEMA 2026 exhibitors. Do NOT use WebSearch or WebFetch. Load the SmartScout tools with ToolSearch ("select:mcp__SmartScout__run_query,mcp__SmartScout__query_analytics").
+
+Input: /home/user/smartlead-api-client/pipeline/work/p4_in_{NN}.jsonl, one brand per line: brand (exact SmartScout Brand Name), exhibitors (the exhibitor(s) that own it: "E1234 Company Name"), brand_names (how the exhibitor writes the brand), single_seller.
+Output: append one JSON object per brand (one line each) to /home/user/smartlead-api-client/pipeline/work/p4_raw_{NN}.jsonl, written with Python json.dumps. If the file exists, skip brands already in it (you may be resuming). Write each brand's line as soon as it is done.
+
+Saved query handles (use mcp__SmartScout__run_query with the handle and filterValues):
+- SELLERS: handle "qh_eQ5tkZW2nZS8" (question: "Which sellers sell the brand <brand> and what is each seller's share of the brand's revenue"). Call with filterValues [brand], limit 15.
+- SUBCATS: handle "qh_zLqHUAfwYupX" (question: "Top 3 subcategories for the brand <brand> by the brand's revenue, with the brand's market share and rank in each subcategory"). Call with filterValues [brand], limit 3. Returns Subcategory Context Name, Revenue, Market Share (a fraction: 0.04 = 4%). It has no rank.
+- SUBCAT_BRANDS: handle "qh_xr02BbjdFIVh" (question: "Top 100 brands in the subcategory <subcategory> by revenue"). Call with filterValues [subcategory name exactly as returned], limit 30. Returns brands in revenue order.
+Handles expire. If run_query says the saved query is unavailable or errors twice, call mcp__SmartScout__query_analytics with the question above (filled in for the current brand/subcategory) to get a fresh handle from its "handle" field, and use that handle from then on.
+
+For each brand:
+1. sellers = SELLERS rows. For each seller add "Type": "Amazon 1P" if the seller is Amazon.com; "Brand direct" if the seller name is clearly the brand itself or the owning exhibitor/parent (e.g. seller "KYB Americas" for brand KYB, "Powerbuilt Tools" for Powerbuilt, "WD-40 Company"); otherwise "Third-party reseller". Keep Seller Name, Number of Offers, Brand Revenue Estimate, Estimated Brand Share (a percent number, e.g. 39.67), Month Over Month Change, Type.
+2. subcats = SUBCATS rows (up to 3), as {"Subcategory", "Revenue", "Market Share"}.
+3. Rank in each subcategory: first look in /home/user/smartlead-api-client/pipeline/work/subcat_rank_cache.json (read it once at the start; it maps subcategory name -> ordered list of brand names) and in the lists you fetched earlier this run. If the subcategory is not there, call SUBCAT_BRANDS for it and keep the ordered list of Brand Name values. Rank = 1-based position of the brand (case-insensitive exact name match) in that list, or ">30" if absent. Add "Rank" to each subcat.
+4. Write: {"brand": ..., "sellers": [...], "subcats": [...], "subcat_lists": {subcategory: [brand names in order], ...only lists you fetched for this brand}, "notes": "..."}. If SELLERS or SUBCATS return nothing, write empty lists and say so in notes.
+
+Rules: numbers stay numbers (no $ or %). No em dashes or en dashes. Other agents run in parallel and share the scratchpad: name helper files with a `p4c{NN}_` prefix, keep them in the scratchpad directory (never in pipeline/work), never touch other files. Call SmartScout one call at a time. At the end verify every input brand has exactly one line in the output; report: brands done, brands with no sellers, subcategory lists fetched, any handle refreshes.
