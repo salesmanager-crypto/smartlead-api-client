@@ -94,7 +94,9 @@ def collect():
             for eid, g in df.groupby("Exhibitor ID", sort=False):
                 if eid in have or eid not in finished:
                     continue
-                if not set(g["SmartScout Match"].str.strip()) <= MATCHES:
+                g = g.copy()
+                g["SmartScout Match"] = g["SmartScout Match"].str.strip().str.lower().replace({"blank": "", "n/a": ""})
+                if not set(g["SmartScout Match"]) <= MATCHES:
                     bad.append((chunk, eid))
                     continue
                 for r in g.to_dict("records"):
