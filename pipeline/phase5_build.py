@@ -16,7 +16,10 @@ NOT_SEARCHED = "Not searched (session web search limit reached); try Sales Navig
 def main():
     t = pd.DataFrame(targets())
     cp = pd.read_csv(CP, dtype=str, keep_default_na=False) if os.path.exists(CP) else pd.DataFrame(columns=FIELDS)
-    searched = set(cp["Exhibitor ID"])
+    real = cp[~cp["Notes"].str.startswith("Not searched")]
+    searched = set(real["Exhibitor ID"])
+    # drop "Not searched" placeholder rows (re-added below for every unsearched target)
+    cp = real
     rows = cp.drop(columns=["Chunk"], errors="ignore").to_dict("records")
     for r in t.to_dict("records"):
         if r["id"] not in searched:

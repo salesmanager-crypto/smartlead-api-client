@@ -43,13 +43,19 @@ def targets():
 def done_ids():
     if not os.path.exists(CP):
         return set()
-    return set(pd.read_csv(CP, dtype=str, keep_default_na=False)["Exhibitor ID"])
+    df = pd.read_csv(CP, dtype=str, keep_default_na=False)
+    # exhibitors whose only rows say "Not searched" are not done: a later session can search them
+    real = df[~df["Notes"].str.startswith("Not searched")]
+    return set(real["Exhibitor ID"])
 
 
-def pending_ids():
+def pending_ids(include_all=False):
+    """Exhibitors in an input chunk that has no output yet (still being worked)."""
     s = set()
     for f in glob.glob(os.path.join(WORK, "p5_in_*.jsonl")):
-        s |= {json.loads(l)["id"] for l in open(f)}
+        n = os.path.basename(f)[6:8]
+        if include_all or not os.path.exists(os.path.join(WORK, f"p5_out_{n}.csv")):
+            s |= {json.loads(l)["id"] for l in open(f)}
     return s
 
 
@@ -69,7 +75,7 @@ def export(chunk, limit):
 
 
 def collect():
-    have = done_ids()
+    have = set(pd.read_csv(CP, dtype=str, keep_default_na=False)["Exhibitor ID"]) if os.path.exists(CP) else set()
     new = not os.path.exists(CP)
     added = 0
     with open(CP, "a", newline="", encoding="utf-8") as f:
