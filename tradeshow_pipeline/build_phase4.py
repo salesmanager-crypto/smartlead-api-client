@@ -17,7 +17,7 @@ def stype(seller, brand, exhibitor, parent):
     if s in ('amazoncom', 'amazon'): return 'Amazon 1P'
     for n in (brand, exhibitor, parent):
         k = nz(re.sub(r'\b(inc|llc|co|corp|ltd|usa|us|home|brands?|group|company)\b', '', (n or '').lower()))
-        if len(k) >= 4 and (k in s or s in k): return 'Brand direct'
+        if len(k) >= 3 and (k in s or s in k): return 'Brand direct'
     return 'Third-party reseller'
 rows = []
 for _, r in P.iterrows():
@@ -27,18 +27,27 @@ for _, r in P.iterrows():
         notes.append('Not in SmartScout'); o['Notes'] = '; '.join(notes); rows.append(o); continue
     p = prof.get(ssb.lower())
     if not p:
-        notes.append('SmartScout profile not returned'); o['Notes'] = '; '.join(notes); rows.append(o); continue
+        # fall back to the phase 3 snapshot (same SmartScout fields, pulled 2026-09-27) so revenue ranking still works
+        o.update({'Monthly Revenue': float(r['SmartScout Monthly Revenue (phase 3 snapshot)'] or 0), 'Primary Category': r['SmartScout Category'],
+                  'Primary Subcategory': r['SmartScout Subcategory'], 'Total Products': float(r['SmartScout Products'] or 0), 'Data Pulled At': '2026-09-27 (phase 3 snapshot)'})
+        notes.append('Full SmartScout profile pending (SmartScout outage 2026-09-27); Monthly Revenue, category and product count from the phase 3 snapshot; TTM revenue, reviews, rating, price, 1P share and growth not pulled')
+        p = None
+    b = br.get(ssb.lower())
+    if p is None:
+        if b: pass
+        else:
+            notes.append('Seller and subcategory pull pending (SmartScout outage)' if (o['Monthly Revenue'] or 0) > 0 else 'No current monthly revenue; sellers and subcategories not pulled')
+            o['Notes'] = '; '.join(dict.fromkeys(n for n in notes if n)); rows.append(o); continue
     g = lambda k: p.get(k) if p.get(k) not in ('', None) else None
-    o.update({'Monthly Revenue': g('Total Monthly Revenue'), 'Annual Revenue (TTM)': g('Trailing 12-Month Revenue'), 'Primary Category': p['Primary Category'],
+    if p is not None: o.update({'Monthly Revenue': g('Total Monthly Revenue'), 'Annual Revenue (TTM)': g('Trailing 12-Month Revenue'), 'Primary Category': p['Primary Category'],
               'Primary Subcategory': p['Primary Subcategory'], 'Total Products': g('Total Products'), 'Total Reviews': g('Total Reviews'), 'Average Rating': g('Average Rating'),
               'Average Price': g('Average Price'), 'Seller Count': g('Average Sellers'), 'Amazon 1P %': round(g('Average Amazon Revenue %') * 100, 1) if g('Average Amazon Revenue %') is not None else None,
               'MoM Growth': round(g('Average MoM Growth') * 100, 1) if isinstance(g('Average MoM Growth'), (int, float)) else None,
               'Has Storefront': 'Yes' if p.get('Has Storefront') in (True, 'true') else 'No', 'Data Pulled At': p['pulled_at'],
               'Storefront URL': p.get('Storefront URL') or None,
               '12-Month MoM Growth': round(g('Average 12-Month MoM Growth') * 100, 1) if isinstance(g('Average 12-Month MoM Growth'), (int, float)) else None})
-    if not p.get('Storefront URL') and o['Has Storefront'] == 'Yes': notes.append('Storefront URL not in this profile pull')
-    if o['12-Month MoM Growth'] is None: notes.append('12-Month MoM Growth not in this profile pull')
-    b = br.get(ssb.lower())
+    if p is not None and not p.get('Storefront URL') and o['Has Storefront'] == 'Yes': notes.append('Storefront URL not in this profile pull')
+    if p is not None and o.get('12-Month MoM Growth') is None: notes.append('12-Month MoM Growth not in this profile pull')
     if b:
         s = sorted(b['sellers'], key=lambda x: -(x['Brand Revenue Estimate'] or 0))
         if s:
@@ -52,7 +61,7 @@ for _, r in P.iterrows():
         for i, sc in enumerate(sorted(b['subcats'], key=lambda x: -(x['Revenue'] or 0))[:3], 1):
             o[f'Top Subcategory {i}'] = sc['Subcategory']; o[f'Sub {i} Market Share'] = round((sc['Marketshare'] or 0) * 100, 2); o[f'Sub {i} Brand Rank'] = sc['Rank']
     elif (o['Monthly Revenue'] or 0) > 0:
-        notes.append('Seller and subcategory pull missing')
+        notes.append('Seller and subcategory pull pending (SmartScout outage)')
     else:
         notes.append('No current monthly revenue; sellers and subcategories not pulled')
     o['Notes'] = '; '.join(dict.fromkeys(n for n in notes if n)); rows.append(o)
@@ -77,8 +86,9 @@ R = Q.groupby(['Show ID','Show Name','Exhibitor ID','Exhibitor Name','Exhibitor 
 with pd.ExcelWriter('phase4_smartscout_ALL.xlsx', engine='openpyxl') as w:
     Q.to_excel(w, sheet_name='Brands', index=False); R.to_excel(w, sheet_name='Exhibitor Rollup', index=False)
 for sid, g in Q.groupby('Show ID'):
-    pulled = g['Data Pulled At'].notna().sum(); notin = g['Notes'].str.contains('Not in SmartScout|profile not returned', na=False).sum()
+    pulled = g['Data Pulled At'].notna().sum(); full = (~g['Data Pulled At'].astype(str).str.contains('snapshot') & g['Data Pulled At'].notna()).sum()
+    notin = g['Notes'].str.contains('Not in SmartScout', na=False).sum(); sellers = g['Dominant Seller'].notna().sum()
     r = R[R['Show ID'] == sid].head(10)
-    print(f"\n{sid}: brands pulled {pulled}, not in SmartScout {notin}")
+    print(f"\n{sid}: brands with SmartScout data {pulled} (full profile {full}, sellers/subcats {sellers}), not in SmartScout {notin}")
     for _, x in r.iterrows(): print(f"   {x['Exhibitor Name'][:40]:40s} ${x['Combined Monthly Revenue']:>13,.0f}/mo  largest: {x['Largest Brand']}")
 print('\nTOTAL brands', len(Q), 'pulled', Q['Data Pulled At'].notna().sum())
