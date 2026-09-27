@@ -69,5 +69,5 @@ if __name__ == '__main__':
         with lock:
             done[0] += 1
             if done[0] % 250 == 0: print('phase 2 site fetch:', done[0], 'of', len(doms), flush=True)
-    with ThreadPoolExecutor(16) as ex: list(ex.map(wrap, doms))
+    with ThreadPoolExecutor(32) as ex: list(ex.map(wrap, doms))
     print('DONE', flush=True)
