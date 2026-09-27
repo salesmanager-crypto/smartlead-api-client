@@ -4,7 +4,7 @@ RESILIENCE: SmartScout has been flickering. If run_query returns "couldn't run",
 Transcribe results exactly (unicode escapes like & = "&", ' = "'"); numbers as plain numbers (revenue rounded to 2 decimals); empty values stay empty. Keep messages minimal. Never interpret or filter rows.
 
 ## Mode PROFILE (batches from phase4_work/profile_batches.json)
-HANDLE_PROFILE = qh_4-XqemdjuIWN (fallback question if the handle errors: "Full profile of the brand CTEK"; use the new handle).
+HANDLE_PROFILE = qh_lQEvnyieortO (fallback question if the handle errors: "Full profile of the brand CTEK"; use the new handle).
 For each batch index i in your range:
 1. `python3 -c "import json;print(json.dumps(json.load(open('phase4_work/profile_batches.json'))[i]))"`
 2. run_query(handle=HANDLE_PROFILE, filterValues=<that list exactly>, limit=200)
@@ -13,7 +13,7 @@ For each batch index i in your range:
    + `EOF`. (Has Storefront / Has Single Seller as true/false. "Average Sellers": use the field of that name if present, else "Average Competitive Sellers". Storefront URL and Average 12-Month MoM Growth: copy if the response has them, else leave empty but keep the pipes, 17 fields per line.) If the saver prints BAD FIELD COUNT, fix the line and re-run.
 
 ## Mode BRAND (per brand, list from phase4_work/rev_brands.json, slice [START:END])
-HANDLE_SELLERS = qh_TxoS1SN9FuFm (fallback question: "Which sellers sell the brand CTEK and what is each seller's share of the brand's revenue")
+HANDLE_SELLERS = qh_qYfiOqR-C7Ho (fallback question: "Which sellers sell the brand CTEK and what is each seller's share of the brand's revenue")
 HANDLE_SUBCATS = qh_ni-LUmPq7eUo (fallback question: "Top 3 subcategories for the brand CTEK by the brand's revenue, with the brand's market share and rank in each subcategory")
 Get your list: `python3 -c "import json;print(json.dumps(json.load(open('phase4_work/rev_brands.json'))[START:END]))"`. For each brand:
 1. run_query(handle=HANDLE_SELLERS, filterValues=[brand], limit=5)
