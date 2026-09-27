@@ -33,8 +33,11 @@ for _, r in P.iterrows():
               'Primary Subcategory': p['Primary Subcategory'], 'Total Products': g('Total Products'), 'Total Reviews': g('Total Reviews'), 'Average Rating': g('Average Rating'),
               'Average Price': g('Average Price'), 'Seller Count': g('Average Sellers'), 'Amazon 1P %': round(g('Average Amazon Revenue %') * 100, 1) if g('Average Amazon Revenue %') is not None else None,
               'MoM Growth': round(g('Average MoM Growth') * 100, 1) if isinstance(g('Average MoM Growth'), (int, float)) else None,
-              'Has Storefront': 'Yes' if p.get('Has Storefront') in (True, 'true') else 'No', 'Data Pulled At': p['pulled_at']})
-    notes.append('12-Month MoM Growth and Storefront URL not returned by SmartScout Business plan profile')
+              'Has Storefront': 'Yes' if p.get('Has Storefront') in (True, 'true') else 'No', 'Data Pulled At': p['pulled_at'],
+              'Storefront URL': p.get('Storefront URL') or None,
+              '12-Month MoM Growth': round(g('Average 12-Month MoM Growth') * 100, 1) if isinstance(g('Average 12-Month MoM Growth'), (int, float)) else None})
+    if not p.get('Storefront URL') and o['Has Storefront'] == 'Yes': notes.append('Storefront URL not in this profile pull')
+    if o['12-Month MoM Growth'] is None: notes.append('12-Month MoM Growth not in this profile pull')
     b = br.get(ssb.lower())
     if b:
         s = sorted(b['sellers'], key=lambda x: -(x['Brand Revenue Estimate'] or 0))
