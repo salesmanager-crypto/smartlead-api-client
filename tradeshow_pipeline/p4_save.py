@@ -16,12 +16,12 @@ if os.path.exists(out):
         if json.loads(l).get('key') == key: print(f'{key} already saved'); sys.exit(0)
 lines = [l.rstrip('\n') for l in sys.stdin.read().strip().splitlines() if l.strip()]
 if kind == 'profile':
-    F = ['Brand Name','Primary Category','Primary Subcategory','Total Monthly Revenue','Trailing 12-Month Revenue','Total Products','Total Reviews','Average Rating','Average Price','Average Sellers','Has Storefront','Average Amazon Revenue %','Average MoM Growth','Has Single Seller','Single Seller Name']
+    F = ['Brand Name','Primary Category','Primary Subcategory','Total Monthly Revenue','Trailing 12-Month Revenue','Total Products','Total Reviews','Average Rating','Average Price','Average Sellers','Has Storefront','Average Amazon Revenue %','Average MoM Growth','Has Single Seller','Single Seller Name','Storefront URL','Average 12-Month MoM Growth']
     rows = []
     for l in lines:
         p = [x.strip() for x in l.split('|')]
-        if len(p) != len(F): print('BAD FIELD COUNT', len(p), l[:80]); sys.exit(1)
-        rows.append({f: (p[i] if i in (0, 1, 2, 14) else num(p[i])) for i, f in enumerate(F)})
+        if len(p) not in (15, 17): print('BAD FIELD COUNT', len(p), l[:80]); sys.exit(1)
+        rows.append({f: (p[i] if i in (0, 1, 2, 14, 15) else num(p[i])) for i, f in enumerate(F[:len(p)])})
     rec = {'key': key, 'kind': 'profile', 'batch': int(key), 'queried': json.load(open('phase4_work/profile_batches.json'))[int(key)], 'rows': rows, 'pulled_at': now}
 else:
     sec, sellers, subs = None, [], []
