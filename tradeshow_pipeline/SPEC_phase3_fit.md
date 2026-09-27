@@ -1,0 +1,8 @@
+# Phase 3 SmartScout fit check spec (workers)
+Folder: /home/user/smartlead-api-client/tradeshow_pipeline. Input: phase3_work/fit_chunk_<N>.csv, one row per (Exhibitor Key, Brand) that SmartScout returned a same-name brand for.
+Columns: Row ID, Exhibitor Name, Brand, What the exhibitor sells (Exhibitor Type, Categories, About/Type Reason text), SmartScout Brand, SmartScout Category, SmartScout Subcategory, Total Products, Monthly Revenue, Matched On (brand name / variant).
+Decide if the SmartScout brand is plausibly THIS exhibitor's brand: the SmartScout Primary Category and Subcategory must fit the exhibitor's product type (e.g. furniture maker vs "Home & Kitchen > Coffee Tables" = fits; furniture maker vs "CDs & Vinyl > Italian Music" = wrong match; dive gear maker vs "Sports & Outdoors > Diving Fins" = fits). Use judgment for near fits (a lighting maker in "Tools & Home Improvement > Chandeliers" fits; a jewelry maker in "Clothing, Shoes & Jewelry > Women's Rings" fits; a toy/collectibles company in "Toys & Games" or "Everything Else > Action Figures" fits). SmartScout's primary category is sometimes odd for real brands (e.g. "Office Products > End Tables" for a furniture maker still fits because the subcategory fits). Use ONLY the given text.
+Output: phase3_work/fit_out_<N>.csv, columns EXACTLY: Row ID, Fit, Fit Reason
+- Fit = "fits" or "wrong match". Fit Reason = 4 to 12 words.
+Write with Python csv module, append + flush every 50 rows; read input in slices; resume by skipping Row IDs already in the output. Helper filenames include "f<N>". No em dashes.
+Final reply: rows done, fits, wrong matches. Nothing else.
