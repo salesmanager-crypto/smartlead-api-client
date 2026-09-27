@@ -30,6 +30,8 @@ for i, r in a.iterrows():
     pc = ps = pd_ = ''
     if k in cls.index and cls.loc[k, 'Parent Company']: pc, pd_, ps = cls.loc[k, 'Parent Company'], cls.loc[k, 'Parent Domain'], cls.loc[k, 'Parent Source']
     elif k in srch.index and srch.loc[k, 'Parent Company']: pc, ps = srch.loc[k, 'Parent Company'], 'search result: ' + srch.loc[k, 'Parent Source']
+    if pc and 'copyright' in ps.lower() and not any(w in ps.lower() for w in ['about', 'site text', 'show about', 'search', 'name']):
+        notes.append(f'Site copyright names {pc} (not counted as parent: copyright line only)'); pc = pd_ = ps = ''
     o.update({'Parent Company': pc, 'Parent Domain': pd_, 'Parent Source': ps})
     if k in art_keys: t, why = 'Artist / Individual', 'Listed in Artists Alley'
     elif k in cls.index: t, why = cls.loc[k, 'Exhibitor Type'], cls.loc[k, 'Type Reason']; notes += [cls.loc[k, 'Notes']] if cls.loc[k, 'Notes'] else []
