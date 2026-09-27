@@ -6,3 +6,5 @@ run_state.json
 smartscout_cache.json
 .proxy_spki
 __pycache__/
+phase2_work/
+phase*_work/
