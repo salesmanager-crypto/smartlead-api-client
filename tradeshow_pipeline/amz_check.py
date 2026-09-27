@@ -5,16 +5,19 @@ import asyncio, sys, re, json, os, random, time, hashlib
 import pandas as pd
 from playwright.async_api import async_playwright
 sys.path.insert(0, '.')
-from browser import new_browser
+from browser import LAUNCH, UA
 OUT = 'phase3_work/amz_results.jsonl'; CACHE = 'cache/amazon'; os.makedirs(CACHE, exist_ok=True)
 def nz(s): return re.sub(r'[^a-z0-9]', '', (s or '').lower().replace('&', 'and'))
-async def polite(): await asyncio.sleep(random.uniform(3, 5))
+async def polite(): await asyncio.sleep(random.uniform(4, 7))
 async def get(pg, url):
     for attempt in range(2):
         await pg.goto(url, timeout=60000); await pg.wait_for_timeout(1500)
         html = await pg.content(); t = await pg.title()
-        if 'captcha' in html.lower()[:20000] or 'robot check' in t.lower() or 'Sorry! Something went wrong' in html[:5000]:
-            print('captcha/block on', url, '-> pause 600s', flush=True); await asyncio.sleep(600); continue
+        blocked = ('validatecaptcha' in html.lower() or 'enter the characters you see below' in html.lower() or 'robot check' in t.lower()
+                   or ('something went wrong' in html.lower() and 'dogsofamazon' in html.lower()) or len(html) < 3000)
+        if blocked:
+            open(os.path.join(CACHE, 'blocked_%d.html' % int(time.time())), 'w').write(html)
+            print('captcha/block on', url, '(title: %s) -> pause 600s' % t, flush=True); await asyncio.sleep(600); continue
         open(os.path.join(CACHE, hashlib.sha1(url.encode()).hexdigest() + '.html'), 'w').write(html)
         return html
     return None
@@ -50,7 +53,7 @@ async def check(pg, brand, variants):
     rec['status'] = rec.get('status', 'not found')
     return rec
 async def main():
-    q = pd.read_csv('phase3_work/amz_queue.csv', dtype=str).fillna('')
+    q = pd.read_csv(sys.argv[1] if len(sys.argv) > 1 else 'phase3_work/amz_queue.csv', dtype=str).fillna('')
     done = set()
     if os.path.exists(OUT):
         for l in open(OUT):
@@ -59,14 +62,21 @@ async def main():
     todo = q[~q['Brand'].isin(done)]
     print('queue', len(q), 'todo', len(todo), flush=True)
     async with async_playwright() as p:
-        b, ctx = await new_browser(p); pg = await ctx.new_page()
+        async def fresh():
+            b = await p.chromium.launch(headless=False, **LAUNCH)
+            ctx = await b.new_context(user_agent=UA, viewport={'width': 1400, 'height': 1000}, locale='en-US')
+            pg = await ctx.new_page(); await pg.goto('https://www.amazon.com/', timeout=60000); await asyncio.sleep(random.uniform(4, 6))
+            return b, ctx, pg
+        b, ctx, pg = await fresh()
         for i, r in enumerate(todo.itertuples()):
             try: rec = await check(pg, r.Brand, [v.strip() for v in r.Variants.split(';')])
             except Exception as e: rec = {'Brand': r.Brand, 'status': 'Amazon check pending', 'error': str(e)[:200]}
             with open(OUT, 'a') as f: f.write(json.dumps(rec) + '\n')
+            if rec.get('status') == 'Amazon check pending':
+                print('still blocked after 10 min pause; stopping run so it can resume later', flush=True); break
             if (i + 1) % 50 == 0: print(f'phase 3 amazon: {i+1} of {len(todo)}', flush=True)
             if (i + 1) % 300 == 0:
-                await b.close(); b, ctx = await new_browser(p); pg = await ctx.new_page()
+                await b.close(); b, ctx, pg = await fresh()
         await b.close()
     print('DONE', flush=True)
 asyncio.run(main())
