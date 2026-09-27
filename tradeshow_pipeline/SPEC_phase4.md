@@ -1,6 +1,6 @@
 # Phase 4 SmartScout worker spec
 Folder: /home/user/smartlead-api-client/tradeshow_pipeline (cd there). Tools: load with ToolSearch "select:mcp__SmartScout__run_query,mcp__SmartScout__query_analytics".
-RESILIENCE: SmartScout has been flickering. If run_query returns "couldn't run", re-ask the fallback question via query_analytics to mint a new handle. If query_analytics ALSO errors ("couldn't be answered"), the service is down: wait 60 seconds and retry; keep retrying at 60 second intervals for up to 15 minutes before giving up. Never write placeholder rows for items you could not query. When you resume after a wait, the saver skips what is already saved.
+RESILIENCE: SmartScout has been flickering. If run_query returns "couldn't run", re-ask the fallback question via query_analytics to mint a new handle. If query_analytics ALSO errors ("couldn't be answered"), the service is down: wait 60 seconds and retry; keep retrying at 60 second intervals for up to 45 minutes before giving up (the service comes back in short bursts; work fast while it is up). Never write placeholder rows for items you could not query. When you resume after a wait, the saver skips what is already saved.
 Transcribe results exactly (unicode escapes like & = "&", ' = "'"); numbers as plain numbers (revenue rounded to 2 decimals); empty values stay empty. Keep messages minimal. Never interpret or filter rows.
 
 ## Mode PROFILE (batches from phase4_work/profile_batches.json)
