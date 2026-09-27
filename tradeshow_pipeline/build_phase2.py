@@ -1,5 +1,5 @@
 import pandas as pd, glob, json, os, hashlib
-from common import domain_of
+from common import domain_of, norm_name
 GENERIC = {'facebook.com','instagram.com','linktr.ee','etsy.com','linkedin.com','twitter.com','x.com','tiktok.com','youtube.com','amazon.com','ebay.com','whatnot.com','jewelry.org.hk','andmorehighpointmarket.com','pinterest.com','threads.net','gmail.com'}
 TYPES = ['Brand / Manufacturer','Distributor / Wholesaler','Retailer / Reseller','Artist / Individual','Service / Software / Media / Association','Equipment / Supplier','Unclear']
 RESEARCH = {'Brand / Manufacturer','Distributor / Wholesaler','Unclear'}
@@ -32,6 +32,10 @@ for i, r in a.iterrows():
     elif k in srch.index and srch.loc[k, 'Parent Company']: pc, ps = srch.loc[k, 'Parent Company'], 'search result: ' + srch.loc[k, 'Parent Source']
     if pc and 'copyright' in ps.lower() and not any(w in ps.lower() for w in ['about', 'site text', 'show about', 'search', 'name']):
         notes.append(f'Site copyright names {pc} (not counted as parent: copyright line only)'); pc = pd_ = ps = ''
+    if pc and (norm_name(pc) == norm_name(r['Exhibitor Name']) or norm_name(pc) == norm_name(r['Exhibitor Name']).replace(' ', '')):
+        pc = pd_ = ps = ''
+    if pc and any(w in (ps + ' ' + pc).lower() for w in ['historical', 'formerly', 'former parent', 'previously']):
+        notes.append(f'Historical owner mentioned: {pc} (not current parent)'); pc = pd_ = ps = ''
     o.update({'Parent Company': pc, 'Parent Domain': pd_, 'Parent Source': ps})
     if k in art_keys: t, why = 'Artist / Individual', 'Listed in Artists Alley'
     elif k in cls.index: t, why = cls.loc[k, 'Exhibitor Type'], cls.loc[k, 'Type Reason']; notes += [cls.loc[k, 'Notes']] if cls.loc[k, 'Notes'] else []
