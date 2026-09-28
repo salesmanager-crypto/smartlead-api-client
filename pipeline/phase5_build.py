@@ -24,6 +24,8 @@ def main():
     cp = real
     if os.path.exists(RP):
         rp = pd.read_csv(RP, dtype=str, keep_default_na=False)
+        drops = QA[QA["Action"] == "drop"]
+        rp = rp[~(rp["Exhibitor ID"] + "|" + rp["Name"]).isin(drops["Exhibitor ID"] + "|" + drops["Name"])]
         rp["Notes"] = rp["Notes"].map(lambda n: "; ".join(filter(None, ["Found in recheck", n])))
         cp = pd.concat([cp, rp], ignore_index=True)
         searched |= set(rp["Exhibitor ID"])
@@ -109,6 +111,9 @@ NEXT = {
     "R0": "Run the recheck next session (search limit)",
     "OK": "",
 }
+QA_PATH = os.path.join(ROOT, "pipeline", "work", "p5r_qa.csv")
+QA = pd.read_csv(QA_PATH, dtype=str, keep_default_na=False) if os.path.exists(QA_PATH) else pd.DataFrame(
+    columns=["Exhibitor ID", "Name", "Action", "Reason Code", "Note"])
 REASONS_ALL = dict(REASONS, R9="Not searched yet: the session web search limit was reached before this exhibitor",
                    R0="Searched once (up to 4 searches), recheck not reached before the session search limit")
 
@@ -124,9 +129,15 @@ def shortfall(t, cov, named, cp, first_queries):
         fq = int(first_queries.get(eid, 0))
         if eid in summ.index:
             s = summ.loc[eid]
-            code = "OK" if n >= 5 else (s["Reason Code"] or "R7")
+            code = "OK" if n >= 5 else (s["Reason Code"] if s["Reason Code"] not in ("", "OK") else "R7")
             reason = "" if n >= 5 else s["Reason Under 5"]
-            rq, rej, status = int(s["Searches Used"] or 0), s["Rejected Candidates"], "Rechecked"
+            q = QA[(QA["Exhibitor ID"] == eid) & (QA["Action"] == "code")]
+            if n < 5 and len(q):
+                code, reason = q.iloc[0]["Reason Code"], q.iloc[0]["Note"]
+            dropped = QA[(QA["Exhibitor ID"] == eid) & (QA["Action"] == "drop")]
+            rej = "; ".join(filter(None, [s["Rejected Candidates"]] + [
+                f"{d['Name']}: {d['Note']}" for d in dropped.to_dict("records")]))
+            rq, status = int(s["Searches Used"] or 0), "Rechecked"
         elif r["Search Status"] == "Searched":
             code = "OK" if n >= 5 else "R0"
             note = first_notes.get(eid, "")
