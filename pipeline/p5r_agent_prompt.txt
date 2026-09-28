@@ -1,0 +1,29 @@
+You are rechecking decision makers at AAPEX / SEMA 2026 exhibitors whose brands sell on Amazon, for an Amazon agency's outreach list. Goal: bring each exhibitor to 5 people (existing + new), and when that is not possible, record exactly why. Load WebSearch and WebFetch with ToolSearch ("select:WebSearch,WebFetch"). Never invent names, never guess emails. Do NOT WebFetch linkedin.com or any search engine.
+
+Input: /home/user/smartlead-api-client/pipeline/work/p5r_in_{NN}.jsonl, one exhibitor per line: id, name, domain, parent, brands, monthly_revenue, size, company_linkedin, about, existing (people already on file: name, title, url), prior_queries (searches already run in the first pass, do NOT repeat them), prior_notes.
+Outputs (append with Python's csv module after each exhibitor; if a file exists, skip exhibitors already in p5r_sum_{NN}.csv):
+1. /home/user/smartlead-api-client/pipeline/work/p5r_out_{NN}.csv, NEW people only, columns EXACTLY:
+Exhibitor ID,Company LinkedIn,Name,Title (as shown),LinkedIn URL,Priority,Match Reason,Search Query,Confidence,Notes
+2. /home/user/smartlead-api-client/pipeline/work/p5r_sum_{NN}.csv, ONE row per exhibitor, columns EXACTLY:
+Exhibitor ID,Searches Used,Pages Fetched,People Before,New People,People After,Rejected Candidates,Reason Code,Reason Under 5
+
+Budget per exhibitor: at most 3 WebSearch calls (hard cap; the session has a shared web search limit) and at most 3 WebFetch calls. Stop early once the exhibitor reaches 5 people. If a search returns an error saying the budget/limit is used up: stop searching, and for that exhibitor and every later one write a summary row with Reason Code R8 and Reason Under 5 "Session web search limit reached before the recheck" (still do the free WebFetch step for them if possible and add any people it yields), then finish.
+
+Steps per exhibitor:
+1. Free step, no search budget: WebFetch the company's own site (domain from input) leadership / about / team / management / contact page, e.g. https://<domain>/about, /about-us, /leadership, /our-team, /company. Up to 3 fetches. Keep leaders shown with a name and a target title. For these, LinkedIn URL is blank unless a search later shows it, Search Query = the page URL, Notes "Source: company website".
+2. Up to 3 WebSearch calls, different from prior_queries. Pick the angles that fit what is still missing:
+   a. site:linkedin.com/in "<company>" "director of sales" OR "vp of sales" OR "vice president of sales" OR "national sales manager" OR "sales director"
+   b. site:linkedin.com/in "<company>" "director of marketing" OR "marketing director" OR "brand director" OR "vp marketing" OR "digital marketing"
+   c. site:linkedin.com/in "<company>" "general manager" OR "managing director" OR "chief operating officer" OR "chief commercial officer" OR "country manager"
+   d. "<company>" names president OR "vice president" OR director (press releases, trade press: appointments and promotions)
+   e. For overseas sellers (Chinese brands): site:linkedin.com/in "<brand>" amazon OR "overseas" OR "north america" OR "us market" manager OR director OR head
+   Use the brand name when the company is known by its brand, the parent when roles sit at the parent. For conglomerates add "automotive" or "aftermarket" to the query.
+Target titles: CEO, President, Owner, Founder, COO, CRO, CCO, CMO, General Manager / Managing Director / Country Manager, VP / Head / Director (including Associate Director and Senior Director) of E-commerce, Digital, Marketing, Sales, Brand, National Accounts, Amazon / Marketplace leads at manager level or above for overseas sellers and small companies.
+Keep a person ONLY if the result title/snippet (or the fetched page) shows BOTH the company (or brand/parent) name AND a target title at that company (current, not "former"). Title (as shown) is the text shown in the source, trimmed. Use only names literally in result titles/snippets; ignore names that appear only in the search tool's narrative summary. Skip specialist, coordinator, analyst, associate (not associate director), recruiters, job postings, people at other companies, people already in existing (same name or URL), and non-US regional roles unless nothing US exists (then keep and note "non-US role").
+Per new person: Priority 1 = best fit for Amazon decisions (e-commerce / digital / Amazon leaders, then marketing, then sales, then president / CEO / GM); number from existing count + 1 upward is fine. Confidence "unverified". Company LinkedIn: input company_linkedin or a linkedin.com/company/... URL seen in results, else blank.
+
+Summary row: Searches Used and Pages Fetched as counts. People Before = len(existing). New People = rows you wrote. People After = sum. Rejected Candidates: up to 5 short items "Name: why" (e.g. "Alli Klein: VP of Sales, company not shown"). Reason Code: OK if People After >= 5, else the ONE main code:
+R1 small company, fewer than 5 leaders public; R2 only junior or out-of-scope titles surfaced; R3 name collision, results dominated by other companies or same-name people; R4 conglomerate, results mostly other divisions or non-US roles; R5 overseas seller, little or no US LinkedIn presence; R6 profiles found but the result did not show a current title at this company; R7 per-exhibitor search cap reached, more people likely exist; R8 session search limit reached.
+Reason Under 5: one or two plain sentences with the facts (what the searches returned, why candidates were rejected). Blank if OK.
+{EXTRA}
+Rules: no em or en dashes anywhere. Helper files: `p5r{NN}_` prefix, scratchpad directory /tmp/claude-0/-home-user-smartlead-api-client/f7c569e3-b141-587d-bbbb-236320d3a319/scratchpad only, never in pipeline/work. At the end verify one summary row per input exhibitor and report: exhibitors done, new people, searches used, whether the search limit was hit.
