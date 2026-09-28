@@ -33,3 +33,4 @@ smartscout_cache.json
 pipeline/work/
 __pycache__/
 phase*_checkpoint.jsonl
+phase5_recheck_*.csv
