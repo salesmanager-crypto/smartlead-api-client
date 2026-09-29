@@ -89,7 +89,9 @@ def clean(v):
 
 
 def collect():
-    have = set(read(SUMMARY, SUM_FIELDS)["Exhibitor ID"])
+    old = read(SUMMARY, SUM_FIELDS)
+    # a summary cut short by the search limit (R8) is replaced by a later full recheck
+    have = set(old[old["Reason Code"] != "R8"]["Exhibitor ID"])
     seen = {(r["Exhibitor ID"], r["LinkedIn URL"] or r["Name"].lower()) for r in current_people().to_dict("records")}
     new_p, new_s = not os.path.exists(PEOPLE), not os.path.exists(SUMMARY)
     added = people = 0
