@@ -3,6 +3,11 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { SmartleadClient } from "../src/client.js";
+import {
+  auditTrackingDomains,
+  listAllEmailAccounts,
+  trackingDomainFlags,
+} from "../src/trackingdomains.js";
 
 const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -59,7 +64,9 @@ async function main() {
   const nextState = {};
   const flags = [];
 
-  const allAccounts = await client.listEmailAccounts();
+  // Paginated: a bare listEmailAccounts() returns the first 100, so once the account
+  // passes that a watched inbox can fall off the page and get reported as missing.
+  const allAccounts = await listAllEmailAccounts(client);
   const byId = new Map(allAccounts.map((a) => [a.id, a]));
 
   for (const target of WATCHED_ACCOUNTS) {
@@ -96,10 +103,21 @@ async function main() {
     nextState[target.id] = { email: target.email, lifetimeSpam, weeklySpamSaves, checkedAt: new Date().toISOString() };
   }
 
+  // Tracking domains, across every inbox rather than the watched nine: a domain added
+  // without its CNAME sends untracked from day one and nothing else here would notice.
+  // Smartlead's own banner can't tell a missing record from a stale verification, so
+  // this checks DNS and TLS directly and only flags what is genuinely broken.
+  try {
+    const audit = await auditTrackingDomains(allAccounts);
+    flags.push(...trackingDomainFlags(audit));
+  } catch (err) {
+    flags.push(`tracking-domain audit failed to run (${err.message})`);
+  }
+
   saveState(nextState);
 
   if (flags.length === 0) {
-    log(`All clear — 9/9 inboxes healthy.`);
+    log(`All clear - ${WATCHED_ACCOUNTS.length}/${WATCHED_ACCOUNTS.length} watched inboxes healthy, tracking domains clean across ${allAccounts.length} inboxes.`);
     // Silent on success, per preference — no desktop notification when nothing's wrong.
   } else {
     const summary = flags.join(" | ");

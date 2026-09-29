@@ -93,6 +93,63 @@ export class PorkbunClient {
   getNameservers(domain) {
     return this._post(`/domain/getNs/${domain}`);
   }
+
+  /**
+   * Records at one exact name+type, e.g. ("example.com", "CNAME", "trk").
+   *
+   * Use this rather than filtering `getDnsRecords()` when checking whether a
+   * subdomain is really configured: a wildcard `*` record makes every name appear
+   * to resolve in DNS, but only an explicit record shows up here.
+   *
+   * @param {string} domain
+   * @param {string} type - CNAME, A, TXT, ...
+   * @param {string} [subdomain] - the prefix alone ("trk"), not the full hostname.
+   *   Omit for the root domain.
+   */
+  async retrieveRecordsByNameType(domain, type, subdomain = "") {
+    const suffix = subdomain ? `/${subdomain}` : "";
+    const { records } = await this._post(`/dns/retrieveByNameType/${domain}/${type}${suffix}`);
+    return records ?? [];
+  }
+
+  /**
+   * Create a DNS record. Returns Porkbun's new record id.
+   *
+   * An explicit record takes precedence over a wildcard at the same name, so adding
+   * one is enough to carve a subdomain out of `*` parking. The wildcard stays put
+   * and keeps serving every other name.
+   *
+   * @param {string} domain
+   * @param {object} record
+   * @param {string} [record.name] - the prefix alone ("trk"), not the full hostname.
+   * @param {string} record.type - CNAME, A, TXT, ...
+   * @param {string} record.content - the record value.
+   * @param {number|string} [record.ttl=600] - Porkbun's floor is 600.
+   */
+  async createDnsRecord(domain, { name = "", type, content, ttl = 600 }) {
+    if (!type || !content) throw new Error("createDnsRecord needs both `type` and `content`");
+    const { id } = await this._post(`/dns/create/${domain}`, {
+      name,
+      type,
+      content,
+      ttl: String(ttl),
+    });
+    return id;
+  }
+
+  /**
+   * Overwrite every record at one name+type. Porkbun has no upsert, so this is the
+   * edit half: `createDnsRecord` on a name that already has a record of that type
+   * leaves both in place rather than replacing.
+   */
+  editRecordsByNameType(domain, { name = "", type, content, ttl = 600 }) {
+    if (!type || !content) throw new Error("editRecordsByNameType needs both `type` and `content`");
+    const suffix = name ? `/${name}` : "";
+    return this._post(`/dns/editByNameType/${domain}/${type}${suffix}`, {
+      content,
+      ttl: String(ttl),
+    });
+  }
 }
 
 function safeJsonParse(text) {
