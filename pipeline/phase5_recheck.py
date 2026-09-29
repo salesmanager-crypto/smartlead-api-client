@@ -49,7 +49,9 @@ def export(chunk, limit):
     cp = read(CP, FIELDS)
     pages = known()
     lk = read(LK, LK_FIELDS).set_index("Exhibitor ID")
-    done = set(read(SUMMARY, SUM_FIELDS)["Exhibitor ID"])
+    summ = read(SUMMARY, SUM_FIELDS)
+    # a recheck cut short by the session search limit (R8) is not done: export it again
+    done = set(summ[summ["Reason Code"] != "R8"]["Exhibitor ID"])
     pending = set()
     for f in glob.glob(os.path.join(WORK, "p5r_in_*.jsonl")):
         n = os.path.basename(f)[7:9]
