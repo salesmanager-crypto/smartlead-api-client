@@ -102,15 +102,22 @@ def collect():
             wp.writeheader()
         if new_s:
             ws.writeheader()
+        # gather every summary row first; a full recheck (not R8) wins over one cut short by the search limit
+        rows = []
         for path in sorted(glob.glob(os.path.join(WORK, "p5r_sum_*.csv"))):
             chunk = os.path.basename(path)[8:10]
-            s = pd.read_csv(path, dtype=str, keep_default_na=False)
-            out = os.path.join(WORK, f"p5r_out_{chunk}.csv")
-            o = read(out, FIELDS)
-            for r in s.to_dict("records"):
-                eid = r["Exhibitor ID"]
-                if eid in have:
-                    continue
+            for r in pd.read_csv(path, dtype=str, keep_default_na=False).to_dict("records"):
+                rows.append((chunk, r))
+        full = {r["Exhibitor ID"] for _, r in rows if r["Reason Code"] != "R8"}
+        outs = {}
+        for chunk, r in rows:
+            eid = r["Exhibitor ID"]
+            if eid in have or (r["Reason Code"] == "R8" and eid in full):
+                continue
+            if chunk not in outs:
+                outs[chunk] = read(os.path.join(WORK, f"p5r_out_{chunk}.csv"), FIELDS)
+            o = outs[chunk]
+            if True:
                 for p in o[o["Exhibitor ID"] == eid].to_dict("records"):
                     p = {k: clean(p.get(k)) for k in FIELDS}
                     key = (eid, p["LinkedIn URL"] or p["Name"].lower())
