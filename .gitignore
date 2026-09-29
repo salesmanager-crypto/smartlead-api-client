@@ -34,3 +34,4 @@ pipeline/work/
 __pycache__/
 phase*_checkpoint.jsonl
 phase5_recheck_*.csv
+phase5_company_linkedin.csv
