@@ -64,7 +64,8 @@ def main():
                     "Best Contact LinkedIn": best["LinkedIn URL"] if best is not None else ""})
     cov = pd.DataFrame(cov)
     pages = company_pages()
-    cov["Company LinkedIn"] = [c or pages.get(e, "") for e, c in zip(cov["Exhibitor ID"], cov["Company LinkedIn"])]
+    cov["Company LinkedIn"] = [pages.get(e) or c for e, c in zip(cov["Exhibitor ID"], cov["Company LinkedIn"])]
+    people["Company LinkedIn"] = [pages.get(e) or c for e, c in zip(people["Exhibitor ID"], people["Company LinkedIn"])]
     short = shortfall(t, cov, named, cp, first_queries)
     readme = pd.DataFrame({"Note": [
         "People come from public web search results (site:linkedin.com/in queries), not from a LinkedIn data tool. "
