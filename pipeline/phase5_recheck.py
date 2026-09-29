@@ -44,8 +44,11 @@ def current_people():
 
 
 def export(chunk, limit):
+    from phase5_linkedin import OUT as LK, FIELDS as LK_FIELDS, known
     people = current_people()
     cp = read(CP, FIELDS)
+    pages = known()
+    lk = read(LK, LK_FIELDS).set_index("Exhibitor ID")
     done = set(read(SUMMARY, SUM_FIELDS)["Exhibitor ID"])
     pending = set()
     for f in glob.glob(os.path.join(WORK, "p5r_in_*.jsonl")):
@@ -62,7 +65,8 @@ def export(chunk, limit):
                          for r in g.to_dict("records")]
         t["prior_queries"] = sorted(set(q for q in c["Search Query"] if q))
         t["prior_notes"] = "; ".join(sorted(set(n for n in c["Notes"] if n)))
-        t["company_linkedin"] = next((x for x in c["Company LinkedIn"] if x), t["company_linkedin"])
+        t["company_linkedin"] = next((x for x in c["Company LinkedIn"] if x), t["company_linkedin"]) or pages.get(t["id"], "")
+        t["linkedin_company_name"] = lk.at[t["id"], "LinkedIn Company Name"] if t["id"] in lk.index else ""
         items.append(t)
         if len(items) >= limit:
             break

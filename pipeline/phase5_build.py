@@ -8,6 +8,7 @@ from common import ROOT, load_state, save_state
 from phase1_build import excel_safe, format_workbook
 from phase5_work import CP, FIELDS, targets
 from phase5_recheck import PEOPLE as RP, REASONS, SUM_FIELDS, SUMMARY
+from phase5_linkedin import known as company_pages
 
 OUT = os.path.join(ROOT, "phase5_decision_makers.xlsx")
 MASTER = os.path.join(ROOT, "AAPEX_SEMA_MASTER.xlsx")
@@ -62,6 +63,8 @@ def main():
                     "Best Contact Title": best["Title (as shown)"] if best is not None else "",
                     "Best Contact LinkedIn": best["LinkedIn URL"] if best is not None else ""})
     cov = pd.DataFrame(cov)
+    pages = company_pages()
+    cov["Company LinkedIn"] = [c or pages.get(e, "") for e, c in zip(cov["Exhibitor ID"], cov["Company LinkedIn"])]
     short = shortfall(t, cov, named, cp, first_queries)
     readme = pd.DataFrame({"Note": [
         "People come from public web search results (site:linkedin.com/in queries), not from a LinkedIn data tool. "
