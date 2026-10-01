@@ -11,6 +11,7 @@
 // Usage:
 //   node scripts/lead-bounce-spam-status.mjs leads.csv
 //   node scripts/lead-bounce-spam-status.mjs leads.csv --out /some/path/status.csv
+//   node scripts/lead-bounce-spam-status.mjs leads.csv --campaigns 123,456   # re-check only these campaigns
 
 import fs from "node:fs";
 import path from "node:path";
@@ -34,8 +35,10 @@ if (fs.existsSync(envPath)) {
 
 const args = process.argv.slice(2);
 const outIdx = args.indexOf("--out");
+const campIdx = args.indexOf("--campaigns");
+const onlyCampaigns = campIdx !== -1 ? new Set(args[campIdx + 1].split(",").map(Number)) : null;
 const outPath = outIdx !== -1 ? args[outIdx + 1] : path.join(projectRoot, ".private", "lead-bounce-spam-status.csv");
-const inputPath = args.find((a, i) => !a.startsWith("--") && (outIdx === -1 || i !== outIdx + 1));
+const inputPath = args.find((a, i) => !a.startsWith("--") && i !== outIdx + 1 && i !== campIdx + 1);
 if (!inputPath) {
   console.error("Usage: node scripts/lead-bounce-spam-status.mjs <emails.csv> [--out status.csv]");
   process.exit(1);
@@ -126,7 +129,7 @@ async function main() {
     return found.get(email);
   };
   const categoryNames = new Map((await client.getLeadCategories()).map((c) => [c.id, c.name]));
-  const campaigns = (await client.listCampaigns()).filter((c) => c.status !== "DRAFTED");
+  const campaigns = (await client.listCampaigns()).filter((c) => c.status !== "DRAFTED" && (!onlyCampaigns || onlyCampaigns.has(c.id)));
   let failedCampaigns = 0;
   let done = 0;
 
