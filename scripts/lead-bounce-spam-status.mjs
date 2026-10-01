@@ -51,36 +51,60 @@ function readEmails(file) {
 
 const client = new SmartleadClient({});
 
-async function fetchAllStats(campaignId) {
+// Only the bounced / unsubscribed rows: the unfiltered statistics endpoint returns one row per
+// email sent, which is far too slow to page through across every campaign.
+async function fetchStats(campaignId, emailStatus) {
   const limit = 500;
   let offset = 0;
   let all = [];
   while (true) {
-    const page = await client.getCampaignStatistics(campaignId, { offset, limit });
+    const page = await client.get(`/campaigns/${campaignId}/statistics`, { query: { offset, limit, email_status: emailStatus } });
     const data = page.data || [];
     all = all.concat(data);
     if (data.length < limit) break;
     offset += limit;
-    if (offset > 50000) break; // safety valve
   }
   return all;
 }
 
-async function fetchBlockList() {
-  const limit = 500;
+// One row per lead (max 100 per page): carries category, BLOCKED status and unsubscribe flag.
+async function fetchLeads(campaignId) {
+  const limit = 100;
   let offset = 0;
-  const entries = new Set();
+  let all = [];
+  while (true) {
+    const page = await client.listCampaignLeads(campaignId, { offset, limit });
+    const data = page.data || [];
+    all = all.concat(data);
+    if (data.length < limit) break;
+    offset += limit;
+  }
+  return all;
+}
+
+// email_or_domain -> source ("Smartlead.ai Bounce Detection", "manual", ...)
+async function fetchBlockList() {
+  const limit = 100;
+  let offset = 0;
+  const entries = new Map();
   while (true) {
     const page = await client.getDomainBlockList({ offset, limit });
     const data = Array.isArray(page) ? page : page?.data || [];
     for (const row of data) {
-      const v = (row.email_or_domain || row.domain || row.email || "").trim().toLowerCase();
-      if (v) entries.add(v);
+      const v = (row.email_or_domain || "").trim().toLowerCase();
+      if (v) entries.set(v, row.source || "");
     }
     if (data.length < limit) break;
     offset += limit;
   }
   return entries;
+}
+
+async function pool(items, size, fn) {
+  let i = 0;
+  await Promise.all(Array.from({ length: size }, async () => {
+    while (i < items.length) await fn(items[i++]);
+  }));
 }
 
 function csvCell(v) {
@@ -93,38 +117,56 @@ async function main() {
   const wanted = new Set(emails);
   console.log(`Checking ${emails.length} unique email(s) against Smartlead...`);
 
-  // email -> { campaigns:Set, bounced:Set, spam:Set, unsubscribed:Set, dnc:Set, categories:Set }
+  // email -> { campaigns:Set, bounced:Set, spam:Set, unsubscribed:Set, dnc:Set, blocked:Set, categories:Set }
   const found = new Map();
-  const campaigns = await client.listCampaigns();
+  const entry = (email) => {
+    if (!found.has(email)) {
+      found.set(email, { campaigns: new Set(), bounced: new Set(), spam: new Set(), unsubscribed: new Set(), dnc: new Set(), blocked: new Set(), categories: new Set() });
+    }
+    return found.get(email);
+  };
+  const categoryNames = new Map((await client.getLeadCategories()).map((c) => [c.id, c.name]));
+  const campaigns = (await client.listCampaigns()).filter((c) => c.status !== "DRAFTED");
   let failedCampaigns = 0;
+  let done = 0;
 
-  for (const c of campaigns) {
-    let stats;
+  await pool(campaigns, 4, async (c) => {
     try {
-      stats = await fetchAllStats(c.id);
+      const [leads, bounced, unsubscribed] = await Promise.all([
+        fetchLeads(c.id),
+        fetchStats(c.id, "bounced"),
+        fetchStats(c.id, "unsubscribed"),
+      ]);
+      for (const row of leads) {
+        const email = (row.lead?.email || "").trim().toLowerCase();
+        if (!wanted.has(email)) continue;
+        const f = entry(email);
+        const category = categoryNames.get(row.lead_category_id) || "";
+        f.campaigns.add(c.name);
+        if (category) f.categories.add(category);
+        if (/bounce/i.test(category)) f.bounced.add(c.name);
+        if (/spam/i.test(category)) f.spam.add(c.name);
+        if (/do not contact/i.test(category)) f.dnc.add(c.name);
+        if (row.lead?.is_unsubscribed) f.unsubscribed.add(c.name);
+        if (row.status === "BLOCKED") f.blocked.add(c.name);
+      }
+      for (const s of bounced) {
+        const email = (s.lead_email || "").trim().toLowerCase();
+        if (wanted.has(email)) entry(email).bounced.add(c.name);
+      }
+      for (const s of unsubscribed) {
+        const email = (s.lead_email || "").trim().toLowerCase();
+        if (wanted.has(email)) entry(email).unsubscribed.add(c.name);
+      }
     } catch (err) {
       failedCampaigns += 1;
-      console.warn(`WARN: ${c.name} (${c.id}): could not fetch statistics, ${err.message}`);
-      continue;
+      console.warn(`WARN: ${c.name} (${c.id}): ${err.message}`);
     }
-    for (const s of stats) {
-      const email = (s.lead_email || "").trim().toLowerCase();
-      if (!wanted.has(email)) continue;
-      if (!found.has(email)) {
-        found.set(email, { campaigns: new Set(), bounced: new Set(), spam: new Set(), unsubscribed: new Set(), dnc: new Set(), categories: new Set() });
-      }
-      const f = found.get(email);
-      const category = (s.lead_category || "").trim();
-      f.campaigns.add(c.name);
-      if (category) f.categories.add(category);
-      if (s.is_bounced || /bounce/i.test(category)) f.bounced.add(c.name);
-      if (/spam/i.test(category)) f.spam.add(c.name);
-      if (s.is_unsubscribed) f.unsubscribed.add(c.name);
-      if (/do not contact/i.test(category)) f.dnc.add(c.name);
-    }
-  }
+    done += 1;
+    console.error(`[${done}/${campaigns.length}] ${c.name}`);
+  });
 
-  let blockList = new Set();
+  let blockList = new Map();
   try {
     blockList = await fetchBlockList();
   } catch (err) {
@@ -136,12 +178,13 @@ async function main() {
   for (const email of emails) {
     const f = found.get(email);
     const domain = email.split("@")[1];
-    const blocked = blockList.has(email) || blockList.has(domain);
+    const blockSource = blockList.get(email) ?? blockList.get(domain);
+    const blocked = blockSource !== undefined || Boolean(f?.blocked.size);
     let status;
     const detail = [];
-    if (f?.bounced.size) {
+    if (f?.bounced.size || /bounce/i.test(blockSource || "")) {
       status = "Bounced";
-      detail.push(`bounced in: ${[...f.bounced].join("; ")}`);
+      if (f?.bounced.size) detail.push(`bounced in: ${[...f.bounced].join("; ")}`);
     } else if (f?.spam.size) {
       status = "Spam";
       detail.push(`marked spam in: ${[...f.spam].join("; ")}`);
@@ -156,7 +199,8 @@ async function main() {
     } else {
       status = "Not in Smartlead";
     }
-    if (blocked && status !== "Blocklisted") detail.push(blockList.has(email) ? "email on block list" : "domain on block list");
+    if (blockSource !== undefined) detail.push(`${blockList.has(email) ? "email" : "domain"} on block list (${blockSource || "unknown source"})`);
+    else if (f?.blocked.size) detail.push(`blocked in: ${[...f.blocked].join("; ")}`);
     if (f?.categories.size) detail.push(`categories: ${[...f.categories].join("; ")}`);
     counts[status] = (counts[status] || 0) + 1;
     const doNotUse = ["Bounced", "Spam", "Blocklisted", "Do Not Contact", "Unsubscribed"].includes(status) ? "Yes" : "No";
