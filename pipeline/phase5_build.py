@@ -124,8 +124,11 @@ REASONS_ALL = dict(REASONS, R9="Not searched yet: the session web search limit w
 
 def shortfall(t, cov, named, cp, first_queries):
     """One row per target exhibitor: people found and why it is fewer than 5."""
-    summ = pd.read_csv(SUMMARY, dtype=str, keep_default_na=False).set_index("Exhibitor ID") if os.path.exists(
-        SUMMARY) else pd.DataFrame(columns=SUM_FIELDS).set_index("Exhibitor ID")
+    summ = pd.read_csv(SUMMARY, dtype=str, keep_default_na=False) if os.path.exists(
+        SUMMARY) else pd.DataFrame(columns=SUM_FIELDS)
+    # one row per exhibitor: a full recheck wins over a row cut short by the search limit (R8)
+    summ = (summ.assign(_r8=summ["Reason Code"] == "R8").sort_values("_r8", kind="stable")
+            .drop_duplicates("Exhibitor ID", keep="first").drop(columns="_r8").set_index("Exhibitor ID"))
     first_notes = cp[cp["Name"] == ""].groupby("Exhibitor ID")["Notes"].first()
     rows = []
     for r in cov.to_dict("records"):
