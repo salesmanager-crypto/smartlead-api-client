@@ -69,5 +69,76 @@
         "weeklySpamSaves": 0
       }
     }
+  },
+  {
+    "date": "2026-09-16T14:50:29.972Z",
+    "campaigns": {
+      "Cosmoprof Follow up": {
+        "sent": 1483,
+        "bounced": 127,
+        "rate": 8.56
+      },
+      "Eikko - Tea Expo": {
+        "sent": 72,
+        "bounced": 7,
+        "rate": 9.72
+      },
+      "Eikko - ICAST 2026": {
+        "sent": 358,
+        "bounced": 38,
+        "rate": 10.61
+      },
+      "Rachel - Nordstil": {
+        "sent": 386,
+        "bounced": 69,
+        "rate": 17.88
+      },
+      "Rachel - ISM Cologne": {
+        "sent": 1226,
+        "bounced": 142,
+        "rate": 11.58
+      },
+      "Eikko - Cosmoprof 2026": {
+        "sent": 411,
+        "bounced": 40,
+        "rate": 9.73
+      },
+      "Rachel - Spoga+gafa": {
+        "sent": 348,
+        "bounced": 72,
+        "rate": 20.69
+      },
+      "Eikko - Fancy Foods Q4": {
+        "sent": 3652,
+        "bounced": 403,
+        "rate": 11.04
+      }
+    },
+    "accounts": {
+      "yoni@AlbertScottLLC.com": {
+        "lifetimeSpam": 37,
+        "weeklySpamSaves": 1
+      },
+      "ylebovits@AlbertScottLLC.com": {
+        "lifetimeSpam": 29,
+        "weeklySpamSaves": 2
+      },
+      "Yoni.Lebovits@AlbertScottLLC.com": {
+        "lifetimeSpam": 40,
+        "weeklySpamSaves": 1
+      },
+      "yoni.lebovits@albertscottny.com": {
+        "lifetimeSpam": 14,
+        "weeklySpamSaves": 0
+      },
+      "ylebovits@albertscottny.com": {
+        "lifetimeSpam": 13,
+        "weeklySpamSaves": 0
+      },
+      "yoni@albertscottny.com": {
+        "lifetimeSpam": 11,
+        "weeklySpamSaves": 0
+      }
+    }
   }
 ]
