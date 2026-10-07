@@ -116,9 +116,29 @@ export class GoogleSheetsClient {
     return data;
   }
 
-  /** Read a range, e.g. "Sheet1!A1:D5" or "Sheet1" for the whole sheet. */
-  getValues(range) {
-    return this._request("GET", `/values/${encodeURIComponent(range)}`);
+  /**
+   * Read a range, e.g. "Sheet1!A1:D5" or "Sheet1" for the whole sheet.
+   * @param {string} [opts.valueRenderOption] - e.g. "UNFORMATTED_VALUE" to get raw numbers
+   *   back instead of Google's display-formatted strings (which can carry thousands
+   *   separators that break a naive `Number()` on the result). Omit for the API's
+   *   default (FORMATTED_VALUE) — existing callers reading plain text are unaffected.
+   */
+  getValues(range, { valueRenderOption } = {}) {
+    return this._request("GET", `/values/${encodeURIComponent(range)}`, {
+      query: valueRenderOption ? { valueRenderOption } : {},
+    });
+  }
+
+  /** Sheet (tab) titles and ids in this spreadsheet. */
+  getSpreadsheetMeta() {
+    return this._request("GET", "", { query: { fields: "sheets.properties" } });
+  }
+
+  /** Create a new tab. Throws if a tab with this exact title already exists. */
+  addSheet(title) {
+    return this._request("POST", ":batchUpdate", {
+      body: { requests: [{ addSheet: { properties: { title } } }] },
+    });
   }
 
   /** Append one row after the last row of data in `range`'s sheet (e.g. "Sheet1!A:D"). */
