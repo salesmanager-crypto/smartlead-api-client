@@ -1,5 +1,5 @@
 {
-  "pulledAt": "2026-10-10T15:29:02.866Z",
+  "pulledAt": "2026-10-11T15:51:05.947Z",
   "primaryCampaignId": 561604,
   "linkedin": {
     "campaigns": 1,
@@ -12,14 +12,14 @@
     "processed": 1010,
     "pending": 980,
     "connectionsSent": 859,
-    "accepted": 103,
+    "accepted": 105,
     "connNone": 151,
-    "messagesSent": 114,
+    "messagesSent": 115,
     "replies": 19,
-    "inSequence": 196,
+    "inSequence": 148,
     "pendingInBatch": 48,
     "failed": 103,
-    "finished": 663
+    "finished": 711
   },
   "campaigns": [
     {
@@ -33,14 +33,14 @@
       "processed": 1010,
       "pending": 980,
       "connectionsSent": 859,
-      "accepted": 103,
+      "accepted": 105,
       "connNone": 151,
-      "messagesSent": 114,
+      "messagesSent": 115,
       "replies": 19,
-      "inSequence": 196,
+      "inSequence": 148,
       "pendingInBatch": 48,
       "failed": 103,
-      "finished": 663
+      "finished": 711
     }
   ]
 }
