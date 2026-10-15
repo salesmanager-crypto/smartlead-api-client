@@ -37,6 +37,11 @@
  *   node src/cli.js hr:campaign-resume <campaignId>
  *   node src/cli.js hr:campaign-leads <campaignId>
  *   node src/cli.js hr:workspaces
+ *   node src/cli.js sf:credits
+ *   node src/cli.js sf:enrich-people '{"people":[{"firstName":"A","lastName":"B","companyName":"Acme"}]}'
+ *   node src/cli.js sf:enrichment <enrichmentId>
+ *   node src/cli.js sf:search-people '{...}'
+ *   node src/cli.js sf:search-companies '{...}'
  *
  * Reads SMARTLEAD_API_KEY (and optional SMARTLEAD_BASE_URL) from the environment.
  * qev: commands read QUICKEMAILVERIFICATION_API_KEY instead.
@@ -56,6 +61,7 @@
  * gs: commands read GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY /
  * GOOGLE_SHEETS_SPREADSHEET_ID instead, and need the sheet shared with that service
  * account as an Editor — see src/googlesheets.js.
+ * sf: commands read SURFE_API_KEY instead — see src/surfe.js. Enrichment spends Surfe credits.
  * hr: commands read HEYREACH_API_KEY (workspace-level: campaigns/leads/network) and/or
  * HEYREACH_ORG_API_KEY (organization-level: hr:workspaces only) instead — the two are not
  * interchangeable, see src/heyreach.js.
@@ -72,6 +78,7 @@ import { NamecheapClient } from "./namecheap.js";
 import { FathomClient } from "./fathom.js";
 import { GoogleSheetsClient } from "./googlesheets.js";
 import { HeyReachClient } from "./heyreach.js";
+import { SurfeClient } from "./surfe.js";
 
 loadDotEnv();
 
@@ -87,6 +94,7 @@ let ncClient;
 let faClient;
 let gsClient;
 let hrClient;
+let sfClient;
 
 const commands = {
   "campaigns:list": () => client.listCampaigns(),
@@ -146,6 +154,12 @@ const commands = {
   "hr:campaign-resume": (campaignId) => hrClient.resumeCampaign(campaignId),
   "hr:campaign-leads": (campaignId) => hrClient.getLeadsFromCampaign({ campaignId: Number(campaignId) }),
   "hr:workspaces": () => hrClient.listWorkspaces(),
+
+  "sf:credits": () => sfClient.getCredits(),
+  "sf:enrich-people": (json) => sfClient.enrichPeople(JSON.parse(json)),
+  "sf:enrichment": (id) => sfClient.getPeopleEnrichment(id),
+  "sf:search-people": (json) => sfClient.searchPeople(JSON.parse(json)),
+  "sf:search-companies": (json) => sfClient.searchCompanies(JSON.parse(json)),
 };
 
 async function main() {
@@ -170,6 +184,8 @@ async function main() {
       gsClient = new GoogleSheetsClient({});
     } else if (cmd.startsWith("hr:")) {
       hrClient = new HeyReachClient({});
+    } else if (cmd.startsWith("sf:")) {
+      sfClient = new SurfeClient({});
     } else {
       client = new SmartleadClient({});
     }

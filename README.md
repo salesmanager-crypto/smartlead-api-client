@@ -38,6 +38,16 @@ node src/cli.js qev:verify lead@example.com
 node src/cli.js qev:verify-list '["a@example.com","b@example.com"]'
 ```
 
+Surfe (contact enrichment):
+
+```bash
+node src/cli.js sf:credits            # free key check + remaining credits
+node src/cli.js sf:enrich-people '{"people":[{"firstName":"Jane","lastName":"Doe","companyName":"Acme"}]}'
+node src/cli.js sf:enrichment <enrichmentId>
+```
+
+Set `SURFE_API_KEY` in `.env`. Enrichment spends credits.
+
 ## Programmatic usage
 
 ```js
