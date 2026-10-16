@@ -13,7 +13,7 @@ product pages and read the byline (#bylineInfo). "Visit the X Store" gives the s
 "Brand: X" gives a brand with no store. The store name is compared with the brand and the exhibitor name.
 Robot check pages are detected and the worker backs off instead of recording a miss.
 """
-import json, os, random, re, sys, time
+import html as html_lib, json, os, random, re, sys, time
 from difflib import SequenceMatcher
 from urllib.parse import quote_plus, urljoin
 
@@ -139,7 +139,7 @@ def product(pg, asin):
     brand_row = ""
     m = re.search(r'po-brand.*?po-break-word">\s*([^<]+)<', html, re.S)
     if m:
-        brand_row = m.group(1).strip()
+        brand_row = html_lib.unescape(m.group(1)).strip()
     sold_by = text_or(pg, "#merchantInfo") or text_or(pg, "#sellerProfileTriggerId") or text_or(
         pg, "#merchant-info")
     return {"asin": asin, "title": title.replace("Amazon.com:", "").strip()[:200], "byline": byline,
@@ -287,9 +287,9 @@ def collect():
     for r in rows.values():
         b = r.get("best") or {}
         out.append({"Key": r["key"], "Exhibitor ID": r["id"], "Brand": r["brand"], "Brand Source": r["source"],
-                    "Amazon Status": r["status"], "Amazon Store Name": b.get("store_name", ""),
+                    "Amazon Status": r["status"], "Amazon Store Name": html_lib.unescape(b.get("store_name", "")),
                     "Has Amazon Store": "Yes" if b.get("has_store") else ("No" if b else ""),
-                    "Amazon Store URL": b.get("store_url", ""), "Amazon Brand Field": b.get("brand_row", ""),
+                    "Amazon Store URL": b.get("store_url", ""), "Amazon Brand Field": html_lib.unescape(b.get("brand_row", "")),
                     "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""),
                     "Sold By": b.get("sold_by", ""), "Match To Brand": b.get("sim_brand", ""),
                     "Match To Exhibitor": b.get("sim_exhibitor", ""), "Search Results": r.get("results", ""),
