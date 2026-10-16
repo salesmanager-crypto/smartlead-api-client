@@ -5,11 +5,11 @@ Output: append one JSON object per person (Python json module, never rewrite the
 
 Email shape (cold mode, 40 to 70 words between the greeting and the sign-off):
 1. "Hi {first_name},"
-2. One context line tied to the show, for example "Saw {company} is exhibiting at SEMA (booth X) next month." Use the show and booth exactly as given. Never say or imply Yoni will be at the show or at their booth.
+2. One context line tied to the show, for example "Saw {company} is exhibiting at SEMA (booth X) next month." Use the show and booth exactly as given. Yoni is not attending the show: never say or imply he will be there, and never offer to stop by their booth or meet in Las Vegas.
 3. One substance line about their Amazon business, from the data only: the store name, "from what we can see" with monthly_revenue when given, resellers carrying most of the sales when resellers_most_sales is true, or the top subcategory. Never an exact figure, never the name of a data tool. If monthly_revenue is blank, do not mention revenue.
 4. One sentence on what Albert Scott does, as concrete functions (see the guide's versions).
 5. At most one proof point from the guide (the zero to $1M+ run rate in six months, or MouthWatchers from about $40K a month to $1M a month). Optional when the email is already full.
-6. One ask as a question, low pressure, for example "Is Amazon something you're looking at for 2027?" or "Open to a short call before or after the show?" If the ask is a call, the calendar link https://calendly.com/yonilebovits/30min goes on its own line after the question.
+6. One ask as a question, low pressure, and always for a short call, for example "Open to a short call before or after the show?" or "Worth a short call once things settle after SEMA?" Then the calendar link https://calendly.com/yonilebovits/30min goes on its own line after the question.
 7. "Yoni" alone.
 Match the angle to the role: e-commerce / digital / Amazon titles get channel control and growth (resellers, the store, the full channel); marketing / brand titles get content, the store and how the brand shows up; sales / national account titles get resellers, 1P / 3P and channel control. Results are credited to managing the whole channel, never to ads alone.
 People at the same company (same id) are in the same chunk and may compare notes: give each of them a different context line, substance line and ask. Do not copy one email and swap the name.
