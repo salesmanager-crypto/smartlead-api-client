@@ -18,13 +18,11 @@ from difflib import SequenceMatcher
 from urllib.parse import quote_plus, urljoin
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import CHROMIUM, ROOT
+from common import CHROMIUM, ROOT, UA
 
 WORK = os.path.join(ROOT, "pipeline", "work")
 IN = os.path.join(WORK, "amz_in.jsonl")
 OUT_CSV = os.path.join(ROOT, "amazon_stores.csv")
-UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-      "Chrome/124.0 Safari/537.36")
 STOP = {"inc", "llc", "ltd", "co", "corp", "corporation", "company", "the", "products", "usa", "us", "group",
         "industries", "international", "intl", "brand", "brands", "store", "official", "america", "na", "of",
         "and", "manufacturing", "mfg", "llc.", "inc.", "co.", "limited", "technology", "technologies"}
@@ -85,6 +83,39 @@ def is_block(html, title):
             or "to discuss automated access to amazon data" in h or title.strip() in ("Sorry! Something went wrong!",))
 
 
+def soft_pass(pg):
+    """Amazon's soft check is a page with one "Continue shopping" button and no puzzle; a person clicks it and
+    carries on. Click it once and report whether the real page came back. Image captchas are never attempted."""
+    try:
+        if "enter the characters you see below" in pg.content().lower():
+            return False
+        btn = pg.query_selector("button:has-text('Continue shopping'), input[type=submit][value*='Continue']")
+        if not btn:
+            print("soft check: no Continue button", flush=True)
+            return False
+        time.sleep(random.uniform(1.5, 3.0))
+        with pg.expect_navigation(timeout=30000, wait_until="domcontentloaded"):
+            btn.click()
+        time.sleep(random.uniform(1.0, 2.0))
+        ok = not is_block(pg.content(), pg.title())
+        print(f"soft check clicked, passed={ok}, now at {pg.url[:80]}", flush=True)
+        return ok
+    except Exception as e:
+        print(f"soft check click failed: {e.__class__.__name__}: {str(e)[:150]}", flush=True)
+        return False
+
+
+def load(pg, url):
+    """Open url; True when the real page is showing (after the soft check if one appeared)."""
+    pg.goto(url, timeout=45000, wait_until="domcontentloaded")
+    if not is_block(pg.content(), pg.title()):
+        return True
+    if soft_pass(pg):
+        pg.goto(url, timeout=45000, wait_until="domcontentloaded")
+        return not is_block(pg.content(), pg.title())
+    return False
+
+
 def text_or(pg, sel):
     try:
         el = pg.query_selector(sel)
@@ -95,10 +126,9 @@ def text_or(pg, sel):
 
 def product(pg, asin):
     """Byline, store URL, brand row and seller for one ASIN."""
-    pg.goto(f"https://www.amazon.com/dp/{asin}", timeout=45000, wait_until="domcontentloaded")
-    html, title = pg.content(), pg.title()
-    if is_block(html, title):
+    if not load(pg, f"https://www.amazon.com/dp/{asin}"):
         return None
+    html, title = pg.content(), pg.title()
     byline = text_or(pg, "#bylineInfo")
     href = ""
     try:
@@ -129,11 +159,9 @@ def store_name(byline):
 
 def check(pg, item):
     q = item["brand"]
-    pg.goto(f"https://www.amazon.com/s?k={quote_plus(q)}", timeout=45000, wait_until="domcontentloaded")
-    time.sleep(random.uniform(1.0, 2.0))
-    html, title = pg.content(), pg.title()
-    if is_block(html, title):
+    if not load(pg, f"https://www.amazon.com/s?k={quote_plus(q)}"):
         return None
+    time.sleep(random.uniform(1.0, 2.0))
     results = pg.eval_on_selector_all(
         "div[data-component-type='s-search-result'][data-asin]",
         "els => els.slice(0, 16).map(e => ({asin: e.getAttribute('data-asin'), "
@@ -192,8 +220,15 @@ def run(w, n):
                 if r["status"] != "error":
                     done.add(r["key"])
     todo = [it for it in items if it["key"] not in done]
+    try:  # highest Amazon revenue exhibitors first, so the brands that matter most are verified early
+        from surfe_people import targets
+        rev = targets()["rev"].to_dict()
+        todo.sort(key=lambda it: -rev.get(it["id"], 0))
+    except Exception as e:
+        print(f"worker {w}: no revenue order ({e})", flush=True)
     print(f"worker {w}: {len(todo)} to do, {len(done)} done", flush=True)
-    backoff = 60
+    backoff = 180
+    time.sleep(w * 20)  # stagger workers so they do not hit Amazon in step
     with sync_playwright() as p:
         b = p.chromium.launch(executable_path=CHROMIUM, headless=True,
                               args=["--disable-blink-features=AutomationControlled"])
@@ -210,15 +245,20 @@ def run(w, n):
                        "status": "error", "error": f"{e.__class__.__name__}: {str(e)[:120]}",
                        "at": time.strftime("%Y-%m-%d %H:%M:%S")}
             if res is None:
+                try:
+                    with open(os.path.join(WORK, f"amz_block_{w}.html"), "w") as fh:
+                        fh.write(pg.content())
+                except Exception:
+                    pass
                 print(f"worker {w}: robot check, sleeping {backoff}s", flush=True)
                 time.sleep(backoff)
-                backoff = min(backoff * 2, 900)
-                ctx.clear_cookies()
+                backoff = min(backoff * 2, 1800)
                 continue
-            backoff = 60
+            backoff = 180
             with open(out, "a") as fh:
                 fh.write(json.dumps(res, ensure_ascii=False) + "\n")
             i += 1
+            time.sleep(random.uniform(4, 8))
             if i % 25 == 0:
                 print(f"worker {w}: {i}/{len(todo)}", flush=True)
         b.close()

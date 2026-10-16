@@ -31,7 +31,8 @@ EXCLUDE = re.compile(
     r"admin|administrator|customer (service|care|support|success)|support|receptionist|driver|warehouse|"
     r"technician|engineer|designer|photographer|videographer|copywriter|writer|editor|recruit|human resources|"
     r"\bhr\b|account(ant|ing)|payable|receivable|purchasing|procurement|buyer|supply chain|logistics|quality|"
-    r"inside sales|sales support|territory|student|retired|former|ex-)\b", re.I)
+    r"inside sales|sales support|territory|student|retired|former|ex-|infrastructure|cloud|software|"
+    r"technology|\bit\b|data|security|it services)\b", re.I)
 # "president" alone is an owner role; "vice president" is kept
 PRESIDENT = re.compile(r"(?<!vice )(?<!vice-)\bpresident\b", re.I)
 KEEP = re.compile(r"sales|marketing|e-?commerce|digital|amazon|marketplace|brand|national account|key account|"
@@ -105,8 +106,30 @@ def load(pattern):
     return out
 
 
+def phase5_people():
+    """People already found in phase 5 (public LinkedIn search results), as Surfe-shaped candidates. Used
+    alongside Surfe search, which has a small result quota on this account."""
+    p = pd.read_excel(os.path.join(ROOT, "phase5_decision_makers.xlsx"), sheet_name="People", dtype=str).fillna("")
+    out = []
+    for _, r in p[p["Name"] != ""].iterrows():
+        name = re.sub(r",.*$|\s*\(.*?\)", "", r["Name"]).strip()  # drop ", MBA" style suffixes and nicknames
+        parts = name.split()
+        if len(parts) < 2:
+            continue
+        title = re.sub(r"\s+(at|@|\|)\s+.*$|\s*\.\.\.$", "", r["Title (as shown)"]).strip(" -|,")
+        out.append({"id": r["Exhibitor ID"], "firstName": parts[0], "lastName": " ".join(parts[1:]),
+                    "jobTitle": title, "linkedInUrl": r["LinkedIn URL"], "country": "", "seniorities": "",
+                    "departments": "", "companyName": r["Exhibitor Name"], "companyDomain": "",
+                    "pass": "phase5"})
+    return out
+
+
+def norm_li(u):
+    return re.sub(r"^https?://(www\.)?", "", str(u)).rstrip("/").lower()
+
+
 def select():
-    raw = load("sf_raw_*.jsonl")
+    raw = load("sf_raw_*.jsonl") + phase5_people()
     cos = load("sf_co_*.jsonl")
     ids = {json.loads(l)["id"]: json.loads(l) for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")) for l in open(f)}
     by = {}
@@ -122,18 +145,19 @@ def select():
             continue
         if len(p["lastName"].rstrip(".")) <= 1:
             continue  # surname shown as an initial only
-        key = (p["id"], p["linkedInUrl"] or f'{p["firstName"]} {p["lastName"]}'.lower())
-        by.setdefault(p["id"], {})[key] = p
+        key = (p["id"], norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower())
+        by.setdefault(p["id"], {}).setdefault(key, p)  # Surfe rows load first and win over phase 5 rows
     rows = []
     for eid, d in by.items():
         picks = sorted(d.values(), key=rank)[:5]
         for i, p in enumerate(picks, 1):
-            rows.append({"Exhibitor ID": eid, "Exhibitor Name": ids.get(eid, {}).get("name", ""),
+            rows.append({"Exhibitor ID": eid, "Exhibitor Name": ids.get(eid, {}).get("name", "") or p["companyName"],
                          "First Name": p["firstName"].strip().title() if p["firstName"].islower() else p["firstName"].strip(),
                          "Last Name": p["lastName"].strip().title() if p["lastName"].islower() else p["lastName"].strip(),
                          "Title": p["jobTitle"].strip(), "LinkedIn URL": p["linkedInUrl"], "Country": p["country"].upper(),
                          "Seniority": p["sen"], "Surfe Company": p["companyName"], "Company Domain": p["companyDomain"],
-                         "Priority": i, "Source": "Surfe people search"})
+                         "Priority": i, "Source": ("LinkedIn search (phase 5)" if p["pass"] == "phase5"
+                                                      else "Surfe people search")})
     pd.DataFrame(rows).to_csv(PEOPLE, index=False)
     c = pd.DataFrame(cos).drop_duplicates("id", keep="last") if cos else pd.DataFrame()
     c.to_csv(COMPANIES, index=False)

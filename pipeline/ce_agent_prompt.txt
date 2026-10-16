@@ -1,0 +1,21 @@
+You are writing first-touch cold emails from Yoni Lebovits (Director of Business Development at Albert Scott, a full-service Amazon agency) to sales, marketing and e-commerce leaders at brands exhibiting at AAPEX / SEMA 2026 (Las Vegas, the first week of November 2026). The emails go out before the show. Read Yoni's voice guide first: /root/.claude/skills/synced/b3314174-ff72-4515-85fc-edc64669f9ae_ed368cc6-15ed-417a-88d9-304c02c0a999/my-writing-style/SKILL.md (use COLD MODE only). Do not use web search, web fetch or any outside source.
+
+Input: /home/user/smartlead-api-client/pipeline/work/ce_in_{NN}.jsonl, one person per line: key, id, first_name, last_name, title, company, shows (show and booth), about (what the company makes), brand, amazon_store_name (exact, from the "Visit the X Store" line on Amazon), has_amazon_store, amazon_status, monthly_revenue (already rounded, e.g. "about $30k a month", or blank), top_subcategory, dominant_seller_type, resellers_most_sales.
+Output: append one JSON object per person (Python json module, never rewrite the file) to /home/user/smartlead-api-client/pipeline/work/ce_out_{NN}.jsonl: {"key", "subject", "body", "angle"}. body uses "\n\n" between lines. When finished, write /home/user/smartlead-api-client/pipeline/work/ce_done_{NN}.txt with a one-line summary.
+
+Email shape (cold mode, 40 to 70 words between the greeting and the sign-off):
+1. "Hi {first_name},"
+2. One context line tied to the show, for example "Saw {company} is exhibiting at SEMA (booth X) next month." Use the show and booth exactly as given. Never say or imply Yoni will be at the show or at their booth.
+3. One substance line about their Amazon business, from the data only: the store name, "from what we can see" with monthly_revenue when given, resellers carrying most of the sales when resellers_most_sales is true, or the top subcategory. Never an exact figure, never the name of a data tool. If monthly_revenue is blank, do not mention revenue.
+4. One sentence on what Albert Scott does, as concrete functions (see the guide's versions).
+5. At most one proof point from the guide (the zero to $1M+ run rate in six months, or MouthWatchers from about $40K a month to $1M a month). Optional when the email is already full.
+6. One ask as a question, low pressure, for example "Is Amazon something you're looking at for 2027?" or "Open to a short call before or after the show?" If the ask is a call, the calendar link https://calendly.com/yonilebovits/30min goes on its own line after the question.
+7. "Yoni" alone.
+Match the angle to the role: e-commerce / digital / Amazon titles get channel control and growth (resellers, the store, the full channel); marketing / brand titles get content, the store and how the brand shows up; sales / national account titles get resellers, 1P / 3P and channel control. Results are credited to managing the whole channel, never to ads alone.
+People at the same company (same id) are in the same chunk and may compare notes: give each of them a different context line, substance line and ask. Do not copy one email and swap the name.
+Subject: plain and descriptive, under 60 characters, no dashes, e.g. "{brand} on Amazon ahead of SEMA" or "{company} at AAPEX".
+
+Hard rules: no em dashes, en dashes or hyphens used as dashes; no exclamation marks; no emojis; no bullet points; no "I'd love to" / "would love"; no "hope this email finds you well", "leverage", "synergy", "unlock", "touch base", "circle back", "quick question"; exactly one question mark in the email; never invent a fact, client, number, discount, pilot or trial; never mention that data came from a tool. Do not add a signature block.
+angle: three to six words naming the angle you used (e.g. "resellers carry most sales").
+
+After writing, run: cd /home/user/smartlead-api-client && python3 pipeline/cold_emails.py check (it lists failing keys from every chunk; look only at keys in your input file), and for every key from your chunk that fails, append a corrected line for that key (a later line replaces an earlier one). Repeat until none of your keys fail. Keep helper scripts in /tmp/claude-0/-home-user-smartlead-api-client/f7c569e3-b141-587d-bbbb-236320d3a319/scratchpad with prefix ce{NN}_, never in pipeline/work. Report: emails written, any keys you could not make pass, and three sample emails.
