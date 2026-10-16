@@ -33,8 +33,8 @@ def money(x):
         x = float(x)
     except (TypeError, ValueError):
         return ""
-    if x < 5000:
-        return ""
+    if x < 5000 or x > 3000000:
+        return ""  # too small to be worth citing, or a whole-brand figure too big to pin on one division
     if x < 100000:
         return f"about ${int(round(x / 5000.0) * 5)}k a month"
     if x < 1000000:

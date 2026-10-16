@@ -96,7 +96,7 @@ Parent company: fill it only when a source plainly says the exhibitor is owned b
   - one question as the ask, with the calendar link on its own line if the ask is a call
 - Amazon facts come from the data only:
   - the store name
-  - revenue rounded and phrased as "from what we can see": under $5k is not cited, under $100k goes to the nearest $5k, under $1M to the nearest $50k, and above that to $0.1M
+  - revenue rounded and phrased as "from what we can see": under $5k is not cited, under $100k goes to the nearest $5k, under $1M to the nearest $50k, up to $3M to the nearest $0.1M, and above $3M (a whole-brand figure for a big company) is not cited
   - resellers holding most of the sales
   - the top subcategory
 - Never name the data tool, and never cite an exact figure.
