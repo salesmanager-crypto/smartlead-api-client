@@ -18,23 +18,25 @@ SmartLead: direct REST client at `/home/user/smartlead-api-client` (`src/client.
 environment — do not hardcode, guess, or fabricate a key. If `SMARTLEAD_API_KEY` isn't set, stop and
 report that plainly rather than reporting a fake clean run.
 
+Google Sheets: `src/googlesheets.js`, authenticated via `GOOGLE_SERVICE_ACCOUNT_EMAIL` /
+`GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` / `GOOGLE_SHEETS_SPREADSHEET_ID` in the environment (the same
+credentials the Fathom → Task Tracker Sync automation already uses in this environment).
+
 ## Step 1 — Run the script
 
 ```
 node scripts/check-bounce-spam-trend.mjs
 ```
 
-This appends today's snapshot to `scripts/bounce-spam-trend-log.json` (git-tracked deliberately —
-aggregate counts only, no lead-level PII, safe to commit) and prints the delta against the previous
-entry for each of the 8 campaigns and 6 accounts.
+This appends today's snapshot to the "Bounce Spam Trend" tab of the Google Sheet configured by
+`GOOGLE_SHEETS_SPREADSHEET_ID` (see `src/googlesheets.js`) and prints the delta against the previous
+entry for each of the 8 campaigns and 6 accounts. The script writes directly to the sheet — no git
+commit or push is needed to persist the trend, since a direct `git push` to `main` from an unattended
+auto-mode session is blocked by design. If `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
+`GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, or `GOOGLE_SHEETS_SPREADSHEET_ID` isn't set, the script will
+fail outright — report that plainly rather than reporting a fake clean run.
 
-## Step 2 — Commit and push
-
-Commit `scripts/bounce-spam-trend-log.json` with a message noting today's combined bounce rate and
-any notable deltas (e.g. "Combined bounce rate: 8.2%, down from 10.3%"). Push to `main`. This is how
-the trend persists across runs — don't skip it even if nothing changed.
-
-## Step 3 — Report
+## Step 2 — Report
 
 2-4 sentences: today's combined bounce rate across the 8 campaigns (and whether it's trending up,
 down, or flat vs. the previous entry), the same for the 3 flagged domains' spam-save counts, and any
