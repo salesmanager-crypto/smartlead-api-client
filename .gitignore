@@ -35,3 +35,6 @@ __pycache__/
 phase*_checkpoint.jsonl
 phase5_recheck_*.csv
 phase5_company_linkedin.csv
+amazon_stores.csv
+surfe_*.csv
+master_*.csv
