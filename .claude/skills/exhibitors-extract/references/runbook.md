@@ -27,6 +27,6 @@ All paths are relative to the repo root. Scripts live in `pipeline/`, and work u
 - User agent: use the shared `common.UA`, which matches the installed Chromium. An outdated or odd version string gets every request sent to Amazon's soft check.
 - Surfe people search quota: see `rules.md`, phase 6. Only one search agent at a time.
 - Surfe `departments` filter: it fails validation. Use `job_titles`.
-- SmartScout handles expire: get a fresh one with `query_analytics` and save it in `run_state.json`.
+- SmartScout handles expire within hours: get a fresh one with `query_analytics` and save it in `run_state.json`. The agent prompts already fall back to this.
 - Google Sheets: about 6 writes a minute, and `create_file` needs the content inline. For a big table, add the tab with `update_spreadsheet`, write blocks of about 500 rows with `update_values`, then read back the row count.
 - No dashes: run `sed`-style replacements for em and en dashes on every text column before writing (`master_build.py` already does this).

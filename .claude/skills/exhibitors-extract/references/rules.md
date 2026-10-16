@@ -28,7 +28,7 @@ Parent company: fill it only when a source plainly says the exhibitor is owned b
 - Read `#bylineInfo`:
   - "Visit the X Store": the store name is X, Has Amazon Store is yes, and the store URL is the byline link.
   - "Brand: X": the brand field is X and there is no store.
-- Record the store name exactly as shown. Never use the search term or the product title.
+- Record the store name exactly as shown, as plain text: unescape HTML entities ("&amp;" becomes "&"), or SmartScout will miss names like "Smith & Wesson". Never use the search term or the product title.
 - Similarity is the best of the store name or brand field against the brand, and against the exhibitor name:
   - verified: 0.85 or more
   - possible: 0.6 or more
@@ -75,7 +75,7 @@ Parent company: fill it only when a source plainly says the exhibitor is owned b
   - Seniority: chief marketing / revenue / commercial, then VP, then head / director, then manager.
   - Function: e-commerce / Amazon / digital, then marketing / brand, then sales.
   - Keep the top 5.
-- Surfe search quota: the API caps how many people a search may return per window. On this account only about 1 to 5 people per call get through before `PUBLIC_API_PEOPLE_SEARCH_QUOTA_EXCEEDED`, and the allowance refills slowly. One chunk of 40 companies used about 155 results before the cap hit.
+- Surfe search quota: the API caps how many people a search may return per window. On this account only about 1 to 5 people per call get through before `PUBLIC_API_PEOPLE_SEARCH_QUOTA_EXCEEDED`, and the allowance refills slowly. One chunk of 40 companies used about 155 results before the cap hit. A single slow agent (one domain per call, limit about 8, 60 seconds between calls, 180 seconds after a quota error) found about 150 people in 70 minutes, so plan on roughly 2 people a minute.
   - Run one search agent at a time, with small limits (`people_per_company` 5, about 5 to 10 per call).
   - Retry after 60 seconds.
   - Use public LinkedIn search results from earlier work as a second source, under the same title filter, with Surfe rows winning on duplicates.
@@ -85,6 +85,7 @@ Parent company: fill it only when a source plainly says the exhibitor is owned b
 - Use `surfe_enrich_people` with first name, last name, LinkedIn URL, company domain and externalID = `<exhibitor id>|<linkedin url>`. Request email only and no mobile, then poll `surfe_get_enrichment_status`.
 - Spend credits by Amazon status (verified, then possible), then by revenue.
 - Never guess, construct or pattern-fill an email.
+- Credits are charged when Surfe runs the enrichment, not when results are saved. Write the results to disk as soon as the status is complete, and never stop an enrichment agent midway: the credits are spent either way. If one is stopped, fetch the results with `surfe_get_enrichment_status` and the enrichment ID instead of enriching again.
 
 ## Phase 8: custom emails (my-writing-style, cold mode)
 - 40 to 70 words between "Hi {first_name}," and "Yoni".
