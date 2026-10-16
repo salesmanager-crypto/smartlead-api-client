@@ -14,7 +14,9 @@
     "pull:pipedrive": "node scripts/pull/pipedrive.mjs",
     "pull:heyreach": "node scripts/pull/heyreach.mjs",
     "pull:seo-issues": "node scripts/pull/seo-issues.mjs",
-    "pull:tradeshows": "node scripts/pull/tradeshows.mjs"
+    "pull:tradeshows": "node scripts/pull/tradeshows.mjs",
+    "review:mailboxes": "node scripts/mailbox-campaign-review.mjs",
+    "pipedrive:overdue": "node scripts/pipedrive-overdue-digest.mjs"
   },
   "license": "MIT"
 }

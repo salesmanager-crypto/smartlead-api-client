@@ -147,6 +147,29 @@ const batch = await qev.verifyEmails(["a@example.com", "b@example.com"]);
 `result` is one of `valid`, `invalid`, or `unknown`. Treat `invalid` as a hard skip before adding a
 lead; `unknown`/`accept_all: true` domains can't be confirmed by SMTP and are a judgment call.
 
+## Sales automations (Claude routines)
+
+Each runs as a Claude routine that checks out `main` and follows its procedure file step by step.
+Everything they create in Pipedrive is assigned to Yoni (user 25109251).
+
+| Automation | When | Procedure | What it does |
+|---|---|---|---|
+| SmartLead reply sync | every 3 hours, plus a Monday 8-day backlog scan | `scripts/scheduled-inbox-sync-prompt.md` | Tags new SmartLead replies, pushes **Interested, Follow Up and Meeting Request** to Pipedrive (org, person, lead, activity), blocks dead-end domains |
+| Calendly to Pipedrive | same run, Step 5 | same file | Looks up the invitee by email, then by name at the company. Existing contact: fills missing details and updates or reschedules the meeting activity. New contact: creates org, person, lead and meeting activity. Never a second lead for one person |
+| Overdue activity alert | weekday mornings | `scripts/scheduled-pipedrive-overdue-alert-prompt.md` | Emails yoni@albertscott.com every overdue open activity, oldest first, plus possible duplicates. Built by `scripts/pipedrive-overdue-digest.mjs` |
+| Mailbox and campaign review | 1st and 15th of the month | `scripts/scheduled-mailbox-review-prompt.md` | Emails a read-only review of every mailbox (connection, warmup, spam saves, tracking domain, idle) and every active campaign (14-day sends, reply and bounce rate, stalled, no mailboxes, sequence finishing). Built by `scripts/mailbox-campaign-review.mjs` |
+
+Run the two report builders by hand:
+
+```sh
+node scripts/mailbox-campaign-review.mjs --out dist/mailbox-review   # needs SMARTLEAD_API_KEY
+node scripts/pipedrive-overdue-digest.mjs --out dist/overdue          # needs PIPEDRIVE_API_TOKEN + PIPEDRIVE_COMPANY_DOMAIN
+```
+
+Both write `<out>.html` (the email body) and `<out>.txt`, and print a one-line JSON summary. The
+overdue digest also accepts the Pipedrive connector's saved responses (`--activities`,
+`--persons`, `--orgs`, `--leads`) when no API token is available.
+
 ## Daily refresh (the dashboards)
 
 Two dashboards show the same data from the same code: the **GitHub Pages dashboard**
