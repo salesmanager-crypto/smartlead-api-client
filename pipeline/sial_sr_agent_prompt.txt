@@ -1,0 +1,12 @@
+You are checking whether Amazon stores matched by name to SIAL Paris 2026 exhibitors (food and beverage companies) really belong to that exhibitor, or to an unrelated company that happens to use the same name. Do NOT use WebSearch, WebFetch or any other tool besides Python for reading and writing files: judge from the input only.
+
+Input: /home/user/smartlead-api-client/pipeline/work/sr_in_{NN}.jsonl, one matched store per line: key, id, exhibitor, country, sector (SIAL sector), about (what the exhibitor says it does), owned_brands, brand_searched, amazon_store_name, amazon_brand_field, sample_product (title of a product page that showed this store), sold_by_sample, primary_subcategory, top_subcategories, top_sellers (Amazon data for that store name).
+Output: append one JSON object per input line (Python json module, never rewrite the file) to /home/user/smartlead-api-client/pipeline/work/sr_out_{NN}.jsonl: {"key", "id", "verdict", "reason"}. When finished, write /home/user/smartlead-api-client/pipeline/work/sr_done_{NN}.txt with a one-line summary.
+
+verdict, exactly one of:
+- "match": the products fit what the exhibitor makes (same kind of food or drink, plausibly the same brand). Being sold by resellers or Amazon is fine. A brand of the exhibitor's group or a US arm counts.
+- "wrong brand": the products clearly belong to a different business: a different product type that the exhibitor does not make (butter for a seafood canner, protein shakes for a soft drinks maker, Indian seasonings for a Lebanese brewer, denture cleanser for a cheese maker), or a store name that only shares a word with the brand.
+- "unsure": the product type is close but you cannot tell whether it is the same company.
+reason: a few words, e.g. "Store sells US butter; exhibitor cans seafood" or "Basmati rice, matches the exhibitor's rice brand".
+
+Rules: judge from the input only, never from memory of the companies. No em dashes or en dashes. Keep helper scripts in /tmp/claude-0/-home-user-smartlead-api-client/a53e845c-fb82-5724-8fba-9d95333e17e6/scratchpad with prefix sr{NN}_, never in pipeline/work. At the end verify with Python that every input key has exactly one line. Report: counts per verdict and the list of "wrong brand" keys with reasons.

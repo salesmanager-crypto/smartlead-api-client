@@ -8,6 +8,7 @@
   python sial_out.py ce_export N [IDS..]   ce_in_XX.jsonl: one email per exhibitor (my-writing-style Outbound
                                            lead-gen mode), with rounded SmartScout facts for its best store
   python sial_out.py ce_check | ce_collect validate ce_out_XX.jsonl / merge passing emails -> cold_emails.csv
+  python sial_out.py review_export N       sr_in_XX.jsonl: every matched store, for the store review agents
   python sial_out.py master                -> master_sheet.csv (one row per person)
 
 The title filter, ranking, email collection and SmartScout merge are the shared ones
@@ -57,6 +58,11 @@ def best_store():
     amz["rev"] = amz["Key"].map(lambda k: rev.get(k)).fillna(0)
     # a same-name store outside food and drink (a denture cleanser called Weiss) never outranks a food store
     amz["nonfood"] = amz["Key"].map(lambda k: int(bool(NONFOOD_SUB.search(str(sub.get(k) or "")))))
+    rv = store_review()
+    wrong = amz["Key"].map(lambda k: rv.get(k, {}).get("verdict") == "wrong brand")
+    amz.loc[wrong, "Amazon Status"] = "different brand"  # a reviewer found the store belongs to another company
+    amz.loc[wrong, "Note"] = amz.loc[wrong, "Key"].map(lambda k: "Store review: " + rv[k].get("reason", ""))
+    amz["o"] = amz["Amazon Status"].map(lambda s: STATUS_ORDER.get(s, 9))
     out = {}
     for eid, g in amz.sort_values(["o", "nonfood", "rev"], ascending=[True, True, False]).groupby("Exhibitor ID", sort=False):
         r = g.iloc[0].to_dict()
@@ -86,6 +92,63 @@ def exhibitor_revenue():
             tot[a["Exhibitor ID"]] = tot.get(a["Exhibitor ID"], 0) + float(r.get(a["Key"], 0))
         out.update(tot)
     return out
+
+
+def store_review():
+    """Key -> verdict ("match", "wrong brand", "unsure") from the store review agents."""
+    out = {}
+    for f in sorted(glob.glob(os.path.join(WORK, "sr_out_*.jsonl"))):
+        for l in open(f):
+            l = l.strip()
+            if l:
+                try:
+                    r = json.loads(l)
+                    out[r["key"]] = r
+                except (json.JSONDecodeError, KeyError):
+                    pass
+    return out
+
+
+def review_export(n):
+    """Store review units: every verified / possible store of every brand owner, with what the exhibitor makes and
+    what the store sells, so an agent can catch same-name stores of unrelated companies (Minerva butter for a
+    seafood canner)."""
+    amz, ss = csv("amazon_stores.csv"), csv("smartscout_store.csv")
+    ex = exhibitors()
+    prof = csv(os.path.join("pipeline", "work", "sial_profiles.csv"))
+    about = dict(zip(prof["Exhibitor ID"], prof["SIAL Description"])) if len(prof) else {}
+    owned = brands_owned()
+    from smartscout_store import cache_index, key as ss_key
+    c, idx = cache_index()
+    done = set(store_review()) | {json.loads(l)["key"] for f in glob.glob(os.path.join(WORK, "sr_in_*.jsonl")) for l in open(f)}
+    rows = []
+    for _, a in amz[amz["Amazon Status"].isin(["verified", "possible"]) & amz["Exhibitor ID"].isin(ex.index)].iterrows():
+        if a["Key"] in done:
+            continue
+        x = ex.loc[a["Exhibitor ID"]]
+        hit = {}
+        for nm in (a["Amazon Store Name"], a["Amazon Brand Field"]):
+            if nm and ss_key(nm) in idx:
+                hit = c[idx[ss_key(nm)]]
+                break
+        p = hit.get("profile") or {}
+        rows.append({"key": a["Key"], "id": a["Exhibitor ID"], "exhibitor": x["Exhibitor Name"], "country": x["Country"],
+                     "sector": x["Sector"], "about": (about.get(a["Exhibitor ID"], "") or x["Type Reason"])[:400],
+                     "owned_brands": owned.get(a["Exhibitor ID"], "")[:300], "brand_searched": a["Brand"],
+                     "amazon_store_name": a["Amazon Store Name"], "amazon_brand_field": a["Amazon Brand Field"],
+                     "sample_product": a["Sample Product"], "sold_by_sample": a["Sold By"],
+                     "primary_subcategory": p.get("Primary Subcategory", ""),
+                     "top_subcategories": [s.get("Subcategory") for s in (hit.get("subcats") or [])][:3],
+                     "top_sellers": [s.get("Seller Name") for s in (hit.get("sellers") or [])][:5]})
+    k = max([int(os.path.basename(f)[6:8]) for f in glob.glob(os.path.join(WORK, "sr_in_*.jsonl"))] or [-1]) + 1
+    made = []
+    for st in range(0, len(rows), n):
+        with open(os.path.join(WORK, f"sr_in_{k:02d}.jsonl"), "w") as fh:
+            for r in rows[st:st + n]:
+                fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+        made.append(f"{k:02d}")
+        k += 1
+    print(f"exported {len(rows)} stores into chunks {' '.join(made) or '(none)'}")
 
 
 def in_scope():
@@ -514,5 +577,5 @@ if __name__ == "__main__":
     a = sys.argv
     {"people_export": lambda: people_export(int(a[2]), a[3] if len(a) > 3 else "amazon"), "people_select": people_select,
      "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2]), set(a[3:])),
-     "ce_check": ce_check, "ce_collect": ce_collect,
+     "ce_check": ce_check, "ce_collect": ce_collect, "review_export": lambda: review_export(int(a[2])),
      "master": master}[a[1]]()
