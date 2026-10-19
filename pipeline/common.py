@@ -71,7 +71,7 @@ def norm_name(name):
 
 
 NON_COMPANY_DOMAINS = {
-    "facebook.com", "linkedin.com", "instagram.com", "twitter.com", "x.com", "youtube.com",
+    "facebook.com", "linkedin.com", "instagram.com", "twitter.com", "x.com", "youtube.com", "youtu.be",
     "amazon.com", "ebay.com", "alibaba.com", "aliexpress.com", "google.com", "sites.google.com",
     "mapyourshow.com", "wixsite.com", "godaddysites.com", "tiktok.com", "made-in-china.com",
     "etsy.com", "walmart.com", "shopify.com", "myshopify.com", "linktr.ee", "bit.ly",

@@ -18,13 +18,15 @@ import glob, json, os, re, sys
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import ROOT
+from common import NON_COMPANY_DOMAINS, ROOT
 from surfe_people import EXCLUDE, KEEP, PRESIDENT, load, norm_li, rank
 
 WORK = os.path.join(ROOT, "pipeline", "work")
 # titles the shared filter lets through that are not sales, marketing or e-commerce owners
 EXTRA_EXCLUDE = re.compile(r"\b(financ\w*|sourcing|intelligence|insights?|science|scientist|research|r&d|regulatory|"
                            r"legal|compliance|sustainab\w*|csr|trainee|apprentice)\b", re.I)
+# company-name (pass C) hits checked by hand and found to be a different company with the same name
+WRONG_COMPANY = {("E0290", "verdeflorperu.com.pe"), ("E0319", "tazne.cz")}
 STATUS_ORDER = {"verified": 0, "possible": 1, "different brand": 2, "not found": 3, "error": 4}
 
 
@@ -138,6 +140,9 @@ def people_select():
         p["country"] = str(p["country"]).lower()
         t = p["jobTitle"]
         if not p["firstName"] or not t or p["pass"] in ("error", "done"):
+            continue
+        dom = str(p["companyDomain"]).lower()
+        if (p["id"], dom) in WRONG_COMPANY or any(dom == b or dom.endswith("." + b) for b in NON_COMPANY_DOMAINS):
             continue
         if EXCLUDE.search(t) or EXTRA_EXCLUDE.search(t) or PRESIDENT.search(t) or not KEEP.search(t):
             continue
