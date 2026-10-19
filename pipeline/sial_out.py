@@ -59,7 +59,11 @@ def best_store():
     amz["nonfood"] = amz["Key"].map(lambda k: int(bool(NONFOOD_SUB.search(str(sub.get(k) or "")))))
     out = {}
     for eid, g in amz.sort_values(["o", "nonfood", "rev"], ascending=[True, True, False]).groupby("Exhibitor ID", sort=False):
-        out[eid] = g.iloc[0].to_dict()
+        r = g.iloc[0].to_dict()
+        if r["nonfood"] and r["Amazon Status"] in ("verified", "possible"):
+            r["Amazon Status"] = "different brand"  # its only matching store sells razors or cat treats, not food
+            r["Note"] = f"Only store found is a same-name non-food brand ({sub.get(r['Key'], '')})"
+        out[eid] = r
     return out
 
 
@@ -223,9 +227,9 @@ def brands_owned():
 # subcategory words that mark a same-name brand outside food and drink (SmartScout's top-level category is not
 # reliable for this: it files coconut milk under Everything Else and cheese spread under Tools & Home Improvement)
 NONFOOD_SUB = re.compile(r"denture|face|facial|skin|hair|fragrance|perfume|cologne|makeup|cosmetic|lip |nail|lotion|"
-                         r"shampoo|soap|deodorant|shoe|boot|sneaker|apparel|shirt|dress|jewel|watch|toy|game|furniture|"
+                         r"shampoo|soap|deodorant|shoe|boot|sneaker|apparel|shirt|\bdress(es)?\b|jewel|watch|toy|game|furniture|"
                          r"mattress|bedding|lighting|tool|automotive|cable|phone|laptop|computer|camera|bath|"
-                         r"footwear|handbag|wallet|sunglass|eyeglass|vitamin d|keyboard|guitar|book", re.I)
+                         r"footwear|handbag|wallet|sunglass|eyeglass|vitamin d|keyboard|guitar|book|razor|shav|\bdog|\bcat |\bpet |\blitter", re.I)
 CAL = "{{calendar_link}}"
 CE_BANNED = [r"—", r"–", r"!", r"\bI'?d love\b", r"\bwould love\b", r"hope this (email )?finds", r"\bleverag",
              r"\bsynerg", r"game.?changer", r"unlock", r"strategic opportunit", r"smartscout", r"touch base",
