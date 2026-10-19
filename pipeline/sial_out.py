@@ -212,6 +212,8 @@ def brands_owned():
     return b.groupby("Exhibitor ID")["Brand"].apply(lambda s: "; ".join(dict.fromkeys(s))).to_dict()
 
 
+FOOD_CATEGORIES = {"Grocery & Gourmet Food", "Health & Household", "Health & Personal Care", "Baby Products",
+                   "Pet Supplies", "Home & Kitchen"}
 CAL = "{{calendar_link}}"
 CE_BANNED = [r"—", r"–", r"!", r"\bI'?d love\b", r"\bwould love\b", r"hope this (email )?finds", r"\bleverag",
              r"\bsynerg", r"game.?changer", r"unlock", r"strategic opportunit", r"smartscout", r"touch base",
@@ -275,6 +277,11 @@ def lead_facts(eid, a):
         flags.append("Store not in SmartScout; limited data")
     elif rev > 3000000:
         flags.append("Revenue over $3M a month, not cited (likely the whole global brand)")
+    cat = p.get("Primary Category", "")
+    f["primary_category"] = cat
+    if p and cat not in FOOD_CATEGORIES:
+        flags.append(f"Amazon data's main category is {cat}: may mix in a same-name non-food brand; use only food "
+                     "and drink figures")
     f["qa_hints"] = flags
     return f, rev
 
