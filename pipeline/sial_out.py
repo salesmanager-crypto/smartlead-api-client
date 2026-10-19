@@ -236,7 +236,9 @@ CE_BANNED = [r"—", r"–", r"!", r"\bI'?d love\b", r"\bwould love\b", r"hope t
              r"circle back", r"\bquick question\b", r"[\U0001F300-\U0001FAFF☀-➿]", r"^\s*[-*•]",
              r"\$\d{1,3},\d{3}", r"mouthwatchers", r"run rate", r"\batlas\b", r"case stud",
              r"stop by", r"swing by", r"see you (at|there)", r"meet (you )?(at|in) (sial|paris)", r"I'?ll be at",
-             r"we'?ll be at", r"walking (the|sial)", r"\bdrive meaningful", r"growth potential"]
+             r"we'?ll be at", r"walking (the|sial)", r"\bdrive meaningful", r"growth potential",
+             r"\bleads? (the|its|in|balsamic|\w+ (category|categories))\b", r"\bleader\b", r"number one", r"#\s?1\b",
+             r"\branked?\b", r"\btop (brand|spot|position)\b", r"\bleading (position|brand)\b"]
 
 
 def pct_round(x, nd=0):
@@ -248,11 +250,9 @@ def pct_round(x, nd=0):
 
 
 def sane_rank(s):
-    """SmartScout sometimes reports rank 1 alongside a tiny share (0.2%); such a rank is not usable."""
-    r, share = s.get("Rank"), pct_round(s.get("Market Share"), 1)
-    if r in (None, "") or (str(r) == "1" and (share is None or share < 10)):
-        return None
-    return r
+    """SmartScout's "Rank In Subcategory" comes back as 1 for nearly every brand and subcategory (checked across all
+    pulls for this show), so it says nothing about the brand's position and is never passed to the writer."""
+    return None
 
 
 def lead_facts(eid, a):
@@ -292,7 +292,7 @@ def lead_facts(eid, a):
             f[k] = pct_round(sum(float(s.get("Estimated Brand Share") or 0) for s in sellers if s.get("Type") == t))
     f["subcategories"] = [{"subcategory": s.get("Subcategory"), "brand_revenue_in_it": money(s.get("Revenue")),
                            "share_of_brand_revenue_pct": pct_round(100 * float(s.get("Revenue") or 0) / rev) if rev else None,
-                           "market_share_pct": pct_round(s.get("Market Share"), 1), "rank": sane_rank(s)}
+                           "market_share_pct": pct_round(s.get("Market Share"), 1)}
                           for s in subs[:3]]
     flags = []
     if a.get("Amazon Status") == "possible":
