@@ -544,7 +544,10 @@ def master():
             base[col] = "" if pd.isna(v) else str(int(round(v)))
         g = by_ex.get(eid)
         if a and a.get("Amazon Status") not in ("verified", "possible"):
-            why = a.get("Note") or f"Amazon status: {a.get('Amazon Status')}"
+            note = a.get("Note") if isinstance(a.get("Note"), str) else ""
+            why = note or {"not found": "no Amazon product found under its brand names",
+                           "different brand": "the Amazon store with that name belongs to a different brand",
+                           "error": "Amazon check failed"}.get(a.get("Amazon Status"), a.get("Amazon Status", ""))
             rows.append({**base, "Row Status": f"Not on Amazon ({why}); not contacted"})
             continue
         if g is None or not len(g):
