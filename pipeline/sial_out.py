@@ -5,7 +5,7 @@
                                            first, one unit per company domain set (duplicate exhibitors skipped)
   python sial_out.py people_select         raw Surfe candidates -> surfe_people.csv, surfe_companies.csv
   python sial_out.py emails_export N BUDGET   se_in_XX.jsonl, verified first, then possible, each by revenue
-  python sial_out.py ce_export N           ce_in_XX.jsonl: one email per exhibitor (my-writing-style Outbound
+  python sial_out.py ce_export N [IDS..]   ce_in_XX.jsonl: one email per exhibitor (my-writing-style Outbound
                                            lead-gen mode), with rounded SmartScout facts for its best store
   python sial_out.py ce_check | ce_collect validate ce_out_XX.jsonl / merge passing emails -> cold_emails.csv
   python sial_out.py master                -> master_sheet.csv (one row per person)
@@ -52,10 +52,13 @@ def best_store():
         return {}
     rev = dict(zip(ss["Key"], pd.to_numeric(ss.get("Monthly Revenue", pd.Series(dtype=str)), errors="coerce"))) \
         if len(ss) else {}
+    sub = dict(zip(ss["Key"], ss.get("Primary Subcategory", pd.Series(dtype=str)))) if len(ss) else {}
     amz["o"] = amz["Amazon Status"].map(lambda s: STATUS_ORDER.get(s, 9))
     amz["rev"] = amz["Key"].map(lambda k: rev.get(k)).fillna(0)
+    # a same-name store outside food and drink (a denture cleanser called Weiss) never outranks a food store
+    amz["nonfood"] = amz["Key"].map(lambda k: int(bool(NONFOOD_SUB.search(str(sub.get(k) or "")))))
     out = {}
-    for eid, g in amz.sort_values(["o", "rev"], ascending=[True, False]).groupby("Exhibitor ID", sort=False):
+    for eid, g in amz.sort_values(["o", "nonfood", "rev"], ascending=[True, True, False]).groupby("Exhibitor ID", sort=False):
         out[eid] = g.iloc[0].to_dict()
     return out
 
@@ -217,8 +220,12 @@ def brands_owned():
     return b.groupby("Exhibitor ID")["Brand"].apply(lambda s: "; ".join(dict.fromkeys(s))).to_dict()
 
 
-FOOD_CATEGORIES = {"Grocery & Gourmet Food", "Health & Household", "Health & Personal Care", "Baby Products",
-                   "Pet Supplies", "Home & Kitchen"}
+# subcategory words that mark a same-name brand outside food and drink (SmartScout's top-level category is not
+# reliable for this: it files coconut milk under Everything Else and cheese spread under Tools & Home Improvement)
+NONFOOD_SUB = re.compile(r"denture|face|facial|skin|hair|fragrance|perfume|cologne|makeup|cosmetic|lip |nail|lotion|"
+                         r"shampoo|soap|deodorant|shoe|boot|sneaker|apparel|shirt|dress|jewel|watch|toy|game|furniture|"
+                         r"mattress|bedding|lighting|tool|automotive|cable|phone|laptop|computer|camera|bath|"
+                         r"footwear|handbag|wallet|sunglass|eyeglass|vitamin d|keyboard|guitar|book", re.I)
 CAL = "{{calendar_link}}"
 CE_BANNED = [r"—", r"–", r"!", r"\bI'?d love\b", r"\bwould love\b", r"hope this (email )?finds", r"\bleverag",
              r"\bsynerg", r"game.?changer", r"unlock", r"strategic opportunit", r"smartscout", r"touch base",
@@ -292,15 +299,18 @@ def lead_facts(eid, a):
         flags.append("Revenue over $3M a month, not cited (likely the whole global brand)")
     cat = p.get("Primary Category", "")
     f["primary_category"] = cat
-    if p and cat not in FOOD_CATEGORIES:
-        flags.append(f"Amazon data's main category is {cat}: may mix in a same-name non-food brand; use only food "
-                     "and drink figures")
+    odd = [x for x in [p.get("Primary Subcategory", "")] + [s.get("Subcategory", "") for s in subs[:3]]
+           if x and NONFOOD_SUB.search(x)]
+    if odd:
+        flags.append(f"Amazon data includes non-food subcategories ({', '.join(odd)}): may be or mix in a same-name "
+                     "non-food brand; use only food and drink figures, or none")
     f["qa_hints"] = flags
     return f, rev
 
 
-def ce_export(n):
-    """One email per exhibitor (Outbound lead-gen mode): every contact at the brand gets the same email."""
+def ce_export(n, redo=()):
+    """One email per exhibitor (Outbound lead-gen mode): every contact at the brand gets the same email. Ids in redo
+    are exported again even if already queued (their new email replaces the old one)."""
     e = csv("surfe_emails.csv")
     with_email = set(e.loc[e["Email"] != "", "Exhibitor ID"]) if len(e) else set()
     ex, best = exhibitors(), best_store()
@@ -319,7 +329,7 @@ def ce_export(n):
             pulled |= {ss_key(json.loads(l)["name"]) for l in open(f)}
     rows = []
     for eid in in_scope():
-        if eid in queued or eid not in with_email:
+        if (eid in queued and eid not in redo) or eid not in with_email or (redo and eid not in redo):
             continue
         names = [ss_key(n) for n in (best[eid].get("Amazon Store Name", ""), best[eid].get("Amazon Brand Field", "")) if n]
         if not any(n in idx or n in pulled for n in names):
@@ -473,7 +483,8 @@ def master():
         for _, r in g.iterrows():
             e, m = em.get(r["key"], {}), ce.get(eid, {})
             other = e.get("Email", "").split("@")[-1].lower() in OTHER_COMPANY_EMAIL
-            status = "Check: email is on another company's domain" if other else "Ready" if e.get("Email") and m.get("Email Body") else (
+            ready = "Ready, check QA flags" if m.get("QA Flags") else "Ready"
+            status = "Check: email is on another company's domain" if other else ready if e.get("Email") and m.get("Email Body") else (
                 "No email from Surfe" if e and not e.get("Email") else
                 ("Email pending" if not e else "Custom email pending"))
             rows.append({**base, "Priority": r["Priority"], "First Name": r["First Name"], "Last Name": r["Last Name"],
@@ -498,6 +509,6 @@ def master():
 if __name__ == "__main__":
     a = sys.argv
     {"people_export": lambda: people_export(int(a[2]), a[3] if len(a) > 3 else "amazon"), "people_select": people_select,
-     "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2])),
+     "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2]), set(a[3:])),
      "ce_check": ce_check, "ce_collect": ce_collect,
      "master": master}[a[1]]()
