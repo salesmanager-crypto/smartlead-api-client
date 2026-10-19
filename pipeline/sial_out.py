@@ -22,6 +22,9 @@ from common import ROOT
 from surfe_people import EXCLUDE, KEEP, PRESIDENT, load, norm_li, rank
 
 WORK = os.path.join(ROOT, "pipeline", "work")
+# titles the shared filter lets through that are not sales, marketing or e-commerce owners
+EXTRA_EXCLUDE = re.compile(r"\b(financ\w*|sourcing|intelligence|insights?|science|scientist|research|r&d|regulatory|"
+                           r"legal|compliance|sustainab\w*|csr|trainee|apprentice)\b", re.I)
 STATUS_ORDER = {"verified": 0, "possible": 1, "different brand": 2, "not found": 3, "error": 4}
 
 
@@ -116,6 +119,14 @@ def people_export(n, scope="amazon"):
     print(f"exported {len(rows)} exhibitors into chunks {' '.join(made) or '(none)'}")
 
 
+def clean_name(s):
+    """'Denham (née Wright) - She/Her' -> 'Denham'; 'Bill (B.T.)' -> 'Bill'; 'Smith, MBA' -> 'Smith'."""
+    s = re.sub(r"\(.*?\)|\[.*?\]", " ", str(s or ""))
+    s = re.split(r"\s+[-|]\s+|,", s)[0]
+    s = re.sub(r"\b(she|he|they)/(her|him|them)s?\b", " ", s, flags=re.I)
+    return re.sub(r"\s+", " ", s).strip(" .-")
+
+
 def people_select():
     raw, cos = load("sf_raw_*.jsonl"), load("sf_co_*.jsonl")
     ex = exhibitors()
@@ -128,9 +139,10 @@ def people_select():
         t = p["jobTitle"]
         if not p["firstName"] or not t or p["pass"] in ("error", "done"):
             continue
-        if EXCLUDE.search(t) or PRESIDENT.search(t) or not KEEP.search(t):
+        if EXCLUDE.search(t) or EXTRA_EXCLUDE.search(t) or PRESIDENT.search(t) or not KEEP.search(t):
             continue
-        if len(p["lastName"].rstrip(".")) <= 1:
+        p["firstName"], p["lastName"] = clean_name(p["firstName"]), clean_name(p["lastName"])
+        if not p["firstName"] or len(p["lastName"].rstrip(".")) <= 1:
             continue  # surname shown as an initial only
         key = (p["id"], norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower())
         by.setdefault(p["id"], {}).setdefault(key, p)
