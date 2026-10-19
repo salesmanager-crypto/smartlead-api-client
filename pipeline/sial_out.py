@@ -27,6 +27,11 @@ EXTRA_EXCLUDE = re.compile(r"\b(financ\w*|sourcing|intelligence|insights?|scienc
                            r"legal|compliance|sustainab\w*|csr|trainee|apprentice)\b", re.I)
 # company-name (pass C) hits checked by hand and found to be a different company with the same name
 WRONG_COMPANY = {("E0290", "verdeflorperu.com.pe"), ("E0319", "tazne.cz")}
+# Surfe emails on a domain that, checked by hand, belongs to a different company than the exhibitor (the person
+# has likely moved on): kept visible but not marked Ready
+OTHER_COMPANY_EMAIL = {"safefoodcorp.com", "nivagelato.com", "agremat.ca", "jollygoodpud.co.uk", "comeverde.mx",
+                       "pfgc.com", "compagniamediterranealiquori.com", "ducsa.com.uy", "idilia.es", "shd.com.lb",
+                       "rawpressery.com", "medici-care.com"}
 STATUS_ORDER = {"verified": 0, "possible": 1, "different brand": 2, "not found": 3, "error": 4}
 
 
@@ -231,6 +236,14 @@ def pct_round(x, nd=0):
     return round(v, nd) if nd else int(round(v))
 
 
+def sane_rank(s):
+    """SmartScout sometimes reports rank 1 alongside a tiny share (0.2%); such a rank is not usable."""
+    r, share = s.get("Rank"), pct_round(s.get("Market Share"), 1)
+    if r in (None, "") or (str(r) == "1" and (share is None or share < 10)):
+        return None
+    return r
+
+
 def lead_facts(eid, a):
     """Everything the writer may use about one exhibitor's best Amazon store, already rounded."""
     from cold_emails import money
@@ -248,7 +261,7 @@ def lead_facts(eid, a):
     f = {"brand": a.get("Brand", ""), "amazon_store_name": a.get("Amazon Store Name", "") or a.get("Amazon Brand Field", ""),
          "has_amazon_store": a.get("Has Amazon Store", "") in ("Yes", "True"), "amazon_status": a.get("Amazon Status", ""),
          "in_smartscout": bool(p), "monthly_revenue": money(rev),
-         "trailing_12m_revenue": ("" if pd.isna(ttm) or ttm < 60000 else
+         "trailing_12m_revenue": ("" if pd.isna(ttm) or ttm < 60000 or rev > 3000000 or ttm > 36e6 else
                                   f"about ${ttm / 1e6:.1f}M" if ttm >= 1e6 else f"about ${int(round(ttm / 50000) * 50)}k"),
          "mom_growth_pct": pct_round((p.get("Average MoM Growth") or 0) * 100) if p.get("Average MoM Growth") is not None else None,
          "products": p.get("Total Products"), "reviews_rounded": (int(round(float(p["Total Reviews"]), -2))
@@ -268,7 +281,7 @@ def lead_facts(eid, a):
             f[k] = pct_round(sum(float(s.get("Estimated Brand Share") or 0) for s in sellers if s.get("Type") == t))
     f["subcategories"] = [{"subcategory": s.get("Subcategory"), "brand_revenue_in_it": money(s.get("Revenue")),
                            "share_of_brand_revenue_pct": pct_round(100 * float(s.get("Revenue") or 0) / rev) if rev else None,
-                           "market_share_pct": pct_round(s.get("Market Share"), 1), "rank": s.get("Rank")}
+                           "market_share_pct": pct_round(s.get("Market Share"), 1), "rank": sane_rank(s)}
                           for s in subs[:3]]
     flags = []
     if a.get("Amazon Status") == "possible":
@@ -298,10 +311,19 @@ def ce_export(n):
     queued = set()
     for f in glob.glob(os.path.join(WORK, "ce_in_*.jsonl")):
         queued |= {json.loads(l)["id"] for l in open(f)}
+    from smartscout_store import cache_index, key as ss_key
+    _, idx = cache_index()
+    pulled = set()  # names whose SmartScout chunk has finished, so a miss really means "not in SmartScout"
+    for f in glob.glob(os.path.join(WORK, "ssx_in_*.jsonl")):
+        if os.path.exists(f.replace("ssx_in_", "ssx_done_").replace(".jsonl", ".txt")):
+            pulled |= {ss_key(json.loads(l)["name"]) for l in open(f)}
     rows = []
     for eid in in_scope():
         if eid in queued or eid not in with_email:
             continue
+        names = [ss_key(n) for n in (best[eid].get("Amazon Store Name", ""), best[eid].get("Amazon Brand Field", "")) if n]
+        if not any(n in idx or n in pulled for n in names):
+            continue  # SmartScout pull for this store not finished yet; export it in a later round
         x = ex.loc[eid]
         f, rev = lead_facts(eid, best[eid])
         rows.append({"id": eid, "company": x["Exhibitor Name"], "country": x["Country"],
@@ -450,7 +472,8 @@ def master():
             continue
         for _, r in g.iterrows():
             e, m = em.get(r["key"], {}), ce.get(eid, {})
-            status = "Ready" if e.get("Email") and m.get("Email Body") else (
+            other = e.get("Email", "").split("@")[-1].lower() in OTHER_COMPANY_EMAIL
+            status = "Check: email is on another company's domain" if other else "Ready" if e.get("Email") and m.get("Email Body") else (
                 "No email from Surfe" if e and not e.get("Email") else
                 ("Email pending" if not e else "Custom email pending"))
             rows.append({**base, "Priority": r["Priority"], "First Name": r["First Name"], "Last Name": r["Last Name"],
