@@ -235,6 +235,12 @@ def people_select():
             continue  # surname shown as an initial only, or a handle repeated as both names
         key = (p["id"], norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower())
         by.setdefault(p["id"], {}).setdefault(key, p)
+    seen_li = {}  # the same person found under two exhibitors of one group (VAHDAM, Savencia / Valrhona) stays once
+    for eid in sorted(by):
+        for key in list(by[eid]):
+            li = key[1] if "linkedin.com" in key[1] else ""
+            if li and seen_li.setdefault(li, eid) != eid:
+                del by[eid][key]
     rows = []
     for eid, d in by.items():
         for i, p in enumerate(sorted(d.values(), key=rank)[:5], 1):
@@ -371,6 +377,9 @@ def lead_facts(eid, a):
     if odd:
         flags.append(f"Amazon data includes non-food subcategories ({', '.join(odd)}): may be or mix in a same-name "
                      "non-food brand; use only food and drink figures, or none")
+    rv = store_review().get(a.get("Key", ""), {})
+    if rv.get("verdict") == "unsure":
+        flags.append("Store review unsure this store is the exhibitor's: " + rv.get("reason", ""))
     f["qa_hints"] = flags
     return f, rev
 
@@ -534,6 +543,10 @@ def master():
             v = pd.to_numeric(base[col], errors="coerce")
             base[col] = "" if pd.isna(v) else str(int(round(v)))
         g = by_ex.get(eid)
+        if a and a.get("Amazon Status") not in ("verified", "possible"):
+            why = a.get("Note") or f"Amazon status: {a.get('Amazon Status')}"
+            rows.append({**base, "Row Status": f"Not on Amazon ({why}); not contacted"})
+            continue
         if g is None or not len(g):
             if not a:
                 why = "Amazon check not run yet"
