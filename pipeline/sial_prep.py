@@ -63,7 +63,12 @@ def base():
     if os.path.exists(BASE):
         old = pd.read_csv(BASE, dtype=str, keep_default_na=False)
         ids = dict(zip(old["SIAL Profile ID"], old["Exhibitor ID"]))
-    ex.sort(key=lambda r: -money(r["Est. monthly Amazon revenue (USD)"]))
+    merged = {}
+    for r in ex:  # the catalog lists a few exhibitors once per stand; keep one row with every stand
+        m = merged.setdefault(r["SIAL profile ID"], dict(r))
+        if m is not r and r["Stand(s)"] and r["Stand(s)"] not in m["Stand(s)"]:
+            m["Stand(s)"] = ", ".join(x for x in (m["Stand(s)"], r["Stand(s)"]) if x)
+    ex = sorted(merged.values(), key=lambda r: -money(r["Est. monthly Amazon revenue (USD)"]))
     n = max([int(i[1:]) for i in ids.values()] or [0])
     out = []
     for r in ex:
