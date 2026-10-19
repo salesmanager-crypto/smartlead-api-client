@@ -156,8 +156,8 @@ def people_select():
         if m and not any(w in m.group(1).lower() for w in name_words(ex["Exhibitor Name"].get(p["id"], ""))):
             continue  # "Market Manager at Firestone Walker": the title names a different employer
         p["firstName"], p["lastName"] = clean_name(p["firstName"]), clean_name(p["lastName"])
-        if not p["firstName"] or len(p["lastName"].rstrip(".")) <= 1:
-            continue  # surname shown as an initial only
+        if not p["firstName"] or len(p["lastName"].rstrip(".")) <= 1 or p["firstName"].lower() == p["lastName"].lower():
+            continue  # surname shown as an initial only, or a handle repeated as both names
         key = (p["id"], norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower())
         by.setdefault(p["id"], {}).setdefault(key, p)
     rows = []
