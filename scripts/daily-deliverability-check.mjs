@@ -13,7 +13,7 @@ const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 // minimal .env loader (mirrors src/cli.js)
 const envPath = path.join(projectRoot, ".env");
-for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+for (const line of (fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "").split("\n")) {
   const t = line.trim();
   if (!t || t.startsWith("#")) continue;
   const eq = t.indexOf("=");

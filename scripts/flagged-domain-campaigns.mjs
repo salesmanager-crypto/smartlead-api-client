@@ -6,7 +6,7 @@ import { SmartleadClient } from "../src/client.js";
 const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 const envPath = path.join(projectRoot, ".env");
-for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+for (const line of (fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "").split("\n")) {
   const t = line.trim();
   if (!t || t.startsWith("#")) continue;
   const eq = t.indexOf("=");
