@@ -597,9 +597,47 @@ def master():
     print(d["Row Status"].value_counts().to_string())
 
 
+NUMERIC = {"Monthly Revenue", "Annual Revenue (TTM)", "Average Sellers", "Employees", "Priority"}
+
+
+def col_letter(n):
+    s = ""
+    while n:
+        n, r = divmod(n - 1, 26)
+        s = chr(65 + r) + s
+    return s
+
+
+def sheet_blocks(n, tab="Outbound master"):
+    """master_sheet.csv -> pipeline/work/sheet_block_XX.json: {"range", "values"} blocks of n rows (the header in the
+    first), ready for Google Sheets update_values. Numbers are written as numbers, everything else as text."""
+    d = pd.read_csv(os.path.join(ROOT, "master_sheet.csv"), dtype=str).fillna("")
+    for f in glob.glob(os.path.join(WORK, "sheet_block_*.json")):
+        os.remove(f)
+
+    def cell(col, v):
+        if col in NUMERIC and v != "":
+            try:
+                x = float(v)
+                return int(x) if x.is_integer() else round(x, 2)
+            except ValueError:
+                return v
+        return v
+    rows = [list(d.columns)] + [[cell(c, r[c]) for c in d.columns] for _, r in d.iterrows()]
+    last = col_letter(len(d.columns))
+    k = 0
+    for st in range(0, len(rows), n):
+        block = rows[st:st + n]
+        rng = f"'{tab}'!A{st + 1}:{last}{st + len(block)}"
+        json.dump({"range": rng, "values": block}, open(os.path.join(WORK, f"sheet_block_{k:02d}.json"), "w"),
+                  ensure_ascii=False)
+        k += 1
+    print(f"{len(rows)} rows (with header) in {k} blocks of up to {n}")
+
+
 if __name__ == "__main__":
     a = sys.argv
     {"people_export": lambda: people_export(int(a[2]), a[3] if len(a) > 3 else "amazon"), "people_select": people_select,
      "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2]), set(a[3:])),
      "ce_check": ce_check, "ce_collect": ce_collect, "review_export": lambda: review_export(int(a[2])),
-     "master": master}[a[1]]()
+     "master": master, "sheet_blocks": lambda: sheet_blocks(int(a[2]))}[a[1]]()
