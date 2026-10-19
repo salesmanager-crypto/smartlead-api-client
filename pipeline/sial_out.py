@@ -502,6 +502,11 @@ COLUMNS = [
 ]
 
 
+def short_list(s, n=12):
+    items = [x for x in s.split("; ") if x]
+    return "; ".join(items[:n]) + (f"; and {len(items) - n} more" if len(items) > n else "")
+
+
 def master():
     from surfe_emails import person_key
     ex = exhibitors().reset_index()
@@ -538,10 +543,10 @@ def master():
                 "SIAL Profile": x["SIAL Profile URL"], "Website": x["Website"], "Domain": x["Domain"],
                 "Company LinkedIn": c.get("linkedInURL") or x["LinkedIn"], "Facebook": so.get("Facebook", ""),
                 "Instagram": so.get("Instagram", ""), "X": so.get("X", ""), "Parent Company": x["Parent Company"],
-                "Brands Owned": owned.get(eid, ""), "Amazon Brand": a.get("Brand", ""),
+                "Brands Owned": short_list(owned.get(eid, "")), "Amazon Brand": a.get("Brand", ""),
                 "Amazon Store Name": a.get("Amazon Store Name", ""),
                 "Has Amazon Store": {"True": "Yes", "False": "No"}.get(a.get("Has Amazon Store", ""), a.get("Has Amazon Store", "")),
-                "Amazon Store URL": a.get("Amazon Store URL", ""), "Amazon Status": a.get("Amazon Status", ""),
+                "Amazon Store URL": str(a.get("Amazon Store URL", "")).split("?")[0], "Amazon Status": a.get("Amazon Status", ""),
                 "Amazon Sold By (sample)": a.get("Sold By", ""), "Employees": c.get("employeeCount", ""),
                 "HQ Country": c.get("hqCountry", "")}
         for col in ("SmartScout Match", "Monthly Revenue", "Annual Revenue (TTM)", "Primary Category",
@@ -639,10 +644,38 @@ def sheet_blocks(n, tab="Outbound master"):
     for st in range(0, len(rows), n):
         block = rows[st:st + n]
         rng = f"'{tab}'!A{st + 1}:{last}{st + len(block)}"
+        # one cell per line, so a reader that truncates long lines still sees every cell in full
         json.dump({"range": rng, "values": block}, open(os.path.join(WORK, f"sheet_block_{k:02d}.json"), "w"),
-                  ensure_ascii=False)
+                  ensure_ascii=False, indent=1)
         k += 1
     print(f"{len(rows)} rows (with header) in {k} blocks of up to {n}")
+
+
+def sheet_verify(path):
+    """Compare a get_values dump of the tab (JSON {"values": [...]}) with master_sheet.csv; print mismatched cells by
+    block so a bad block can be rewritten."""
+    got = json.load(open(path))["values"]
+    d = pd.read_csv(os.path.join(ROOT, "master_sheet.csv"), dtype=str).fillna("")
+    want = [list(d.columns)] + d.values.tolist()
+
+    def norm(v, col):
+        v = str(v).strip()
+        if col in NUMERIC and v:
+            try:
+                return str(round(float(v.replace(",", "").replace("$", "")), 2))
+            except ValueError:
+                return v
+        return v.replace("\r\n", "\n")
+    bad = {}
+    for i, w in enumerate(want):
+        g = got[i] if i < len(got) else []
+        for j, col in enumerate(d.columns):
+            if norm(w[j], col) != norm(g[j] if j < len(g) else "", col):
+                bad.setdefault(i // 30, []).append((i + 1, col))
+    print(f"sheet rows {len(got)}, expected {len(want)}; blocks with mismatches: "
+          f"{ {f'{k:02d}': len(v) for k, v in bad.items()} }")
+    for k, v in list(bad.items())[:5]:
+        print(f"  block {k:02d}: first mismatches {v[:4]}")
 
 
 if __name__ == "__main__":
@@ -650,4 +683,5 @@ if __name__ == "__main__":
     {"people_export": lambda: people_export(int(a[2]), a[3] if len(a) > 3 else "amazon"), "people_select": people_select,
      "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2]), set(a[3:])),
      "ce_check": ce_check, "ce_collect": ce_collect, "review_export": lambda: review_export(int(a[2])),
-     "master": master, "sheet_blocks": lambda: sheet_blocks(int(a[2]))}[a[1]]()
+     "master": master, "sheet_blocks": lambda: sheet_blocks(int(a[2])),
+     "sheet_verify": lambda: sheet_verify(a[2])}[a[1]]()

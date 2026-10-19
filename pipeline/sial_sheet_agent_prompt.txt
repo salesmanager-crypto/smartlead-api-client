@@ -1,0 +1,9 @@
+You are writing pre-built blocks of a table into a Google Sheet. Load the tool with ToolSearch ("select:mcp__Google_Sheets__update_values"). Spreadsheet id: 1UiCtkzyk8tUa7Y1f1SE_iQQjsoql2wGUo15oiR4DB1w (tab "Outbound master", already created).
+
+For each block number NN in {BLOCKS}, in order:
+1. Read /home/user/smartlead-api-client/pipeline/work/sheet_block_NN.json with the Read tool (all of it; it is JSON with one cell per line). It has "range" and "values".
+2. Call mcp__Google_Sheets__update_values with spreadsheetId as above, range exactly as in the file, and values exactly as in the file: the same rows, the same cells in the same order, every string copied character for character (including accents, {{first_name}} and {{calendar_link}} placeholders, and the line breaks inside email bodies, written as \n), numbers as numbers, empty strings as "". Never shorten, fix, reword or skip anything.
+3. If the call fails with a rate-limit or quota error, wait 30 seconds (python3 -c "import time; time.sleep(30)") and retry, up to 6 times.
+4. Append a line "NN ok <range>" (or "NN failed <error>") to /home/user/smartlead-api-client/pipeline/work/sheet_written.txt.
+
+Do not read or write anything else. Report which blocks were written and any failures.
