@@ -328,6 +328,20 @@ def amz():
             items.append({"key": f"{eid}|{squash(name)}", "id": eid, "exhibitor": r["Exhibitor Name"], "brand": name,
                           "ownership": "Owned", "source": "exhibitor name", "domain": r["Domain"], "tier": 1,
                           "rev": float(r["Sheet Monthly Revenue"] or 0)})
+    # tier 0 = brands the sheet already matched on Amazon; exhibitors with none get up to 3 of their other owned
+    # brands (tier 1). Other owned brands of exhibitors that already have a matched brand are left out, which
+    # keeps the crawl to hours rather than a day; `amz all` includes them.
+    if not (len(sys.argv) > 2 and sys.argv[2] == "all"):
+        has0 = {i["id"] for i in items if i["tier"] == 0}
+        per, kept = {}, []
+        for i in items:
+            if i["tier"] == 1:
+                if i["id"] in has0 or per.get(i["id"], 0) >= 3:
+                    continue
+                per[i["id"]] = per.get(i["id"], 0) + 1
+            kept.append(i)
+        print(f"left out {len(items) - len(kept)} extra owned brands of exhibitors that already have a matched brand")
+        items = kept
     items.sort(key=lambda i: (i["tier"], -i["rev"]))
     with open(os.path.join(WORK, "amz_in.jsonl"), "w") as fh:
         for it in items:

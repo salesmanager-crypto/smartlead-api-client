@@ -1,6 +1,6 @@
 """SIAL Paris 2026 back end: people, emails, custom emails and the master sheet, on top of the shared scripts.
 
-  python sial_out.py people_export N       Surfe search work units (sf_in_XX.jsonl) for Brand / Manufacturer
+  python sial_out.py people_export N [all] Surfe search work units (sf_in_XX.jsonl) for Brand / Manufacturer
                                            exhibitors with a verified or possible Amazon store, highest revenue
                                            first, one unit per company domain set (duplicate exhibitors skipped)
   python sial_out.py people_select         raw Surfe candidates -> surfe_people.csv, surfe_companies.csv
@@ -76,10 +76,12 @@ def in_scope():
     return [e for e in ex.index if best.get(e, {}).get("Amazon Status") in ("verified", "possible")]
 
 
-def people_export(n):
+def people_export(n, scope="amazon"):
+    """scope "amazon": exhibitors with a verified / possible store; "all": every brand owner (people search costs
+    no email credits, so it can run while the Amazon check is still going)."""
     ex, rev = exhibitors(), exhibitor_revenue()
     owned = brands_owned()
-    ids = sorted(in_scope(), key=lambda e: -rev.get(e, 0))
+    ids = sorted(in_scope() if scope == "amazon" else list(ex.index), key=lambda e: -rev.get(e, 0))
     queued = set()
     for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")):
         queued |= {json.loads(l)["id"] for l in open(f)}
@@ -94,6 +96,8 @@ def people_export(n):
             continue
         x = ex.loc[e]
         doms = [d for d in x["People Domains"].split("; ") if d] or ([x["Domain"]] if x["Domain"] else [])
+        if not doms and scope == "all":
+            pass  # searched by company name (pass C)
         dup = [seen_domains[d] for d in doms if d in seen_domains]
         if dup:
             continue  # same company exhibiting twice; its people are found under the first exhibitor
@@ -437,7 +441,7 @@ def master():
 
 if __name__ == "__main__":
     a = sys.argv
-    {"people_export": lambda: people_export(int(a[2])), "people_select": people_select,
+    {"people_export": lambda: people_export(int(a[2]), a[3] if len(a) > 3 else "amazon"), "people_select": people_select,
      "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2])),
      "ce_check": ce_check, "ce_collect": ce_collect,
      "master": master}[a[1]]()
