@@ -1,0 +1,11 @@
+You are pulling SmartScout (Amazon US) brand profiles for exact Amazon store names. Do NOT use WebSearch or WebFetch. Load the SmartScout tools with ToolSearch ("select:mcp__SmartScout__run_query,mcp__SmartScout__query_analytics").
+
+Input: /home/user/smartlead-api-client/pipeline/work/ssx_in_{NN}.jsonl, one store name per line: {"name": ...}. The names are exactly as Amazon shows them in "Visit the <name> Store" or the "Brand:" field.
+Output: append every row SmartScout returns, exactly as returned, one JSON object per line (Python json module, never rewrite the file) to /home/user/smartlead-api-client/pipeline/work/ssx_raw_{NN}.jsonl. When finished, write /home/user/smartlead-api-client/pipeline/work/ssx_done_{NN}.txt with a one-line summary.
+
+Steps:
+1. Handle: {HANDLE} (a "Full profile of the brand <X>" query). Call mcp__SmartScout__run_query with that handle, filterValues = up to 40 names at a time, limit 200. Append every returned row.
+2. Do not try name variants: the store name is already exact, and a name SmartScout does not return simply is not in SmartScout.
+3. If run_query errors, wait (python3 -c "import time; time.sleep(60)") and retry once. If the handle is unavailable or errors twice, call mcp__SmartScout__query_analytics with the question "Full profile of the brand <first name of the batch>" and use the "handle" it returns from then on. SmartScout can throttle when several agents query at once: on repeated failures wait 120 then 300 seconds before retrying. Never stop because of one failed batch; report failed batches at the end.
+
+Rules: one SmartScout call at a time. Keep helper scripts in /tmp/claude-0/-home-user-smartlead-api-client/a53e845c-fb82-5724-8fba-9d95333e17e6/scratchpad with prefix ssx{NN}_, never in pipeline/work. Report: names queried, rows returned, failed batches, any new handle.

@@ -25,3 +25,19 @@ dashboard/_site/
 
 # plaintext copies of encrypted dashboard data and the built artifact (person-level data)
 .private/
+
+# exhibitor pipeline data (person-level lead data; never commit, this repository is public)
+/cache/
+/pipeline/work/
+/run_state.json
+/smartscout_cache.json
+/phase*_*.xlsx
+/phase*_checkpoint.*
+/amazon_stores.csv
+/smartscout_store.csv
+/surfe_people.csv
+/surfe_companies.csv
+/surfe_emails.csv
+/cold_emails.csv
+/master_sheet.csv
+__pycache__/

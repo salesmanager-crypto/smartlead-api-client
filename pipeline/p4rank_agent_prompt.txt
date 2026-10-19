@@ -1,0 +1,9 @@
+Backfill exact subcategory ranks from SmartScout (Amazon US). Do NOT use WebSearch or WebFetch. Load tools with ToolSearch ("select:mcp__SmartScout__run_query,mcp__SmartScout__query_analytics").
+
+Input: /home/user/smartlead-api-client/pipeline/work/p4rank_in_{NN}.jsonl, one {"brand": ...} per line (exact SmartScout brand name).
+Output: append one line per brand to /home/user/smartlead-api-client/pipeline/work/p4rank_out_{NN}.jsonl: {"brand": ..., "subcats": [{"Subcategory": ..., "Revenue": ..., "Market Share": ..., "Rank": ...}, ...]} using Python json.dumps. If the output file exists, skip brands already in it.
+
+For each brand call mcp__SmartScout__run_query with handle "qh_6SL3LuZCxlvi", filterValues [brand], limit 3. It returns Brand Name, Sub Category Context, Revenue, Marketshare (a fraction), Rank In Subcategory. Map to Subcategory = Sub Category Context, Market Share = Marketshare (keep the fraction), Rank = Rank In Subcategory (a number).
+If the handle is unavailable or errors twice, call mcp__SmartScout__query_analytics with the question "Top 3 subcategories for the brand <brand> by the brand's revenue, with the brand's market share and rank in each subcategory" and use the returned handle from then on (check the new handle's rows include Rank In Subcategory). If calls fail from throttling, wait and retry: `sleep 60`, `sleep 120`, `sleep 300` in Bash. Never write a line for a brand because of an error; write an empty subcats list only when SmartScout answered successfully with no rows.
+
+One call at a time. Helper files: `p4r{NN}_` prefix, scratchpad directory only. No em or en dashes. At the end verify one line per input brand and report counts.

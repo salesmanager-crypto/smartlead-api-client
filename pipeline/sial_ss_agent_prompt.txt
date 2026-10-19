@@ -1,0 +1,23 @@
+You are pulling SmartScout (Amazon US) data for the exact Amazon store names of SIAL Paris 2026 exhibitors' brands. Do NOT use WebSearch or WebFetch. Load the SmartScout tools with ToolSearch ("select:mcp__SmartScout__run_query,mcp__SmartScout__query_analytics").
+
+Input: /home/user/smartlead-api-client/pipeline/work/ssx_in_{NN}.jsonl, one store name per line: {"name": ...}. The names are exactly as Amazon shows them in "Visit the <name> Store" or the "Brand:" field.
+Outputs (append one JSON object per line with Python's json module, never rewrite a file):
+- /home/user/smartlead-api-client/pipeline/work/ssx_raw_{NN}.jsonl: every PROFILE row SmartScout returns, exactly as returned.
+- /home/user/smartlead-api-client/pipeline/work/p4_raw_{NN}.jsonl: one line per brand SmartScout returned in the profile step: {"brand": <the returned "Brand Name">, "sellers": [...], "subcats": [...], "notes": ""}.
+When finished, write /home/user/smartlead-api-client/pipeline/work/ssx_done_{NN}.txt with a one-line summary.
+Resume: if the output files exist, skip names already answered (profile rows present, or a brand line present in p4_raw).
+
+Saved query handles (mcp__SmartScout__run_query with the handle and filterValues):
+- PROFILE: {PROFILE} ("Full profile of the brand <X>"). filterValues = up to 40 names at once, limit 200. A name SmartScout does not return is not in SmartScout; do not try variants, the store name is already exact.
+- SELLERS: {SELLERS} ("Which sellers sell the brand <X> and what is each seller's share of the brand's revenue"). filterValues [brand], limit 15.
+- SUBCATS: {SUBCATS} ("Top 3 subcategories for the brand <X> by the brand's revenue, with the brand's market share and rank in each subcategory"). filterValues [brand], limit 3. Rows have "Subcategory Context Name", "Monthly Revenue", "Market Share" (a fraction: 0.04 = 4%) and "Rank In Subcategory".
+
+Steps:
+1. PROFILE for all names, in batches of 40. Append every returned row to ssx_raw.
+2. For every brand returned in step 1 (use its exact "Brand Name"): call SELLERS, then SUBCATS, then write its p4_raw line:
+   - sellers: keep for each row "Seller Name", "Number of Offers", "Brand Revenue Estimate", "Estimated Brand Share" (a percent number, e.g. 39.67), "Month Over Month Change", and add "Type": "Amazon 1P" if the seller is Amazon.com; "Brand direct" if the seller name is clearly the brand itself or its owner (for example seller "Manitoba Harvest" for brand Manitoba Harvest); otherwise "Third-party reseller".
+   - subcats: up to 3 objects {"Subcategory": <Subcategory Context Name>, "Revenue": <Monthly Revenue>, "Market Share": <Market Share x 100, rounded to 2 decimals, a percent number>, "Rank": <Rank In Subcategory>}.
+   - Skip steps 2 for brands whose "Total Monthly Revenue" is 0 or missing: write {"brand": ..., "sellers": [], "subcats": [], "notes": "no sales in the last 30 days"}.
+3. Errors: SmartScout can throttle. If a call fails, wait and retry (python3 -c "import time; time.sleep(60)", then 120, then 300). Only write empty sellers / subcats when SmartScout answered successfully with no rows, never because of an error. If run_query says a handle is unavailable or errors twice, call mcp__SmartScout__query_analytics with that handle's question filled in for the current brand and use the "handle" it returns from then on.
+
+Rules: one SmartScout call at a time. Numbers stay numbers (no $ or %). No em dashes or en dashes. Keep helper scripts in /tmp/claude-0/-home-user-smartlead-api-client/a53e845c-fb82-5724-8fba-9d95333e17e6/scratchpad with prefix ssx{NN}_, never in pipeline/work. At the end verify with Python that every brand in ssx_raw_{NN} has exactly one p4_raw_{NN} line. Report: names queried, profile rows returned, brands with sellers / subcats, failed calls, any new handles.

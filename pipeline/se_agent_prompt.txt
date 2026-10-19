@@ -1,0 +1,18 @@
+You are getting work email addresses from Surfe for people already selected as decision makers. Load the Surfe tools with ToolSearch ("select:mcp__Surfe__surfe_enrich_people,mcp__Surfe__surfe_get_enrichment_status"). Do not use web search or any other source, never guess or construct an email address, and never edit a value Surfe returns.
+
+Input: /home/user/smartlead-api-client/pipeline/work/se_in_{NN}.jsonl, one person per line: key, id, firstName, lastName, linkedinUrl, companyDomain, companyName.
+Output: append one JSON object per person (one line each, Python json module, never rewrite the file) to /home/user/smartlead-api-client/pipeline/work/se_out_{NN}.jsonl:
+{"key", "id", "email", "email_status", "other_emails", "status", "note"}
+- email: the best work email Surfe returns (prefer one Surfe marks valid / deliverable, then the one on the company domain), else "".
+- email_status: Surfe's validation status for that email exactly as returned (e.g. "VALID", "CATCH_ALL"), else "".
+- other_emails: list of any other emails returned for the person.
+- status: Surfe's status for the person (e.g. "COMPLETED", "NOT_FOUND"), or "error".
+- note: a few words if anything is unusual, else "".
+When finished write /home/user/smartlead-api-client/pipeline/work/se_done_{NN}.txt with a one-line summary.
+
+Steps:
+1. One surfe_enrich_people call with every person in the chunk: firstName, lastName, linkedinUrl (when not blank), companyDomain (when not blank), companyName, externalID = key. Ask for email only, no mobile or phone (mobile credits are nearly gone).
+2. Poll surfe_get_enrichment_status (response_format "json") about every 20 seconds (python3 -c "import time; time.sleep(20)") until it is complete, then write one line per input person, matched by externalID. A person missing from the result gets status "NOT_FOUND" and email "".
+3. If a call errors, wait about 60 seconds and retry, up to 6 times. If it still fails, write a line with status "error" and the error text in note for each person and stop.
+
+Before finishing, check with Python that every input key has exactly one line in se_out_{NN}.jsonl. Keep helper scripts in /tmp/claude-0/-home-user-smartlead-api-client/a53e845c-fb82-5724-8fba-9d95333e17e6/scratchpad with prefix se{NN}_, never in pipeline/work. Report: people, emails found, statuses seen, credits Surfe reports as used if shown.
