@@ -121,6 +121,12 @@ def people_export(n, scope="amazon"):
     print(f"exported {len(rows)} exhibitors into chunks {' '.join(made) or '(none)'}")
 
 
+def name_words(company):
+    stop = {"the", "and", "group", "foods", "food", "international", "company", "sa", "sas", "srl", "spa", "gmbh",
+            "ltd", "llc", "inc", "co", "limited", "corporation", "s", "a", "de", "of"}
+    return [w for w in re.findall(r"[a-z0-9]{3,}", company.lower()) if w not in stop]
+
+
 def clean_name(s):
     """'Denham (née Wright) - She/Her' -> 'Denham'; 'Bill (B.T.)' -> 'Bill'; 'Smith, MBA' -> 'Smith'."""
     s = re.sub(r"\(.*?\)|\[.*?\]", " ", str(s or ""))
@@ -146,6 +152,9 @@ def people_select():
             continue
         if EXCLUDE.search(t) or EXTRA_EXCLUDE.search(t) or PRESIDENT.search(t) or not KEEP.search(t):
             continue
+        m = re.search(r"\s(?:at|@)\s+(.+)$", t, re.I)
+        if m and not any(w in m.group(1).lower() for w in name_words(ex["Exhibitor Name"].get(p["id"], ""))):
+            continue  # "Market Manager at Firestone Walker": the title names a different employer
         p["firstName"], p["lastName"] = clean_name(p["firstName"]), clean_name(p["lastName"])
         if not p["firstName"] or len(p["lastName"].rstrip(".")) <= 1:
             continue  # surname shown as an initial only
