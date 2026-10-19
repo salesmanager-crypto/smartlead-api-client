@@ -585,6 +585,16 @@ def master():
                          "QA Flags": m.get("QA Flags", ""),
                          "Row Status": status})
     d = pd.DataFrame(rows, columns=COLUMNS).fillna("")
+    # one person can show up twice (two LinkedIn profiles, or a group listed at two stands): keep the first row per email
+    dup = (d["Email"] != "") & d["Email"].str.lower().duplicated()
+    first = dict(zip(d.loc[(d["Email"] != "") & ~dup, "Email"].str.lower(), d.loc[(d["Email"] != "") & ~dup, "Exhibitor ID"]))
+    lost = set(d.loc[dup, "Exhibitor ID"]) - set(d.loc[~dup, "Exhibitor ID"])
+    extra = []
+    for eid in lost:
+        r = d[dup & (d["Exhibitor ID"] == eid)].iloc[0].to_dict()
+        keep = {c: r[c] for c in COLUMNS[:COLUMNS.index("Priority")]}
+        extra.append({**keep, "Row Status": f"Same contacts as {first[r['Email'].lower()]}; listed there"})
+    d = pd.concat([d[~dup], pd.DataFrame(extra, columns=COLUMNS)], ignore_index=True).fillna("")
     d["_o"] = d["Amazon Status"].map(lambda s: STATUS_ORDER.get(s, 9))
     d["_r"] = pd.to_numeric(d["Monthly Revenue"], errors="coerce").fillna(-1)
     d["_p"] = pd.to_numeric(d["Priority"], errors="coerce").fillna(99)
