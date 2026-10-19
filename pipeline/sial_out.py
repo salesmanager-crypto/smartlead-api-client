@@ -33,6 +33,9 @@ WRONG_COMPANY = {("E0290", "verdeflorperu.com.pe"), ("E0319", "tazne.cz")}
 OTHER_COMPANY_EMAIL = {"safefoodcorp.com", "nivagelato.com", "agremat.ca", "jollygoodpud.co.uk", "comeverde.mx",
                        "pfgc.com", "compagniamediterranealiquori.com", "ducsa.com.uy", "idilia.es", "shd.com.lb",
                        "rawpressery.com", "medici-care.com"}
+# QA flags that should hold an email until a person checks it (minor notes such as "thin data" do not)
+SERIOUS_QA = re.compile(r"same.name|unsure|do not send|don't send|hold|wrong|different (brand|company)|mix(es|ed)? in|"
+                        r"not the exhibitor|unrelated", re.I)
 STATUS_ORDER = {"verified": 0, "possible": 1, "different brand": 2, "not found": 3, "error": 4}
 
 
@@ -510,7 +513,12 @@ def master():
     ss = csv("smartscout_store.csv")
     ss = ss.set_index("Key").to_dict("index") if len(ss) else {}
     best = best_store()
-    searched = {json.loads(l)["id"] for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")) for l in open(f)}
+    searched_domains = {}
+    for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")):
+        for l in open(f):
+            r = json.loads(l)
+            searched_domains[r["id"]] = set(r["domains"])
+    searched = set(searched_domains)
     people = csv("surfe_people.csv")
     if len(people):
         people["key"] = people.apply(person_key, axis=1)
@@ -556,8 +564,8 @@ def master():
             elif a.get("Amazon Status") in ("not found", "different brand", "error"):
                 why = f"Not on Amazon ({a['Amazon Status']}); no people searched"
             elif eid not in searched:
-                dup = [o for o in ex["Exhibitor ID"] if o != eid and x["Domain"] and
-                       ex.set_index("Exhibitor ID").at[o, "Domain"] == x["Domain"] and o in searched]
+                mine = {d for d in [x["Domain"]] + x["People Domains"].split("; ") if d}
+                dup = [o for o, ds in searched_domains.items() if o != eid and mine & ds]
                 why = f"Same company as {dup[0]}; people listed there" if dup else "People search pending"
             else:
                 why = "No sales, marketing or e-commerce people found in Surfe"
@@ -566,7 +574,7 @@ def master():
         for _, r in g.iterrows():
             e, m = em.get(r["key"], {}), ce.get(eid, {})
             other = e.get("Email", "").split("@")[-1].lower() in OTHER_COMPANY_EMAIL
-            ready = "Ready, check QA flags" if m.get("QA Flags") else "Ready"
+            ready = "Ready, check QA flag first" if SERIOUS_QA.search(m.get("QA Flags", "")) else "Ready"
             status = "Check: email is on another company's domain" if other else ready if e.get("Email") and m.get("Email Body") else (
                 "No email from Surfe" if e and not e.get("Email") else
                 ("Email pending" if not e else "Custom email pending"))
