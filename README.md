@@ -154,10 +154,10 @@ Everything they create in Pipedrive is assigned to Yoni (user 25109251).
 
 | Automation | When | Procedure | What it does |
 |---|---|---|---|
-| SmartLead reply sync | every 3 hours, plus a Monday 8-day backlog scan | `scripts/scheduled-inbox-sync-prompt.md` | Tags new SmartLead replies, pushes **Interested, Follow Up and Meeting Request** to Pipedrive (org, person, lead, activity), blocks dead-end domains |
+| SmartLead reply sync | daily at 9am and 4pm ET (each run looks back 24 hours), plus a Monday 8-day backlog scan | `scripts/scheduled-inbox-sync-prompt.md` | Tags new SmartLead replies, pushes **Interested, Follow Up and Meeting Request** to Pipedrive (org, person, lead, activity), blocks dead-end domains |
 | Calendly to Pipedrive | same run, Step 5 | same file | Looks up the invitee by email, then by name at the company. Existing contact: fills missing details and updates or reschedules the meeting activity. New contact: creates org, person, lead and meeting activity. Never a second lead for one person |
-| Overdue activity alert | weekday mornings | `scripts/scheduled-pipedrive-overdue-alert-prompt.md` | Emails yoni@albertscott.com every overdue open activity, oldest first, plus possible duplicates. Built by `scripts/pipedrive-overdue-digest.mjs` |
-| Mailbox and campaign review | 1st and 15th of the month | `scripts/scheduled-mailbox-review-prompt.md` | Emails a read-only review of every mailbox (connection, warmup, spam saves, tracking domain, idle) and every active campaign (14-day sends, reply and bounce rate, stalled, no mailboxes, sequence finishing). Built by `scripts/mailbox-campaign-review.mjs` |
+| Overdue activity alert | weekdays at 8:50am ET | `scripts/scheduled-pipedrive-overdue-alert-prompt.md` | Emails yoni@albertscott.com every overdue open activity, oldest first, plus possible duplicates. Built by `scripts/pipedrive-overdue-digest.mjs` |
+| Mailbox and campaign review | 1st and 15th of the month, 8:45am ET | `scripts/scheduled-mailbox-review-prompt.md` | Emails a read-only review of every mailbox (connection, warmup, spam saves, tracking domain, idle) and every active campaign (14-day sends, reply and bounce rate, stalled, no mailboxes, sequence finishing). Built by `scripts/mailbox-campaign-review.mjs` |
 
 Run the two report builders by hand:
 
