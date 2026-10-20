@@ -492,13 +492,14 @@ def ce_collect():
     print(f"{len(rows)} emails collected, {len(bad)} still failing")
 
 
-COLUMNS = [
+COLUMNS = [  # the contact and the email first, so the sheet reads as a send list
+    "First Name", "Last Name", "Email", "Email Body",
     "Exhibitor ID", "Exhibitor Name", "Country", "Sector", "Show", "SIAL Stand", "SIAL Profile", "Website", "Domain",
     "Company LinkedIn", "Facebook", "Instagram", "X", "Parent Company", "Brands Owned", "Amazon Brand",
     "Amazon Store Name", "Has Amazon Store", "Amazon Store URL", "Amazon Status", "Amazon Sold By (sample)",
     "SmartScout Match", "Monthly Revenue", "Annual Revenue (TTM)", "Primary Category", "Primary Subcategory",
-    "Average Sellers", "Employees", "HQ Country", "Priority", "First Name", "Last Name", "Title", "Person LinkedIn",
-    "Person Country", "Email", "Email Status", "Email Body", "Email Angle", "QA Flags", "Row Status",
+    "Average Sellers", "Employees", "HQ Country", "Priority", "Title", "Person LinkedIn", "Person Country",
+    "Email Status", "Email Angle", "QA Flags", "Row Status",
 ]
 
 
