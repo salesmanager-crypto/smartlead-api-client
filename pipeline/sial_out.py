@@ -531,7 +531,20 @@ def personalize(body, first_name):
     if not body:
         return body
     body = body.replace("{{calendar_link}}", CAL_URL)
-    return body.replace("{{first_name}}", first_name.strip()) if first_name.strip() else body
+    name = greeting_name(first_name)
+    return body.replace("{{first_name}}", name) if name else body
+
+
+# names checked by hand where Surfe's first-name field is not what the person goes by (Vietnamese family-name-first
+# order, a broken character)
+GREETING_OVERRIDES = {"Vo": "Huyen", "Rabi a": "Rabia"}
+
+
+def greeting_name(first_name):
+    """'Douglas K' -> 'Douglas'; drops stray combining dots ('Ni̇da' -> 'Nida')."""
+    n = re.sub(r"\s+", " ", first_name.replace("\u0307", "")).strip()
+    n = GREETING_OVERRIDES.get(n, n)
+    return re.sub(r"(\s+[A-Za-z]\.?)+$", "", n)
 
 
 PERSON_COLUMNS = {"First Name", "Last Name", "Email", "Email Body", "Priority", "Title", "Person LinkedIn",
