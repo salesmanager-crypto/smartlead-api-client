@@ -310,7 +310,7 @@ CE_BANNED = [r"—", r"–", r"!", r"\bI'?d love\b", r"\bwould love\b", r"hope t
              r"stop by", r"swing by", r"see you (at|there)", r"meet (you )?(at|in) (sial|paris)", r"I'?ll be at",
              r"we'?ll be at", r"walking (the|sial)", r"\bdrive meaningful", r"growth potential",
              r"\bleads? (the|its|in|balsamic|\w+ (category|categories))\b", r"\bleader\b", r"number one", r"#\s?1\b",
-             r"\branked?\b", r"\btop (brand|spot|position)\b", r"\bleading (position|brand)\b"]
+             r"\branked?\b", r"\btop (brand|spot|position)\b", r"\bleading (position|brand)\b", r"this week"]
 
 
 def pct_round(x, nd=0):
@@ -471,6 +471,25 @@ def ce_load():
     return out
 
 
+SHOW_PAST = "exhibited at SIAL Paris 2026 (17 to 21 October, Paris Nord Villepinte)"
+
+
+def ce_restate(nn):
+    """After the show: rewrite every opener "Saw X is at SIAL Paris this week, so I ..." to the past tense with the
+    show's dates and venue, as new ce_out_<nn>.jsonl lines (a later line replaces the earlier one)."""
+    got, out, miss = ce_load(), [], []
+    for k, r in got.items():
+        body = re.sub(r"Saw (.+?) (?:is|are) at SIAL Paris this week,", lambda m: f"Saw {m.group(1)} {SHOW_PAST},",
+                      r["body"], count=1)
+        if "this week" in body or SHOW_PAST not in body:
+            miss.append(k)
+        out.append({**r, "body": body})
+    with open(os.path.join(WORK, f"ce_out_{nn}.jsonl"), "a") as fh:
+        for r in out:
+            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+    print(f"restated {len(out)} emails; openers not matched: {miss}")
+
+
 def ce_check(quiet=False):
     src = {json.loads(l)["id"] for f in glob.glob(os.path.join(WORK, "ce_in_*.jsonl")) for l in open(f)}
     got = {k: v for k, v in ce_load().items() if k in src}
@@ -501,6 +520,22 @@ COLUMNS = [  # the contact and the email first, so the sheet reads as a send lis
     "Average Sellers", "Employees", "HQ Country", "Priority", "Title", "Person LinkedIn", "Person Country",
     "Email Status", "Email Angle", "QA Flags", "Row Status",
 ]
+
+
+CAL_URL = "https://calendly.com/yonilebovits/30min"
+
+
+def personalize(body, first_name):
+    """The sheet is uploaded as is, with no merge step, so fill the placeholders here: the contact's own first name
+    and Yoni's calendar link."""
+    if not body:
+        return body
+    body = body.replace("{{calendar_link}}", CAL_URL)
+    return body.replace("{{first_name}}", first_name.strip()) if first_name.strip() else body
+
+
+PERSON_COLUMNS = {"First Name", "Last Name", "Email", "Email Body", "Priority", "Title", "Person LinkedIn",
+                  "Person Country", "Email Status", "Email Angle", "QA Flags", "Row Status"}
 
 
 def short_list(s, n=12):
@@ -587,7 +622,8 @@ def master():
             rows.append({**base, "Priority": r["Priority"], "First Name": r["First Name"], "Last Name": r["Last Name"],
                          "Title": r["Title"], "Person LinkedIn": r["LinkedIn URL"], "Person Country": r["Country"],
                          "Email": e.get("Email", ""), "Email Status": e.get("Email Status", ""),
-                         "Email Body": m.get("Email Body", ""), "Email Angle": m.get("Email Angle", ""),
+                         "Email Body": personalize(m.get("Email Body", ""), r["First Name"]),
+                         "Email Angle": m.get("Email Angle", ""),
                          "QA Flags": m.get("QA Flags", ""),
                          "Row Status": status})
     d = pd.DataFrame(rows, columns=COLUMNS).fillna("")
@@ -598,7 +634,7 @@ def master():
     extra = []
     for eid in lost:
         r = d[dup & (d["Exhibitor ID"] == eid)].iloc[0].to_dict()
-        keep = {c: r[c] for c in COLUMNS[:COLUMNS.index("Priority")]}
+        keep = {c: r[c] for c in COLUMNS if c not in PERSON_COLUMNS}
         extra.append({**keep, "Row Status": f"Same contacts as {first[r['Email'].lower()]}; listed there"})
     d = pd.concat([d[~dup], pd.DataFrame(extra, columns=COLUMNS)], ignore_index=True).fillna("")
     d["_o"] = d["Amazon Status"].map(lambda s: STATUS_ORDER.get(s, 9))
@@ -652,6 +688,24 @@ def sheet_blocks(n, tab="Outbound master"):
     print(f"{len(rows)} rows (with header) in {k} blocks of up to {n}")
 
 
+def column_blocks(col, n, tab="Outbound master"):
+    """One column of master_sheet.csv -> pipeline/work/sheet_block_XX.json blocks of n rows (no header), for updating a
+    single column in place (the sheet's rows are in the same order as the local build)."""
+    d = pd.read_csv(os.path.join(ROOT, "master_sheet.csv"), dtype=str).fillna("")
+    for f in glob.glob(os.path.join(WORK, "sheet_block_*.json")):
+        os.remove(f)
+    letter = col_letter(list(d.columns).index(col) + 1)
+    vals = [[v] for v in d[col]]
+    k = 0
+    for st in range(0, len(vals), n):
+        block = vals[st:st + n]
+        rng = f"'{tab}'!{letter}{st + 2}:{letter}{st + 1 + len(block)}"
+        json.dump({"range": rng, "values": block}, open(os.path.join(WORK, f"sheet_block_{k:02d}.json"), "w"),
+                  ensure_ascii=False, indent=1)
+        k += 1
+    print(f"{len(vals)} cells of {col} ({letter}) in {k} blocks of up to {n}")
+
+
 def sheet_verify(path):
     """Compare a get_values dump of the tab (JSON {"values": [...]}) with master_sheet.csv; print mismatched cells by
     block so a bad block can be rewritten."""
@@ -683,6 +737,6 @@ if __name__ == "__main__":
     a = sys.argv
     {"people_export": lambda: people_export(int(a[2]), a[3] if len(a) > 3 else "amazon"), "people_select": people_select,
      "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2]), set(a[3:])),
-     "ce_check": ce_check, "ce_collect": ce_collect, "review_export": lambda: review_export(int(a[2])),
+     "ce_check": ce_check, "ce_collect": ce_collect, "ce_restate": lambda: ce_restate(a[2]), "review_export": lambda: review_export(int(a[2])),
      "master": master, "sheet_blocks": lambda: sheet_blocks(int(a[2])),
-     "sheet_verify": lambda: sheet_verify(a[2])}[a[1]]()
+     "sheet_verify": lambda: sheet_verify(a[2]), "column_blocks": lambda: column_blocks(a[2], int(a[3]))}[a[1]]()
