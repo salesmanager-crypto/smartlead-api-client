@@ -14,7 +14,10 @@ import csv, html, json, os, re, sys, time, random
 from urllib.parse import parse_qsl, urlencode
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import ROOT, UA, domain_of, norm_name, registrable_domain
+from common import NON_COMPANY_DOMAINS, ROOT, UA, domain_of, norm_name, registrable_domain
+
+PLACEHOLDER = NON_COMPANY_DOMAINS | {"nocompanywebsite.com", "none.com", "na.com", "example.com", "gmail.com",
+                                     "yahoo.com", "hotmail.com", "outlook.com", "wix.com", "squarespace.com"}
 
 SHOWS = {
     2024: "https://expowest24.smallworldlabs.com",
@@ -201,6 +204,12 @@ def details(worker=0, nworkers=1):
     f.close()
 
 
+def company_domain(url):
+    d = domain_of(url)
+    d = registrable_domain(d) if d else ""
+    return "" if d in PLACEHOLDER else d
+
+
 def build():
     det = {}
     for fn in os.listdir(WORK):
@@ -227,7 +236,7 @@ def build():
         recs.append({
             "name": top["name"], "norm": k, "years": years,
             "booths": "; ".join(f'{y}: {", ".join(sorted(booths[y]))}' for y in sorted(booths, reverse=True) if booths[y]),
-            "website": d.get("website", ""), "domain": registrable_domain(domain_of(d.get("website", ""))) if domain_of(d.get("website", "")) else "",
+            "website": d.get("website", ""), "domain": company_domain(d.get("website", "")),
             "address": d.get("address", ""), "socials": " ".join(d.get("socials", [])),
             "urls": " ".join(SHOWS[r["year"]] + r["slug"] for r in v),
         })
