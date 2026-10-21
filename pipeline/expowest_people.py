@@ -154,6 +154,9 @@ def select():
         if len(p["lastName"].rstrip(".")) <= 1:
             continue
         src = names.get(p["id"], {})
+        home_cc = COUNTRY.get(m.get(p["id"], {}).get("Address", "").rsplit(",", 1)[-1].strip(), "")
+        if home_cc and p["country"] and p["country"] not in (home_cc, "us"):
+            continue  # offshore contractors and other regions are not the brand's decision makers
         if not src.get("domain"):  # searched by name: the person's company must be this exhibitor
             if max(strict_sim(p["companyName"], t) for t in (src.get("name", ""), src.get("brands", ""),
                                                             src.get("amazon_store", "")) if t) < 0.8:
