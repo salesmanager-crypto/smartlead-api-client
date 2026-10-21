@@ -158,7 +158,8 @@ def select():
     for eid, d in by.items():
         for i, p in enumerate(sorted(d.values(), key=rank)[:5], 1):
             fix = lambda s: s.strip().title() if s.islower() or s.isupper() else s.strip()
-            rows.append({"Key": f'{eid}|{norm_li(p["linkedInUrl"])}', "Exhibitor ID": eid,
+            pid = norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower().strip()
+            rows.append({"Key": f'{eid}|{pid}', "Exhibitor ID": eid,
                          "Exhibitor Name": names.get(eid, {}).get("name", p["companyName"]),
                          "First Name": fix(p["firstName"]), "Last Name": fix(p["lastName"]),
                          "Title": p["jobTitle"].strip(), "LinkedIn URL": p["linkedInUrl"],
