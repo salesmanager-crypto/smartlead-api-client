@@ -19,6 +19,9 @@ import csv, glob, json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT
 from surfe_people import EXCLUDE, KEEP, PRESIDENT, norm_li, rank
+from amazon_store import squash
+from amazon_http import domain_core
+from difflib import SequenceMatcher
 
 WORK = os.path.join(ROOT, "pipeline", "work")
 MASTER = os.path.join(ROOT, "expowest_master.csv")
@@ -53,6 +56,27 @@ def master():
     return {r["Exhibitor ID"]: r for r in csv.DictReader(open(MASTER, encoding="utf-8"))}
 
 
+# suppliers to other manufacturers (ingredients, packaging, commodities) rarely buy Amazon agency services
+B2B = re.compile(r"\b(plastics?|packag\w*|chemicals?|ingredients?|flavou?rs?|fragrances?|mills?|commodit\w*|"
+                 r"co-?pack\w*|contract manufactur\w*|private label|bulk|wholesale|distribut\w*|import\w*|"
+                 r"export\w*|trading|sourcing|processing|containers?|bottl(es|ing)|closures?|films?|"
+                 r"polymers?|enzymes?|cultures|starches?|sweeteners?|proteins? (inc|corp|llc)|biotech\w*)\b", re.I)
+B2B_NAMES = {"adm", "amcor", "cargill", "ingredion", "givaudan", "dsm", "kerry", "tate and lyle", "bunge"}
+
+
+def strict_sim(a, b):
+    """Name match without the loose substring shortcut: a contained name must cover most of the other."""
+    a, b = squash(a), squash(b)
+    if not a or not b:
+        return 0.0
+    if a == b:
+        return 1.0
+    short, long_ = sorted((a, b), key=len)
+    if len(short) >= 4 and short in long_ and len(short) / len(long_) >= 0.6:
+        return 0.9
+    return SequenceMatcher(None, a, b).ratio()
+
+
 def targets():
     m, amz = master(), amazon_best()
     out = []
@@ -60,10 +84,25 @@ def targets():
         if a["status"] not in ("verified", "possible") or eid not in m:
             continue
         r = m[eid]
-        if not r["Domain"]:
+        if not r["Domain"] and not r["Exhibitor"]:
+            continue
+        if B2B.search(r["Exhibitor"]) or squash(r["Exhibitor"]) in {squash(x) for x in B2B_NAMES}:
             continue
         b = a.get("best") or {}
-        out.append({"id": eid, "name": r["Exhibitor"], "domain": r["Domain"], "brand": a["brand"],
+        names = [x for x in (b.get("store_name", ""), b.get("brand_row", "")) if x]
+        dcore = domain_core(r["Domain"])
+        match = max([strict_sim(n, t) for n in names for t in (a["brand"], r["Exhibitor"], dcore) if t] or [0])
+        if match < 0.8:
+            continue
+        # the show's website field is sometimes another company's; search Surfe by name when it doesn't fit
+        dfit = max([strict_sim(dcore, t) for t in [a["brand"], r["Exhibitor"]] + names if t] or [0])
+        if dfit < 0.6 and not any(squash(t) and (squash(t) in dcore or dcore in squash(t)
+                                                 or os.path.commonprefix([squash(t), dcore]).__len__() >= 4)
+                                  for t in [a["brand"], r["Exhibitor"]] + names):
+            domain = ""
+        else:
+            domain = r["Domain"]
+        out.append({"id": eid, "name": r["Exhibitor"], "domain": domain, "brand": a["brand"],
                     "store": b.get("store_name", ""), "status": a["status"],
                     "in2027": r["In 2027"] == "Yes", "years": int(r["Years Count"] or 0)})
     out.sort(key=lambda t: (ORDER[t["status"]], not t["in2027"], -t["years"], t["id"]))
