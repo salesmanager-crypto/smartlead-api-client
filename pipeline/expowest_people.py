@@ -79,9 +79,10 @@ def strict_sim(a, b):
 
 def targets():
     m, amz = master(), amazon_best()
+    skip = {r["id"] for r in load("excluded.jsonl")}  # reviewed by hand: on Amazon but not a fit
     out = []
     for eid, a in amz.items():
-        if a["status"] not in ("verified", "possible") or eid not in m:
+        if a["status"] not in ("verified", "possible") or eid not in m or eid in skip:
             continue
         r = m[eid]
         if not r["Domain"] and not r["Exhibitor"]:
