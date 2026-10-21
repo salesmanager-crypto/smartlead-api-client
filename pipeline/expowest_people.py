@@ -145,6 +145,11 @@ def select():
             continue
         if len(p["lastName"].rstrip(".")) <= 1:
             continue
+        src = names.get(p["id"], {})
+        if not src.get("domain"):  # searched by name: the person's company must be this exhibitor
+            if max(strict_sim(p["companyName"], t) for t in (src.get("name", ""), src.get("brands", ""),
+                                                            src.get("amazon_store", "")) if t) < 0.8:
+                continue
         key = norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower()
         by.setdefault(p["id"], {}).setdefault(key, p)
     fields = ["Key", "Exhibitor ID", "Exhibitor Name", "First Name", "Last Name", "Title", "LinkedIn URL",
