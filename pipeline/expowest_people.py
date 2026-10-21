@@ -139,6 +139,7 @@ COUNTRY = {"United States": "us", "Canada": "ca", "United Kingdom": "gb", "Austr
 def select():
     m = master()
     bad_match = {r["id"] for r in load("bad_match.jsonl")}  # reviewed: Surfe matched another company
+    bad_match |= {r["id"] for r in load("excluded.jsonl")}  # reviewed: not a fit, or an existing client
     raw = [p for p in load("sf_raw_*.jsonl") if p.get("id") not in bad_match]
     names = {t["id"]: t for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")) for t in map(json.loads, open(f))}
     by = {}
