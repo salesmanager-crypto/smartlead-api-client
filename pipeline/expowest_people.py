@@ -129,7 +129,14 @@ def sf_export(n):
     print(f"wrote {len(todo)} exhibitors to {path}")
 
 
+COUNTRY = {"United States": "us", "Canada": "ca", "United Kingdom": "gb", "Australia": "au", "Mexico": "mx",
+           "Italy": "it", "France": "fr", "Germany": "de", "Spain": "es", "Japan": "jp", "Korea, Republic of": "kr",
+           "South Korea": "kr", "Netherlands": "nl", "Israel": "il", "Ireland": "ie", "New Zealand": "nz",
+           "India": "in", "China": "cn", "Taiwan": "tw", "Peru": "pe", "Colombia": "co", "Brazil": "br"}
+
+
 def select():
+    m = master()
     raw = load("sf_raw_*.jsonl")
     names = {t["id"]: t for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")) for t in map(json.loads, open(f))}
     by = {}
@@ -150,6 +157,12 @@ def select():
             if max(strict_sim(p["companyName"], t) for t in (src.get("name", ""), src.get("brands", ""),
                                                             src.get("amazon_store", "")) if t) < 0.8:
                 continue
+            home = COUNTRY.get(m.get(p["id"], {}).get("Address", "").rsplit(",", 1)[-1].strip(), "")
+            if home and p["country"] and p["country"] != home:
+                continue  # same name, different country: likely another company
+            tld = p["companyDomain"].rsplit(".", 1)[-1].lower() if "." in p["companyDomain"] else ""
+            if home and len(tld) == 2 and tld not in (home, "us", "co", "io", "ai", "me", "tv"):
+                continue  # company site in another country
         key = norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower()
         by.setdefault(p["id"], {}).setdefault(key, p)
     fields = ["Key", "Exhibitor ID", "Exhibitor Name", "First Name", "Last Name", "Title", "LinkedIn URL",
