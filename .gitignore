@@ -25,3 +25,11 @@ dashboard/_site/
 
 # plaintext copies of encrypted dashboard data and the built artifact (person-level data)
 .private/
+
+# exhibitor pipeline data (person-level and scraped data, never commit)
+cache/
+pipeline/work/
+run_state.json
+/*.csv
+/*.xlsx
+/*.jsonl

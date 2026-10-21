@@ -1,0 +1,117 @@
+"""Master sheet and Smartlead import for the Expo West Amazon campaign.
+
+  python3 pipeline/expowest_campaign.py master      -> expowest_amazon_master.csv (one row per person; in-scope
+                                                      exhibitors with no people get one row saying why)
+  python3 pipeline/expowest_campaign.py smartlead   -> expowest_smartlead_import.csv (people with an email and a
+                                                      passing custom email only)
+
+Text columns are cleaned of em and en dashes before writing.
+"""
+import csv, os, re, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import ROOT
+from expowest_people import ORDER, amazon_best, emails, master, people
+from cold_emails import check
+
+MASTER_OUT = os.path.join(ROOT, "expowest_amazon_master.csv")
+SL_OUT = os.path.join(ROOT, "expowest_smartlead_import.csv")
+
+
+def clean(v):
+    return re.sub(r"\s*[–—]\s*", ", ", v) if isinstance(v, str) else v
+
+
+def custom_emails():
+    src, got, bad = check(quiet=True)
+    return {k: r for k, r in got.items() if k in src and k not in bad}, set(src)
+
+
+def build_master():
+    m, amz, em = master(), amazon_best(), emails()
+    ce, queued = custom_emails()
+    ppl = {}
+    for p in people():
+        ppl.setdefault(p["Exhibitor ID"], []).append(p)
+    searched = set()
+    import glob, json
+    for f in glob.glob(os.path.join(ROOT, "pipeline", "work", "sf_in_*.jsonl")):
+        searched |= {json.loads(l)["id"] for l in open(f)}
+    fields = ["Row Status", "Exhibitor ID", "Exhibitor", "Also Listed As", "Years Exhibited", "In 2027 List",
+              "Booths", "Website", "Domain", "Address", "Amazon Status", "Amazon Store Name", "Has Amazon Store",
+              "Amazon Store URL", "Amazon Brand Field", "Sample ASIN", "Sample Product", "Sold By",
+              "Priority", "First Name", "Last Name", "Title", "LinkedIn URL", "Country", "Email", "Email Status",
+              "Email Subject", "Email Body", "Email Angle", "Show URLs"]
+    rows = []
+    for eid, e in m.items():
+        a = amz.get(eid)
+        st = a["status"] if a else ""
+        if st not in ("verified", "possible"):
+            continue
+        b = a.get("best") or {}
+        base = {"Exhibitor ID": eid, "Exhibitor": e["Exhibitor"], "Also Listed As": e["Also Listed As"],
+                "Years Exhibited": e["Years"], "In 2027 List": e["In 2027"], "Booths": e["Booths"],
+                "Website": e["Website"], "Domain": e["Domain"], "Address": e["Address"], "Amazon Status": st,
+                "Amazon Store Name": b.get("store_name", ""), "Has Amazon Store": "Yes" if b.get("has_store") else "No",
+                "Amazon Store URL": b.get("store_url", ""), "Amazon Brand Field": b.get("brand_row", ""),
+                "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""), "Sold By": b.get("sold_by", ""),
+                "Show URLs": e["Show URLs"]}
+        if not ppl.get(eid):
+            why = ("No website domain" if not e["Domain"] else
+                   "No people found in Surfe" if eid in searched else "People search pending")
+            rows.append({**base, "Row Status": why})
+            continue
+        for p in sorted(ppl[eid], key=lambda p: int(p["Priority"])):
+            r = em.get(p["Key"], {})
+            c = ce.get(p["Key"], {})
+            if not r:
+                why = "Email pending"
+            elif not r.get("email"):
+                why = "No email from Surfe"
+            elif not c:
+                why = "Custom email pending"
+            else:
+                why = "Ready"
+            rows.append({**base, "Row Status": why, "Priority": p["Priority"], "First Name": p["First Name"],
+                         "Last Name": p["Last Name"], "Title": p["Title"], "LinkedIn URL": p["LinkedIn URL"],
+                         "Country": p["Country"], "Email": r.get("email", ""), "Email Status": r.get("email_status", ""),
+                         "Email Subject": c.get("subject", ""), "Email Body": c.get("body", ""),
+                         "Email Angle": c.get("angle", "")})
+    rows.sort(key=lambda r: (ORDER[r["Amazon Status"]], r["In 2027 List"] != "Yes", r["Exhibitor ID"],
+                             int(r.get("Priority") or 9)))
+    with open(MASTER_OUT, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        for r in rows:
+            w.writerow({k: clean(r.get(k, "")) for k in fields})
+    from collections import Counter
+    print(f"{len(rows)} rows for {len({r['Exhibitor ID'] for r in rows})} Amazon exhibitors ->", MASTER_OUT)
+    print(dict(Counter(r["Row Status"] for r in rows)))
+
+
+def build_smartlead():
+    rows = [r for r in csv.DictReader(open(MASTER_OUT, encoding="utf-8")) if r["Row Status"] == "Ready"]
+    fields = ["email", "first_name", "last_name", "company_name", "website", "linkedin_profile", "title",
+              "brand_store", "booth_2027", "email1_subject", "email1_body"]
+    with open(SL_OUT, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        for r in rows:
+            booth = re.search(r"2027: ([^;]+)", r["Booths"])
+            body = r["Email Body"]
+            w.writerow({"email": r["Email"], "first_name": r["First Name"], "last_name": r["Last Name"],
+                        "company_name": r["Exhibitor"], "website": r["Website"], "linkedin_profile": r["LinkedIn URL"],
+                        "title": r["Title"], "brand_store": r["Amazon Store Name"],
+                        "booth_2027": booth.group(1) if booth else "", "email1_subject": r["Email Subject"],
+                        "email1_body": body.replace("\n", "<br>")})
+    print(f"{len(rows)} leads -> {SL_OUT}")
+
+
+if __name__ == "__main__":
+    cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+    if cmd == "master":
+        build_master()
+    elif cmd == "smartlead":
+        build_smartlead()
+    else:
+        print(__doc__)
