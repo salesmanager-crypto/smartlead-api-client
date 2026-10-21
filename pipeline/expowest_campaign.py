@@ -11,7 +11,7 @@ import csv, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT
-from expowest_people import ORDER, amazon_best, emails, master, people
+from expowest_people import ORDER, amazon_best, emails, master, people, targets
 from cold_emails import check
 
 MASTER_OUT = os.path.join(ROOT, "expowest_amazon_master.csv")
@@ -43,10 +43,11 @@ def build_master():
               "Priority", "First Name", "Last Name", "Title", "LinkedIn URL", "Country", "Email", "Email Status",
               "Email Subject", "Email Body", "Email Angle", "Show URLs"]
     rows = []
+    scope = {t["id"] for t in targets()}  # Amazon sellers after the supplier, false-match and client exclusions
     for eid, e in m.items():
         a = amz.get(eid)
         st = a["status"] if a else ""
-        if st not in ("verified", "possible"):
+        if eid not in scope:
             continue
         b = a.get("best") or {}
         base = {"Exhibitor ID": eid, "Exhibitor": e["Exhibitor"], "Also Listed As": e["Also Listed As"],
@@ -57,8 +58,7 @@ def build_master():
                 "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""), "Sold By": b.get("sold_by", ""),
                 "Show URLs": e["Show URLs"]}
         if not ppl.get(eid):
-            why = ("No website domain" if not e["Domain"] else
-                   "No people found in Surfe" if eid in searched else "People search pending")
+            why = "No people found in Surfe" if eid in searched else "People search pending"
             rows.append({**base, "Row Status": why})
             continue
         for p in sorted(ppl[eid], key=lambda p: int(p["Priority"])):
