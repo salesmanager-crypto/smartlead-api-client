@@ -25,13 +25,20 @@ Anything left over from an earlier run's "waiting on approval" list is processed
 ## Scope
 - **Skip every lead whose `email_campaign_name` starts with "Rachel -"** — different owner,
   handled separately. Never touch category, pause state, or block list for these.
-- Only process replies with `has_new_unread_email: true`.
+- **Read or unread doesn't matter** (changed 2026-10-22). Process every reply in the window,
+  whether or not someone already opened it in SmartLead. Opening a reply clears
+  `has_new_unread_email`, and filtering on it meant a reply read by a person before the run was
+  never tagged or synced (Caroline Pannhasiri, Ron Dorff, on 2026-10-22). Whether a reply still
+  needs work is decided by its category instead: untagged (`lead_category_id: null`) gets
+  classified in Step 2, and already-tagged leads follow the pre-categorized rules in Step 3.
 
 ## Step 1 — Pull new replies
 POST `${SMARTLEAD_BASE_URL}/master-inbox/inbox-replies?api_key=${SMARTLEAD_API_KEY}&fetch_message_history=true`
 body: `{"offset":0,"limit":20,"sortBy":"REPLY_TIME_DESC","filters":{"emailStatus":"Replied","replyTimeBetween":["<checkpoint>","<now, ISO8601>"]}}`
-Paginate (increase offset by 20) until `total_count` is exhausted or you've covered the window.
-Filter out `email_campaign_name` starting with "Rachel -" and anything with `has_new_unread_email: false`.
+Paginate (increase offset by 20) until a page comes back with fewer than 20 replies. Don't stop
+at `total_count`: it can report a single page's worth while more pages exist (a run on
+2026-10-19 stopped at 20 of 69 replies this way).
+Filter out `email_campaign_name` starting with "Rachel -". Do not filter on `has_new_unread_email`.
 
 **Overlap window.** Start `replyTimeBetween` 6 hours before the checkpoint, not at it. A reply that
 lands seconds after a checkpoint can otherwise fall between two runs (Shot Scope and Diaspora Co
@@ -265,7 +272,7 @@ row if it doesn't exist yet). Columns, in order:
 - `reply_excerpt`: the inbound reply body, HTML-stripped, collapsed to one line, truncated to 200
   chars. Escape commas/quotes properly for CSV (wrap the field in double quotes, double any
   embedded quotes).
-Skip logging leads you filtered out (Rachel campaigns, already-read) — the log is for actions
+Skip logging leads you filtered out (Rachel campaigns, and already-tagged leads that needed no action) — the log is for actions
 taken, not everything scanned.
 
 ## Step 8 — Report
