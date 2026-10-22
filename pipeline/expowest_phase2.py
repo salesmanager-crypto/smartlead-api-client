@@ -82,6 +82,13 @@ def collect():
                 bad += 1
                 continue
             have.setdefault(r["Exhibitor ID"], r)
+    rc = os.path.join(WORK, "p2_recheck_out.csv")  # second-pass verification of doubtful rows wins
+    if os.path.exists(rc):
+        for r in csv.DictReader(open(rc, encoding="utf-8")):
+            if r["Exhibitor ID"] in have:
+                have[r["Exhibitor ID"]].update({k: DASH.sub(", ", (r.get(k) or "").strip()) for k in
+                                                 ("Parent Company", "Parent Domain", "Parent Source",
+                                                  "Domain Found", "Domain Source", "Notes")})
     with open(CP, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
         w.writeheader()
