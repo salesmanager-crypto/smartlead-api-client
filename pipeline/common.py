@@ -98,6 +98,8 @@ SECOND_LEVEL = {"co", "com", "net", "org", "ac", "gov", "ne", "or", "edu"}
 def registrable_domain(d):
     """autometer.com from test.autometer.com; adbs.co.th stays adbs.co.th."""
     p = d.split(".")
+    if len(p) >= 3 and ".".join(p[-2:]) in {"us.com", "uk.com", "eu.com", "co.com"}:
+        return ".".join(p[-3:])  # pomi.us.com is its own domain, not us.com
     if len(p) >= 3 and p[-2] in SECOND_LEVEL and len(p[-1]) == 2:
         return ".".join(p[-3:])
     return ".".join(p[-2:]) if len(p) >= 2 else d

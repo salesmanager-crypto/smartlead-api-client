@@ -7,7 +7,7 @@
 
 Text columns are cleaned of em and en dashes before writing.
 """
-import csv, os, re, sys
+import csv, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT
@@ -37,11 +37,17 @@ def build_master():
     import glob, json
     for f in glob.glob(os.path.join(ROOT, "pipeline", "work", "sf_in_*.jsonl")):
         searched |= {json.loads(l)["id"] for l in open(f)}
-    fields = ["Row Status", "Exhibitor ID", "Exhibitor", "Also Listed As", "Years Exhibited", "In 2027 List",
+    oldm = {}
+    op = os.path.join(ROOT, "pipeline", "work", "old_db_match.json")
+    if os.path.exists(op):
+        oldm = json.load(open(op))
+    fields = ["Row Status", "In Old Database", "Old DB Already Sent", "Old DB Company", "Exhibitor ID", "Exhibitor",
+              "Also Listed As", "Years Exhibited", "In 2027 List",
               "Booths", "Website", "Domain", "Address", "Amazon Status", "Amazon Store Name", "Has Amazon Store",
               "Amazon Store URL", "Amazon Brand Field", "Sample ASIN", "Sample Product", "Sold By",
               "Priority", "First Name", "Last Name", "Title", "LinkedIn URL", "Country", "Email", "Email Status",
               "Email Subject", "Email Body", "Email Angle", "Show URLs"]
+    fields.remove("Amazon Store URL")  # not captured reliably; the store name is exact
     rows = []
     scope = {t["id"] for t in targets()}  # Amazon sellers after the supplier, false-match and client exclusions
     for eid, e in m.items():
@@ -50,7 +56,10 @@ def build_master():
         if eid not in scope:
             continue
         b = a.get("best") or {}
-        base = {"Exhibitor ID": eid, "Exhibitor": e["Exhibitor"], "Also Listed As": e["Also Listed As"],
+        o = oldm.get(eid, {})
+        base = {"In Old Database": "Yes" if o.get("old_company") else "No",
+                "Old DB Already Sent": "Yes" if o.get("old_sent") else "No",
+                "Old DB Company": o.get("old_company", ""), "Exhibitor ID": eid, "Exhibitor": e["Exhibitor"], "Also Listed As": e["Also Listed As"],
                 "Years Exhibited": e["Years"], "In 2027 List": e["In 2027"], "Booths": e["Booths"],
                 "Website": e["Website"], "Domain": e["Domain"], "Address": e["Address"], "Amazon Status": st,
                 "Amazon Store Name": b.get("store_name", ""), "Has Amazon Store": "Yes" if b.get("has_store") else "No",
