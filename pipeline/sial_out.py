@@ -490,6 +490,117 @@ def ce_restate(nn):
     print(f"restated {len(out)} emails; openers not matched: {miss}")
 
 
+# Second style, modelled on the revised AAPEX / SEMA outreach: Yoni introduces himself and Albert Scott with the show
+# context, then one or two plain Amazon facts, an "I think we could" line, one ask, "Best,<br>Yoni". Paragraphs are
+# separated by <br><br> because the sheet is uploaded to the sending tool as is.
+SHOW = "SIAL Paris 2026 (17 to 21 October, Paris Nord Villepinte)"
+INTROS = [
+    "I lead business development at Albert Scott, a full-service Amazon agency. I saw {company} exhibited at {show} "
+    "and thought it would be a good time to connect about {brand}'s Amazon business.",
+    "I saw {company} exhibited at {show}, so I wanted to reach out. I'm Yoni with Albert Scott, a full-service Amazon "
+    "agency, and we've been looking at {brand}'s Amazon business.",
+    "I'm Yoni with Albert Scott, a full-service Amazon agency. I saw {company} exhibited at {show} and wanted to reach "
+    "out after taking a look at {brand}'s Amazon business.",
+    "I wanted to follow up after {show}, where {company} exhibited. I lead business development at Albert Scott, a "
+    "full-service Amazon agency, and we've been looking at {brand}'s Amazon business.",
+    "I'm Yoni with Albert Scott, where we manage Amazon for established brands. After seeing {company} at {show}, I "
+    "wanted to share an opportunity we noticed in {brand}'s Amazon business.",
+]
+ASKS = ["Would you be open to a short call in the coming weeks?", "Would you have time for a brief call next week?",
+        "Would a short call in the next couple of weeks work for you?", "Would you be open to a brief call to discuss it?",
+        "Would you have time for a short call to talk it through?"]
+
+
+def ce2_export(n):
+    """Rewrite units for the second style: each exhibitor's facts (its ce_in line), the current email and angle (the
+    facts already checked), and an intro and ask template, rotated so neighbouring brands read differently."""
+    src = {}
+    for f in sorted(glob.glob(os.path.join(WORK, "ce_in_*.jsonl"))):
+        for l in open(f):
+            r = json.loads(l)
+            src[r["id"]] = r
+    cur = ce_load()
+    ids = [i for i in sorted(cur) if i in src]
+    for f in glob.glob(os.path.join(WORK, "ce2_in_*.jsonl")):
+        os.remove(f)
+    k = 0
+    for st in range(0, len(ids), n):
+        with open(os.path.join(WORK, f"ce2_in_{k:02d}.jsonl"), "w") as fh:
+            for j, i in enumerate(ids[st:st + n], st):
+                r = dict(src[i])
+                r.update({"current_email": cur[i]["body"], "current_angle": cur[i].get("angle", ""),
+                          "current_qa_flags": cur[i].get("qa_flags", ""), "intro_template": INTROS[j % len(INTROS)],
+                          "ask": ASKS[j % len(ASKS)]})
+                fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+        k += 1
+    print(f"exported {len(ids)} exhibitors into {k} ce2 chunks")
+
+
+CE2_BANNED = CE_BANNED + [r"\{\{", r"calendly", r"\bnext month\b", r"I'?ll be at", r"\bat the show\b",
+                          r"during the show", r"\n"]
+
+
+def ce2_problems(r):
+    out = []
+    body = r.get("body", "")
+    paras = body.split("<br><br>")
+    if not paras or paras[0] != "Hi {{first_name}},":
+        out.append("first paragraph must be exactly 'Hi {{first_name}},'")
+    if paras[-1] != "Best,<br>Yoni":
+        out.append("must end with 'Best,<br>Yoni'")
+    if not 4 <= len(paras) <= 7:
+        out.append(f"{len(paras)} paragraphs (greeting, intro, facts, pitch, ask, sign-off)")
+    core = " ".join(paras[1:-1])
+    w = len(re.sub(r"<[^>]+>", " ", core).split())
+    if not 75 <= w <= 115:
+        out.append(f"body is {w} words (about 85 to 110)")
+    for pat in CE2_BANNED:
+        if pat == r"\{\{":
+            if re.search(pat, body.replace("{{first_name}}", "")):
+                out.append("unexpected placeholder")
+        elif re.search(pat, body, re.I | re.M):
+            out.append(f"banned pattern {pat}")
+    if core.count("?") != 1:
+        out.append("exactly one question (the ask)")
+    if SHOW not in core or "Albert Scott" not in core:
+        out.append("intro must name Albert Scott and " + SHOW)
+    return out
+
+
+def ce2_load():
+    out = {}
+    for f in sorted(glob.glob(os.path.join(WORK, "ce2_out_*.jsonl"))):
+        for l in open(f):
+            l = l.strip()
+            if l:
+                try:
+                    r = json.loads(l)
+                    out[r["id"]] = r
+                except (json.JSONDecodeError, KeyError):
+                    pass
+    return out
+
+
+def ce2_check(quiet=False):
+    src = {json.loads(l)["id"] for f in glob.glob(os.path.join(WORK, "ce2_in_*.jsonl")) for l in open(f)}
+    got = {k: v for k, v in ce2_load().items() if k in src}
+    bad = {k: v for k, v in ((k, ce2_problems(r)) for k, r in got.items()) if v}
+    if not quiet:
+        for k, v in bad.items():
+            print(k, "|", "; ".join(v))
+        print(f"{len(got)} written, {len(bad)} failing, {len(src - set(got))} not written yet")
+    return got, bad
+
+
+def ce2_collect():
+    got, bad = ce2_check(quiet=True)
+    rows = [{"Exhibitor ID": k, "Email Body": r["body"].strip(), "Email Angle": r.get("angle", "").strip(),
+             "QA Flags": r.get("qa_flags", "").strip()} for k, r in got.items() if k not in bad]
+    pd.DataFrame(rows, columns=["Exhibitor ID", "Email Body", "Email Angle", "QA Flags"]).to_csv(
+        os.path.join(ROOT, "cold_emails.csv"), index=False)
+    print(f"{len(rows)} emails collected (second style), {len(bad)} still failing")
+
+
 def ce_check(quiet=False):
     src = {json.loads(l)["id"] for f in glob.glob(os.path.join(WORK, "ce_in_*.jsonl")) for l in open(f)}
     got = {k: v for k, v in ce_load().items() if k in src}
@@ -750,6 +861,7 @@ if __name__ == "__main__":
     a = sys.argv
     {"people_export": lambda: people_export(int(a[2]), a[3] if len(a) > 3 else "amazon"), "people_select": people_select,
      "emails_export": lambda: emails_export(int(a[2]), int(a[3])), "ce_export": lambda: ce_export(int(a[2]), set(a[3:])),
-     "ce_check": ce_check, "ce_collect": ce_collect, "ce_restate": lambda: ce_restate(a[2]), "review_export": lambda: review_export(int(a[2])),
+     "ce_check": ce_check, "ce_collect": ce_collect, "ce_restate": lambda: ce_restate(a[2]),
+     "ce2_export": lambda: ce2_export(int(a[2])), "ce2_check": ce2_check, "ce2_collect": ce2_collect, "review_export": lambda: review_export(int(a[2])),
      "master": master, "sheet_blocks": lambda: sheet_blocks(int(a[2])),
      "sheet_verify": lambda: sheet_verify(a[2]), "column_blocks": lambda: column_blocks(a[2], int(a[3]))}[a[1]]()
