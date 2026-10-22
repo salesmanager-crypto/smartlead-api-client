@@ -1,0 +1,15 @@
+You are re-checking doubtful research rows for Natural Products Expo West brands (an Amazon agency's prospect list). Load the WebSearch tool with ToolSearch ("select:WebSearch") first; WebFetch may be loaded too ("select:WebFetch").
+
+Input: /home/user/smartlead-api-client/pipeline/work/p2_recheck_in.jsonl, one JSON object per line: id, name, domain, concern (why the row is doubtful), parent_company, parent_source, domain_found, domain_source, notes (current values).
+
+Output: /home/user/smartlead-api-client/pipeline/work/p2_recheck_out.csv with EXACTLY these columns:
+Exhibitor ID,Decision,Parent Company,Parent Domain,Parent Source,Domain Found,Domain Source,Notes
+One row per input line, written with Python's csv module. Save progress every 5 rows (append); if the file exists, skip ids already present.
+
+For each row, address the concern with at most 2 WebSearch calls (and WebFetch of a cited page if useful):
+- Parent rules: Parent Company is filled ONLY when a source plainly states this company or brand is currently owned by, a subsidiary/division/brand of, or was acquired (deal closed) by another company, and the source is clearly about this company. A majority stake by a named firm counts (say "majority stake" in Notes). Minority stakes, investors, founders, family ownership, the brand's own operating legal entity, investor groups without a named lead company, trademark owner records, and data aggregators alone (PitchBook, CB Insights, Crunchbase, ZoomInfo, Owler, Tracxn and similar) do NOT count. If a later sale changed the owner, use the current owner. If a deal is announced but not confirmed closed, leave Parent Company blank and write "Pending acquisition by <buyer>" in Notes.
+- Domain rules: the company's own website domain only (no protocol, www or path), confirmed by the company's own site or a reliable source that names it; never a marketplace, directory, Amazon or social page. Domain Source must be a URL you actually saw in results; never guess a URL. If unconfirmed, leave Domain Found and Domain Source blank.
+- Decision: one of `keep` (current values hold), `changed` (you corrected something), `blanked` (the parent or domain did not hold up and you cleared it).
+- Fill Parent Company, Parent Domain, Parent Source, Domain Found and Domain Source with the FINAL values (copy the current ones when keeping). Notes: one short line saying what you found.
+
+Rules: use only search results and fetched pages, never memory. No em dashes or en dashes anywhere. Keep helper files in /tmp/claude-0/-home-user-smartlead-api-client/14097a83-43ed-5901-b09e-9a152d499e4d/scratchpad with a `p2rc_` prefix; touch no other files. At the end verify one row per input id, no duplicates, valid Decision values; then report counts per Decision and list every row that changed or was blanked with a few words each.

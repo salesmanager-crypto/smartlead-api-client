@@ -34,9 +34,10 @@ def queue():
                     "domain": e["Domain"], "needs_domain": not e["Domain"], "amazon_store": b.get("store_name", ""),
                     "sample_product": b.get("title", "")[:150]})
     if os.path.exists(OLD_ONLY):
+        skip = {r["id"] for r in P.load("excluded.jsonl")}
         for r in csv.DictReader(open(OLD_ONLY, encoding="utf-8")):
             a = amz.get(r["Old ID"])
-            if not a or a["status"] != "verified":
+            if not a or a["status"] != "verified" or r["Old ID"] in skip:
                 continue
             b = a.get("best") or {}
             out.append({"id": r["Old ID"], "name": r["Company"], "other_names": r["Other Names"], "website": "",

@@ -45,17 +45,31 @@ def build_master():
              4: "4: In old database, already sent"}
     fields = ["Priority Tier", "Row Status", "In Old Database", "Old DB Already Sent", "Old DB Company", "Exhibitor ID", "Exhibitor",
               "Also Listed As", "Years Exhibited", "In 2027 List",
-              "Booths", "Website", "Domain", "Address", "Amazon Status", "Amazon Store Name", "Has Amazon Store",
+              "Booths", "Website", "Domain", "Domain Found", "Domain Source", "Exhibitor Type", "Type Reason",
+              "Parent Company", "Parent Domain", "Parent Source", "Research Notes", "Address", "Amazon Status", "Amazon Store Name", "Has Amazon Store",
               "Amazon Store URL", "Amazon Brand Field", "Sample ASIN", "Sample Product", "Sold By",
               "Priority", "First Name", "Last Name", "Title", "LinkedIn URL", "Country", "Email", "Email Status",
               "Email Subject", "Email Body", "Email Angle", "Show URLs"]
     fields.remove("Amazon Store URL")  # not captured reliably; the store name is exact
+    p2 = {}
+    p2f = os.path.join(ROOT, "phase2_checkpoint.csv")
+    if os.path.exists(p2f):
+        p2 = {r["Exhibitor ID"]: r for r in csv.DictReader(open(p2f, encoding="utf-8"))}
+    BRAND = "Brand / Manufacturer"
+
+    def research(eid):
+        r = p2.get(eid, {})
+        return {"Domain Found": r.get("Domain Found", ""), "Domain Source": r.get("Domain Source", ""),
+                "Exhibitor Type": r.get("Exhibitor Type", ""), "Type Reason": r.get("Type Reason", ""),
+                "Parent Company": r.get("Parent Company", ""), "Parent Domain": r.get("Parent Domain", ""),
+                "Parent Source": r.get("Parent Source", ""), "Research Notes": r.get("Notes", "")}
+
     rows = []
     scope = {t["id"] for t in targets()}  # Amazon sellers after the supplier, false-match and client exclusions
     for eid, e in m.items():
         a = amz.get(eid)
         st = a["status"] if a else ""
-        if eid not in scope:
+        if eid not in scope or p2.get(eid, {}).get("Exhibitor Type", BRAND) != BRAND:
             continue
         b = a.get("best") or {}
         o = oldm.get(eid, {})
@@ -67,7 +81,7 @@ def build_master():
                 "Amazon Store Name": b.get("store_name", ""), "Has Amazon Store": "Yes" if b.get("has_store") else "No",
                 "Amazon Store URL": b.get("store_url", ""), "Amazon Brand Field": b.get("brand_row", ""),
                 "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""), "Sold By": b.get("sold_by", ""),
-                "Show URLs": e["Show URLs"]}
+                "Show URLs": e["Show URLs"], **research(eid)}
         if not ppl.get(eid):
             why = "No people found in Surfe" if eid in searched else "People search pending"
             rows.append({**base, "Row Status": why})
@@ -88,6 +102,22 @@ def build_master():
                          "Country": p["Country"], "Email": r.get("email", ""), "Email Status": r.get("email_status", ""),
                          "Email Subject": c.get("subject", ""), "Email Body": c.get("body", ""),
                          "Email Angle": c.get("angle", "")})
+    import expowest_phase2 as P2
+    old = {r["Old ID"]: r for r in csv.DictReader(open(P2.OLD_ONLY, encoding="utf-8"))} if os.path.exists(P2.OLD_ONLY) else {}
+    for q in P2.queue():
+        oid = q["id"]
+        if oid not in old or p2.get(oid, {}).get("Exhibitor Type", BRAND) != BRAND:
+            continue
+        o, b = old[oid], (amz[oid].get("best") or {})
+        sent = o["Already Sent (old)"] == "Yes"
+        rows.append({"Priority Tier": tiers[4 if sent else 3], "Row Status": "Old database only, people search not run",
+                     "In Old Database": "Yes", "Old DB Already Sent": "Yes" if sent else "No", "Old DB Company": o["Company"],
+                     "Exhibitor ID": oid, "Exhibitor": o["Company"], "Also Listed As": o["Other Names"],
+                     "Years Exhibited": "", "In 2027 List": "No", "Domain": o["Domain"],
+                     "Amazon Status": amz[oid]["status"], "Amazon Store Name": b.get("store_name", ""),
+                     "Has Amazon Store": "Yes" if b.get("has_store") else "No", "Amazon Brand Field": b.get("brand_row", ""),
+                     "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""), "Sold By": b.get("sold_by", ""),
+                     **research(oid)})
     rows.sort(key=lambda r: (r["Priority Tier"], r["In 2027 List"] != "Yes", ORDER[r["Amazon Status"]], r["Exhibitor ID"],
                              int(r.get("Priority") or 9)))
     with open(MASTER_OUT, "w", newline="", encoding="utf-8") as f:
