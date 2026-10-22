@@ -11,7 +11,7 @@ import csv, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT
-from expowest_people import ORDER, amazon_best, emails, master, people, targets
+from expowest_people import ORDER, amazon_best, emails, master, people, targets, tier
 from cold_emails import check
 
 MASTER_OUT = os.path.join(ROOT, "expowest_amazon_master.csv")
@@ -41,7 +41,9 @@ def build_master():
     op = os.path.join(ROOT, "pipeline", "work", "old_db_match.json")
     if os.path.exists(op):
         oldm = json.load(open(op))
-    fields = ["Row Status", "In Old Database", "Old DB Already Sent", "Old DB Company", "Exhibitor ID", "Exhibitor",
+    tiers = {1: "1: New to us, 2027 exhibitor", 2: "2: New to us", 3: "3: In old database",
+             4: "4: In old database, already sent"}
+    fields = ["Priority Tier", "Row Status", "In Old Database", "Old DB Already Sent", "Old DB Company", "Exhibitor ID", "Exhibitor",
               "Also Listed As", "Years Exhibited", "In 2027 List",
               "Booths", "Website", "Domain", "Address", "Amazon Status", "Amazon Store Name", "Has Amazon Store",
               "Amazon Store URL", "Amazon Brand Field", "Sample ASIN", "Sample Product", "Sold By",
@@ -57,7 +59,7 @@ def build_master():
             continue
         b = a.get("best") or {}
         o = oldm.get(eid, {})
-        base = {"In Old Database": "Yes" if o.get("old_company") else "No",
+        base = {"Priority Tier": tiers[tier(eid, e["In 2027"] == "Yes")], "In Old Database": "Yes" if o.get("old_company") else "No",
                 "Old DB Already Sent": "Yes" if o.get("old_sent") else "No",
                 "Old DB Company": o.get("old_company", ""), "Exhibitor ID": eid, "Exhibitor": e["Exhibitor"], "Also Listed As": e["Also Listed As"],
                 "Years Exhibited": e["Years"], "In 2027 List": e["In 2027"], "Booths": e["Booths"],
@@ -86,7 +88,7 @@ def build_master():
                          "Country": p["Country"], "Email": r.get("email", ""), "Email Status": r.get("email_status", ""),
                          "Email Subject": c.get("subject", ""), "Email Body": c.get("body", ""),
                          "Email Angle": c.get("angle", "")})
-    rows.sort(key=lambda r: (ORDER[r["Amazon Status"]], r["In 2027 List"] != "Yes", r["Exhibitor ID"],
+    rows.sort(key=lambda r: (r["Priority Tier"], r["In 2027 List"] != "Yes", ORDER[r["Amazon Status"]], r["Exhibitor ID"],
                              int(r.get("Priority") or 9)))
     with open(MASTER_OUT, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields)

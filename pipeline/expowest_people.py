@@ -64,6 +64,29 @@ B2B = re.compile(r"\b(plastics?|packag\w*|chemicals?|ingredients?|flavou?rs?|fra
 B2B_NAMES = {"adm", "amcor", "cargill", "ingredion", "givaudan", "dsm", "kerry", "tate and lyle", "bunge"}
 
 
+_OLD = None
+
+
+def old_db():
+    """Exhibitor ID -> match in the old Expo West database (old_db_dedup.py)."""
+    global _OLD
+    if _OLD is None:
+        p = os.path.join(WORK, "old_db_match.json")
+        _OLD = json.load(open(p)) if os.path.exists(p) else {}
+    return _OLD
+
+
+def tier(eid, in2027):
+    """Campaign priority: brands new to us first, brands already in the old database after (kept, not dropped).
+    1 new + 2027 list, 2 new, 3 in old database, 4 in old database with contacts already sent."""
+    o = old_db().get(eid, {})
+    if o.get("old_sent"):
+        return 4
+    if o.get("old_company"):
+        return 3
+    return 1 if in2027 else 2
+
+
 def strict_sim(a, b):
     """Name match without the loose substring shortcut: a contained name must cover most of the other."""
     a, b = squash(a), squash(b)
@@ -106,7 +129,9 @@ def targets():
         out.append({"id": eid, "name": r["Exhibitor"], "domain": domain, "brand": a["brand"],
                     "store": b.get("store_name", ""), "status": a["status"],
                     "in2027": r["In 2027"] == "Yes", "years": int(r["Years Count"] or 0)})
-    out.sort(key=lambda t: (ORDER[t["status"]], not t["in2027"], -t["years"], t["id"]))
+    for t in out:
+        t["tier"] = tier(t["id"], t["in2027"])
+    out.sort(key=lambda t: (t["tier"], ORDER[t["status"]], -t["years"], t["id"]))
     return out
 
 
