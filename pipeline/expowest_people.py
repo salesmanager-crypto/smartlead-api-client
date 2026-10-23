@@ -235,7 +235,13 @@ def select():
               "Country", "Seniority", "Surfe Company", "Company Domain", "Priority"]
     rows = []
     for eid, d in by.items():
-        for i, p in enumerate(sorted(d.values(), key=rank)[:5], 1):
+        seen, uniq = set(), []
+        for p in sorted(d.values(), key=rank):  # same person with two LinkedIn profiles: keep the better-ranked one
+            nk = f'{p["firstName"]} {p["lastName"]}'.lower().strip()
+            if nk not in seen:
+                seen.add(nk)
+                uniq.append(p)
+        for i, p in enumerate(uniq[:5], 1):
             fix = lambda s: s.strip().title() if s.islower() or s.isupper() else s.strip()
             pid = norm_li(p["linkedInUrl"]) or f'{p["firstName"]} {p["lastName"]}'.lower().strip()
             rows.append({"Key": f'{eid}|{pid}', "Exhibitor ID": eid,
