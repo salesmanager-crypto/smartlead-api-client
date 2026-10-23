@@ -29,6 +29,8 @@ def queue():
     m, amz = P.master(), P.amazon_best()
     out = []
     for t in P.targets():
+        if t["id"] not in m:  # old-database-only brands are added below
+            continue
         e, b = m[t["id"]], (amz.get(t["id"], {}).get("best") or {})
         out.append({"id": t["id"], "name": e["Exhibitor"], "other_names": e["Also Listed As"], "website": e["Website"],
                     "domain": e["Domain"], "needs_domain": not e["Domain"], "amazon_store": b.get("store_name", ""),

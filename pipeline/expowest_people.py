@@ -131,7 +131,42 @@ def targets():
                     "in2027": r["In 2027"] == "Yes", "years": int(r["Years Count"] or 0)})
     for t in out:
         t["tier"] = tier(t["id"], t["in2027"])
+    out += old_targets(amz, skip)
     out.sort(key=lambda t: (t["tier"], ORDER[t["status"]], -t["years"], t["id"]))
+    return out
+
+
+def domain_fits(domain, names):
+    """False when the website domain looks like another company's (search Surfe by name instead)."""
+    dcore = domain_core(domain)
+    if not dcore:
+        return False
+    if max([strict_sim(dcore, t) for t in names if t] or [0]) >= 0.6:
+        return True
+    return any(squash(t) and (squash(t) in dcore or dcore in squash(t)
+                              or len(os.path.commonprefix([squash(t), dcore])) >= 4) for t in names)
+
+
+def old_targets(amz, skip):
+    """Brands only in the old Expo West database that sell on Amazon and were typed Brand / Manufacturer
+    (expowest_phase2.py). Tier 3, or 4 when the old campaign already sent to them."""
+    old_path, cp_path = os.path.join(ROOT, "old_only_companies.csv"), os.path.join(ROOT, "phase2_checkpoint.csv")
+    if not (os.path.exists(old_path) and os.path.exists(cp_path)):
+        return []
+    p2 = {r["Exhibitor ID"]: r for r in csv.DictReader(open(cp_path, encoding="utf-8"))}
+    out = []
+    for r in csv.DictReader(open(old_path, encoding="utf-8")):
+        oid, a = r["Old ID"], amz.get(r["Old ID"])
+        if not a or a["status"] != "verified" or oid in skip:
+            continue
+        if p2.get(oid, {}).get("Exhibitor Type") != "Brand / Manufacturer":
+            continue
+        b = a.get("best") or {}
+        names = [r["Company"], a["brand"], b.get("store_name", ""), b.get("brand_row", "")]
+        domain = r["Domain"] or p2[oid]["Domain Found"]
+        out.append({"id": oid, "name": r["Company"], "domain": domain if domain_fits(domain, names) else "",
+                    "brand": a["brand"], "store": b.get("store_name", ""), "status": a["status"],
+                    "in2027": False, "years": 0, "tier": 4 if r["Already Sent (old)"] == "Yes" else 3})
     return out
 
 

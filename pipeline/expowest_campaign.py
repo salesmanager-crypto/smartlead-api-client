@@ -64,6 +64,29 @@ def build_master():
                 "Parent Company": r.get("Parent Company", ""), "Parent Domain": r.get("Parent Domain", ""),
                 "Parent Source": r.get("Parent Source", ""), "Research Notes": r.get("Notes", "")}
 
+    def add(base, eid):
+        """One row per selected person, or one row saying why there are none."""
+        if not ppl.get(eid):
+            why = "No people found in Surfe" if eid in searched else "People search pending"
+            rows.append({**base, "Row Status": why})
+            return
+        for p in sorted(ppl[eid], key=lambda p: int(p["Priority"])):
+            r = em.get(p["Key"], {})
+            c = ce.get(p["Key"], {})
+            if not r:
+                why = "Email pending"
+            elif not r.get("email"):
+                why = "No email from Surfe"
+            elif not c:
+                why = "Custom email pending"
+            else:
+                why = "Ready"
+            rows.append({**base, "Row Status": why, "Priority": p["Priority"], "First Name": p["First Name"],
+                         "Last Name": p["Last Name"], "Title": p["Title"], "LinkedIn URL": p["LinkedIn URL"],
+                         "Country": p["Country"], "Email": r.get("email", ""), "Email Status": r.get("email_status", ""),
+                         "Email Subject": c.get("subject", ""), "Email Body": c.get("body", ""),
+                         "Email Angle": c.get("angle", "")})
+
     rows = []
     scope = {t["id"] for t in targets()}  # Amazon sellers after the supplier, false-match and client exclusions
     for eid, e in m.items():
@@ -82,26 +105,7 @@ def build_master():
                 "Amazon Store URL": b.get("store_url", ""), "Amazon Brand Field": b.get("brand_row", ""),
                 "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""), "Sold By": b.get("sold_by", ""),
                 "Show URLs": e["Show URLs"], **research(eid)}
-        if not ppl.get(eid):
-            why = "No people found in Surfe" if eid in searched else "People search pending"
-            rows.append({**base, "Row Status": why})
-            continue
-        for p in sorted(ppl[eid], key=lambda p: int(p["Priority"])):
-            r = em.get(p["Key"], {})
-            c = ce.get(p["Key"], {})
-            if not r:
-                why = "Email pending"
-            elif not r.get("email"):
-                why = "No email from Surfe"
-            elif not c:
-                why = "Custom email pending"
-            else:
-                why = "Ready"
-            rows.append({**base, "Row Status": why, "Priority": p["Priority"], "First Name": p["First Name"],
-                         "Last Name": p["Last Name"], "Title": p["Title"], "LinkedIn URL": p["LinkedIn URL"],
-                         "Country": p["Country"], "Email": r.get("email", ""), "Email Status": r.get("email_status", ""),
-                         "Email Subject": c.get("subject", ""), "Email Body": c.get("body", ""),
-                         "Email Angle": c.get("angle", "")})
+        add(base, eid)
     import expowest_phase2 as P2
     old = {r["Old ID"]: r for r in csv.DictReader(open(P2.OLD_ONLY, encoding="utf-8"))} if os.path.exists(P2.OLD_ONLY) else {}
     for q in P2.queue():
@@ -110,14 +114,15 @@ def build_master():
             continue
         o, b = old[oid], (amz[oid].get("best") or {})
         sent = o["Already Sent (old)"] == "Yes"
-        rows.append({"Priority Tier": tiers[4 if sent else 3], "Row Status": "Old database only, people search not run",
+        base = {"Priority Tier": tiers[4 if sent else 3],
                      "In Old Database": "Yes", "Old DB Already Sent": "Yes" if sent else "No", "Old DB Company": o["Company"],
                      "Exhibitor ID": oid, "Exhibitor": o["Company"], "Also Listed As": o["Other Names"],
                      "Years Exhibited": "", "In 2027 List": "No", "Domain": o["Domain"],
                      "Amazon Status": amz[oid]["status"], "Amazon Store Name": b.get("store_name", ""),
                      "Has Amazon Store": "Yes" if b.get("has_store") else "No", "Amazon Brand Field": b.get("brand_row", ""),
                      "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""), "Sold By": b.get("sold_by", ""),
-                     **research(oid)})
+                     **research(oid)}
+        add(base, oid)
     rows.sort(key=lambda r: (r["Priority Tier"], r["In 2027 List"] != "Yes", ORDER[r["Amazon Status"]], r["Exhibitor ID"],
                              int(r.get("Priority") or 9)))
     with open(MASTER_OUT, "w", newline="", encoding="utf-8") as f:
