@@ -226,6 +226,8 @@ def select():
             home = COUNTRY.get(m.get(p["id"], {}).get("Address", "").rsplit(",", 1)[-1].strip(), "")
             if home and p["country"] and p["country"] != home:
                 continue  # same name, different country: likely another company
+            if not home and p["country"] not in ("us", ""):
+                continue  # no address on file (old-database brands): a same-name match abroad is likely another company
             tld = p["companyDomain"].rsplit(".", 1)[-1].lower() if "." in p["companyDomain"] else ""
             if home and len(tld) == 2 and tld not in (home, "us", "co", "io", "ai", "me", "tv"):
                 continue  # company site in another country
