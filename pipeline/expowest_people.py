@@ -235,6 +235,9 @@ def select():
               "Country", "Seniority", "Surfe Company", "Company Domain", "Priority"]
     rows = []
     for eid, d in by.items():
+        if eid.startswith("O") and any(p["country"] == "us" for p in d.values()):
+            # old-database brands have no address on file: when Surfe finds US people, drop other regions
+            d = {k: p for k, p in d.items() if p["country"] in ("us", "")}
         seen, uniq = set(), []
         for p in sorted(d.values(), key=rank):  # same person with two LinkedIn profiles: keep the better-ranked one
             nk = f'{p["firstName"]} {p["lastName"]}'.lower().strip()
