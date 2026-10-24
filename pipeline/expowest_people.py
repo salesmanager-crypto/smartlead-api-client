@@ -289,12 +289,15 @@ def select():
                 continue
             best = p.get("id") if p.get("id") in fits else fits[0]
             p = {**p, "id": best, "byname": True}
+        elif p.get("id") in sdin and domain_core(p.get("companyDomain", "")) in {
+                domain_core(d) for d in sdin[p["id"]].get("new_domains", [])}:
+            p = {**p, "bydomain": True}  # found on the brand's own domain: no company-name check needed
         if p.get("id") not in bad_match:
             raw.append(p)
     by = {}
     for p in raw:
         p = {k: (p.get(k) or "") for k in ("id", "firstName", "lastName", "jobTitle", "linkedInUrl", "country",
-                                            "seniorities", "companyName", "companyDomain", "pass", "byname")}
+                                            "seniorities", "companyName", "companyDomain", "pass", "byname", "bydomain")}
         p["sen"] = " ".join(p["seniorities"]).lower() if isinstance(p["seniorities"], list) else str(p["seniorities"]).lower()
         p["country"] = str(p["country"]).lower()
         t = p["jobTitle"]
@@ -308,7 +311,7 @@ def select():
         home_cc = COUNTRY.get(m.get(p["id"], {}).get("Address", "").rsplit(",", 1)[-1].strip(), "")
         if home_cc and p["country"] and p["country"] not in (home_cc, "us"):
             continue  # offshore contractors and other regions are not the brand's decision makers
-        if not src.get("domain") or p["byname"]:  # searched by name: the person's company must be this exhibitor
+        if (not src.get("domain") or p["byname"]) and not p["bydomain"]:  # searched by name: the person's company must be this exhibitor
             if not p["byname"] and max(strict_sim(p["companyName"], t) for t in (
                     src.get("name", ""), src.get("brands", ""), src.get("amazon_store", "")) if t) < 0.8:
                 continue
