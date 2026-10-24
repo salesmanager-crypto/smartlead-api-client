@@ -163,16 +163,22 @@ def detail_plan(n):
 
 def detail_rows(kind):
     """Brand key -> rows. Prefers ssd_tx/ (rebuilt from the raw tool results by ssd_from_transcripts.py)."""
-    out = {}
+    def read(files):
+        got = {}
+        for f in files:
+            for l in open(f, encoding="utf-8"):
+                try:
+                    r = json.loads(l)
+                except json.JSONDecodeError:
+                    continue
+                if r.get("Brand Name"):
+                    got.setdefault(key(r["Brand Name"]), []).append(r)
+        return got
     tx = os.path.join(WORK, "ssd_tx", f"ssd_{kind}_tx.jsonl")
-    for f in [tx] if os.path.exists(tx) else sorted(glob.glob(os.path.join(WORK, f"ssd_{kind}_*.jsonl"))):
-        for l in open(f, encoding="utf-8"):
-            try:
-                r = json.loads(l)
-            except json.JSONDecodeError:
-                continue
-            if r.get("Brand Name"):
-                out.setdefault(key(r["Brand Name"]), []).append(r)
+    out = read([tx]) if os.path.exists(tx) else {}
+    # results the tool saved to a file never appear inline in a transcript: take those brands from the agents' files
+    for k, rows in read(sorted(glob.glob(os.path.join(WORK, f"ssd_{kind}_[0-9]*.jsonl")))).items():
+        out.setdefault(k, rows)
     return out
 
 
