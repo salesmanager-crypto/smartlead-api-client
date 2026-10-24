@@ -215,7 +215,7 @@ def name_fits(company, domain, src):
     alnum = lambda w: re.sub(r"[^a-z0-9]", "", w.lower())  # not squash(): it drops words such as "America"
     words = lambda x: [alnum(w) for w in re.split(r"[\s,&/.-]+", plain(x)) if alnum(w)]
     cw = words(company)
-    for n in src.get("names", []):
+    for n in set(src.get("names", []) + [src.get(k, "") for k in ("name", "store", "brands")]):
         nw = words(n)
         if not nw or not cw:
             continue
