@@ -3,6 +3,8 @@
   python3 pipeline/expowest_people.py targets            exhibitors in scope, in priority order (printed summary)
   python3 pipeline/expowest_people.py sf-export N        next chunk of N in-scope exhibitors with no Surfe search yet
                                                           -> pipeline/work/sf_in_NN.jsonl
+  python3 pipeline/expowest_people.py sd-export N        second Surfe pass (D) for in-scope brands with fewer than 5
+                                                          people: other domains and company names -> sd_in_NN.jsonl
   python3 pipeline/expowest_people.py select             up to 5 people per exhibitor -> surfe_people.csv
   python3 pipeline/expowest_people.py se-export N BUDGET  selected people with no email lookup yet, chunks of N,
                                                           at most BUDGET people -> pipeline/work/se_in_NN.jsonl
@@ -190,6 +192,57 @@ def sf_export(n):
     print(f"wrote {len(todo)} exhibitors to {path}")
 
 
+SUFFIX = re.compile(r"[,.]?\s*\b(inc|llc|ltd|co|corp|corporation|company|limited|gmbh|s\.?a|pbc|l\.?l\.?c)\b\.?$", re.I)
+
+
+def plain(name):
+    """Company name as Surfe would hold it: no legal suffix, symbols or bracketed extras."""
+    n = re.sub(r"\(.*?\)|[®™]", "", name or "")
+    for _ in range(2):
+        n = SUFFIX.sub("", n.strip())
+    return re.sub(r"\s+", " ", n).strip(" ,.-")
+
+
+def sd_export(n):
+    """Pass D: brands still under 5 people after passes A to C. Lists domains not searched yet (phase 2 research,
+    parent-free) and the company names to search by (Surfe's company name, the Amazon store, the exhibitor)."""
+    done = {json.loads(l)["id"] for f in glob.glob(os.path.join(WORK, "sd_in_*.jsonl")) for l in open(f)}
+    skip = {r["id"] for r in load("bad_match.jsonl")} | {r["id"] for r in load("excluded.jsonl")}
+    have = {}
+    for p in people():
+        have[p["Exhibitor ID"]] = have.get(p["Exhibitor ID"], 0) + 1
+    co = {r["id"]: r for r in load("sf_co_*.jsonl")}
+    p2f = os.path.join(ROOT, "phase2_checkpoint.csv")
+    p2 = {r["Exhibitor ID"]: r for r in csv.DictReader(open(p2f, encoding="utf-8"))} if os.path.exists(p2f) else {}
+    todo = []
+    for t in targets():
+        if t["id"] in done or t["id"] in skip or have.get(t["id"], 0) >= 5:
+            continue
+        if p2.get(t["id"], {}).get("Exhibitor Type", "Brand / Manufacturer") != "Brand / Manufacturer":
+            continue
+        cand = [t["name"], t["brand"], t["store"]]
+        found = p2.get(t["id"], {}).get("Domain Found", "").strip().lower()
+        domains = [found] if found and found != (t["domain"] or "").lower() and domain_fits(found, cand) else []
+        names = []
+        for x in (co.get(t["id"], {}).get("name", ""), t["store"], t["name"], t["brand"]):
+            x = plain(x)
+            if x and squash(x) not in {squash(y) for y in names}:
+                names.append(x)
+        todo.append({"id": t["id"], "name": t["name"], "store": t["store"], "brands": t["brand"],
+                     "searched_domain": t["domain"], "new_domains": domains, "names": names[:3],
+                     "have": have.get(t["id"], 0), "tier": t["tier"]})
+    todo = todo[:n]
+    if not todo:
+        print("nothing to export")
+        return
+    nn = next_nn("sd")
+    path = os.path.join(WORK, f"sd_in_{nn:02d}.jsonl")
+    with open(path, "w") as f:
+        for t in todo:
+            f.write(json.dumps(t, ensure_ascii=False) + "\n")
+    print(f"wrote {len(todo)} brands to {path} ({sum(1 for t in todo if t['new_domains'])} with a new domain)")
+
+
 COUNTRY = {"United States": "us", "Canada": "ca", "United Kingdom": "gb", "Australia": "au", "Mexico": "mx",
            "Italy": "it", "France": "fr", "Germany": "de", "Spain": "es", "Japan": "jp", "Korea, Republic of": "kr",
            "South Korea": "kr", "Netherlands": "nl", "Israel": "il", "Ireland": "ie", "New Zealand": "nz",
@@ -202,10 +255,23 @@ def select():
     bad_match |= {r["id"] for r in load("excluded.jsonl")}  # reviewed: not a fit, or an existing client
     raw = [p for p in load("sf_raw_*.jsonl") if p.get("id") not in bad_match]
     names = {t["id"]: t for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")) for t in map(json.loads, open(f))}
+    sdin = {t["id"]: t for f in glob.glob(os.path.join(WORK, "sd_in_*.jsonl")) for t in map(json.loads, open(f))}
+    for p in load("sd_raw_*.jsonl"):  # pass D: name searches cover several brands per call, so match by name
+        if p.get("pass") == "error" or not p.get("firstName"):
+            continue
+        if str(p.get("pass", "")).startswith("DN"):
+            cands = [c for c in (p.get("cands") or [p.get("id")]) if c in sdin]
+            score, best = max(((max([strict_sim(p.get("companyName", ""), x) for x in sdin[c]["names"] if x] or [0]), c)
+                               for c in cands), default=(0, None))
+            if score < 0.8:
+                continue
+            p = {**p, "id": best, "byname": True}
+        if p.get("id") not in bad_match:
+            raw.append(p)
     by = {}
     for p in raw:
         p = {k: (p.get(k) or "") for k in ("id", "firstName", "lastName", "jobTitle", "linkedInUrl", "country",
-                                            "seniorities", "companyName", "companyDomain", "pass")}
+                                            "seniorities", "companyName", "companyDomain", "pass", "byname")}
         p["sen"] = " ".join(p["seniorities"]).lower() if isinstance(p["seniorities"], list) else str(p["seniorities"]).lower()
         p["country"] = str(p["country"]).lower()
         t = p["jobTitle"]
@@ -219,9 +285,9 @@ def select():
         home_cc = COUNTRY.get(m.get(p["id"], {}).get("Address", "").rsplit(",", 1)[-1].strip(), "")
         if home_cc and p["country"] and p["country"] not in (home_cc, "us"):
             continue  # offshore contractors and other regions are not the brand's decision makers
-        if not src.get("domain"):  # searched by name: the person's company must be this exhibitor
-            if max(strict_sim(p["companyName"], t) for t in (src.get("name", ""), src.get("brands", ""),
-                                                            src.get("amazon_store", "")) if t) < 0.8:
+        if not src.get("domain") or p["byname"]:  # searched by name: the person's company must be this exhibitor
+            if not p["byname"] and max(strict_sim(p["companyName"], t) for t in (
+                    src.get("name", ""), src.get("brands", ""), src.get("amazon_store", "")) if t) < 0.8:
                 continue
             home = COUNTRY.get(m.get(p["id"], {}).get("Address", "").rsplit(",", 1)[-1].strip(), "")
             if home and p["country"] and p["country"] != home:
@@ -350,6 +416,8 @@ if __name__ == "__main__":
         print(len(targets()))
     elif a[0] == "sf-export":
         sf_export(int(a[1]))
+    elif a[0] == "sd-export":
+        sd_export(int(a[1]))
     elif a[0] == "select":
         select()
     elif a[0] == "se-export":

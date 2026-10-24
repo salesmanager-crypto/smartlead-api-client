@@ -1,0 +1,24 @@
+You are running a second Surfe search for sales, marketing and e-commerce decision makers at brands that still have fewer than 5 people after the first search. Load the Surfe tools with ToolSearch ("select:mcp__Surfe__surfe_search_people"). Do not use web search or any other source. Never invent a person or edit a value: copy what Surfe returns. Save each raw Surfe response to a scratchpad file first, then write people to the output with a Python script that parses that JSON, never by retyping values.
+
+Input: /home/user/smartlead-api-client/pipeline/work/sd_in_{NN}.jsonl, one brand per line: id, name, store, brands, searched_domain (already searched in the first pass), new_domains (domains not searched yet, may be empty), names (company names to search by), have (people already found).
+Output (append one JSON object per line with Python's json module; never rewrite the file; write after every tool call):
+- /home/user/smartlead-api-client/pipeline/work/sd_raw_{NN}.jsonl, one line per person Surfe returns: {"id","cands","pass","firstName","lastName","jobTitle","linkedInUrl","country","seniorities","departments","companyName","companyDomain"}. "cands" is the list of brand ids that were in that search call. "id" is your best guess of which of those brands the person belongs to (the brand whose names or domain match companyName / companyDomain best). Write EVERY person returned, even ones that look irrelevant; filtering and the final brand match happen later in code.
+- When finished, write /home/user/smartlead-api-client/pipeline/work/sd_done_{NN}.txt with a one-line summary.
+
+Filters used in every call: response_format "json", people_per_company 5, limit 50, job_titles ["Ecommerce","E-commerce","Amazon","Marketplace","Digital","Online","Omnichannel","Marketing","Brand","Sales","National Account","Key Account","Business Development","Channel","Revenue","Commercial","Growth","Retail","Merchandising","Partnerships"]. If a nextPageToken is returned, fetch the next page with the same filters.
+Leaders = seniorities ["C-Level","VP","Director","Head"]. Managers = seniorities ["Manager"].
+
+Steps:
+0. Resume: if sd_raw_{NN}.jsonl exists, skip calls already made (check which ids and passes already have lines, including error lines).
+1. New domains (only brands with a non-empty new_domains): domains in groups of 10, company_domains = those domains, cands = their ids.
+   - Pass "DA": countries ["US"], Leaders.
+   - Pass "DB": countries ["US"], Managers, for brands whose have + people found so far is under 5.
+   - Pass "DC": no countries filter, Leaders and Managers together, for brands with have = 0 and nobody found so far.
+2. Company names (every brand): take the brands in groups of 5 and pass company_names = all of their "names" values together (at most 15 names), cands = those 5 ids.
+   - Pass "DNA": countries ["US"], Leaders.
+   - Pass "DNB": countries ["US"], Managers, for the brands of the group whose have + people found so far is under 5 (only their names).
+   - Pass "DNC": no countries filter, Leaders and Managers together, for brands with have = 0 and still nobody found (only their names).
+   To count "people found so far" for a brand, use a simple Python check: lowercase both, keep letters and digits only, and count a person for the brand when its companyName equals one of the brand's names or one contains the other. This count only decides which follow-up calls to make.
+3. Rate limit: make at most one surfe_search_people call every 10 seconds. If a call returns PUBLIC_API_PEOPLE_SEARCH_QUOTA_EXCEEDED or another error, wait about 60 seconds (python3 -c "import time; time.sleep(60)") and retry the same call, up to 6 times. If it still fails, write one line {"id": <id>, "cands": [...], "pass": "error", "jobTitle": "", "firstName": "", "note": <error text>} per brand in that call and move on. If Surfe says search credits are used up, stop, write the done file saying so, and report it.
+
+Before finishing, check with Python that every brand in the input appears in a DNA call (and every brand with new_domains in a DA call). Keep helper scripts in /tmp/claude-0/-home-user-smartlead-api-client/14097a83-43ed-5901-b09e-9a152d499e4d/scratchpad with prefix sd{NN}_, never in pipeline/work. Report: calls made per pass, people written per pass, brands with at least one new person by the simple check, errors.
