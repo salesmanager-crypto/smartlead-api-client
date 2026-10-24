@@ -9,7 +9,7 @@ Agents (pipeline/ssx_agent_prompt.txt) run the saved "Full profile of the brand 
 filterValues and append every returned row. A name SmartScout does not return is "not in SmartScout": the brand is
 still on Amazon, because the store was seen on amazon.com.
 """
-import csv, glob, json, os, re, sys
+import csv, glob, html, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT
@@ -42,7 +42,7 @@ def brands():
             continue
         seen.add(eid)
         b = (amz.get(eid) or {}).get("best") or {}
-        names = [x for x in (r["Amazon Store Name"], b.get("brand_row", "")) if x.strip()]
+        names = [html.unescape(x) for x in (r["Amazon Store Name"], b.get("brand_row", "")) if x.strip()]
         out.append({"id": eid, "name": r["Exhibitor"], "names": list(dict.fromkeys(names)), "tier": r["Priority Tier"]})
     out.sort(key=lambda x: (x["tier"], x["id"]))
     return out
@@ -95,14 +95,20 @@ def plan(n):
 
 def build():
     have, done = raw_rows(), queried()
+    mp = os.path.join(WORK, "ssx_mismatch.json")  # reviewed: same name in SmartScout, different company
+    mismatch = json.load(open(mp)) if os.path.exists(mp) else {}
     rows = []
     for b in brands():
         out = {"Exhibitor ID": b["id"], "Exhibitor": b["name"], "Amazon Store Name": b["names"][0] if b["names"] else ""}
         hit = next((have[key(x)] for x in b["names"] if key(x) in have), None)
-        if not hit:
+        if hit and b["id"] in mismatch:
+            out["SmartScout Brand"] = hit["Brand Name"]
+            out["SmartScout Match"] = f"different company in SmartScout ({mismatch[b['id']]})"
+            hit = None
+        elif not hit:
             out["SmartScout Match"] = ("not in SmartScout" if b["names"] and all(key(x) in done for x in b["names"])
                                        else "pending pull" if b["names"] else "no store name")
-        else:
+        if hit:
             out["SmartScout Brand"] = hit["Brand Name"]
             out["SmartScout Match"] = "exact" if hit["Brand Name"] == out["Amazon Store Name"] else "same name, different case or spacing"
             for f in FIELDS[5:]:
