@@ -282,6 +282,7 @@ def select():
     raw = [p for p in load("sf_raw_*.jsonl") if p.get("id") not in bad_match]
     names = {t["id"]: t for f in glob.glob(os.path.join(WORK, "sf_in_*.jsonl")) for t in map(json.loads, open(f))}
     sdin = {t["id"]: t for f in glob.glob(os.path.join(WORK, "sd_in_*.jsonl")) for t in map(json.loads, open(f))}
+    reject = {(r["id"], r["companyDomain"].lower()) for r in load("sd_reject.jsonl")}  # reviewed look-alike companies
     for p in load("sd_raw_*.jsonl"):  # pass D: name searches cover several brands per call, so match by name
         if p.get("pass") == "error" or not p.get("firstName"):
             continue
@@ -295,7 +296,7 @@ def select():
         elif p.get("id") in sdin and domain_core(p.get("companyDomain", "")) in {
                 domain_core(d) for d in sdin[p["id"]].get("new_domains", [])}:
             p = {**p, "bydomain": True}  # found on the brand's own domain: no company-name check needed
-        if p.get("id") not in bad_match:
+        if p.get("id") not in bad_match and (p.get("id"), (p.get("companyDomain") or "").lower()) not in reject:
             raw.append(p)
     by = {}
     for p in raw:
