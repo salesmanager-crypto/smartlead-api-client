@@ -53,8 +53,15 @@ def pct(x, frac=False):
 
 
 def sim(a, b):
+    """Seller name looks like the brand: one name starts with the other, a long name (5+) is contained in the
+    other, or they share a 5-character prefix. A bare substring match on a short name (EO in "Jude Our...")
+    does not count."""
     a, b = key(a), key(b)
-    return bool(a and b and (a in b or b in a or os.path.commonprefix([a, b]).__len__() >= 5))
+    if not a or not b:
+        return False
+    short, long_ = sorted((a, b), key=len)
+    return (long_.startswith(short) or (len(short) >= 5 and short in long_)
+            or len(os.path.commonprefix([a, b])) >= 5)
 
 
 def seller_type(name, names):
