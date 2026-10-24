@@ -94,8 +94,10 @@ def brand_rows():
         names = [r["Exhibitor"], r["Also Listed As"], s.get("SmartScout Brand", ""), r["Amazon Store Name"],
                  r["Parent Company"]]
         k = key(s.get("SmartScout Brand", ""))
-        sl = sorted(sellers.get(k, []), key=lambda x: int(x.get("Rn") or 99))[:5]
-        sc = sorted(subcats.get(k, []), key=lambda x: int(x.get("Rn") or 99))[:3]
+        num = lambda v: float(v) if v not in (None, "") else 0.0
+        rank = lambda x: int(x["Rn"]) if x.get("Rn") not in (None, "") else 99  # some queries return no Rn
+        sl = sorted(sellers.get(k, []), key=lambda x: (rank(x), -num(x.get("Estimated Brand Share"))))[:5]
+        sc = sorted(subcats.get(k, []), key=lambda x: (rank(x), -num(x.get("Monthly Revenue"))))[:3]
         sl = [{"seller": x["Seller Name"], "share_pct": pct(x.get("Estimated Brand Share")),
                "type": seller_type(x["Seller Name"], names)} for x in sl]
         own = round(sum(x["share_pct"] or 0 for x in sl if x["type"].startswith("likely the brand")), 1)

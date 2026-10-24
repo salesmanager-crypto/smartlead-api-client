@@ -7,8 +7,8 @@ Outputs (append one JSON object per line with Python's json module, never rewrit
 When finished, write /home/user/smartlead-api-client/pipeline/work/ssd_done_{NN}.txt with a one-line summary.
 
 Saved queries (mcp__SmartScout__run_query, filterValues = all brand names in the file in one call):
-- SELLERS: handle qh_eX-KYnTVUhLL ("For each of the brands ..., list the brand name and its top 5 sellers by estimated share of the brand's revenue"). limit 600. Rows: Brand Name, Seller Name, Estimated Brand Share (a percent, 47.8 = 47.8%), Brand Revenue Estimate, Rn.
-- SUBCATS: handle qh_2JERSysx7wbb ("For each of the brands ..., list the brand name and its top 3 subcategories by the brand's revenue with the brand's market share"). limit 400. Rows: Brand Name, Subcategory Context Name, Monthly Revenue, Market Share (a fraction, 0.067 = 6.7%), Rn.
+- SELLERS: handle qh_9_Ux1TtwKzn_ ("For each of the brands ..., list the brand name and its top 5 sellers by estimated share of the brand's revenue"). limit 600. Rows: Brand Name, Seller Name, Estimated Brand Share (a percent, 47.8 = 47.8%), Brand Revenue Estimate, Rn.
+- SUBCATS: handle qh_bABI0QpPtpvX ("For each of the brands ..., list the brand name and its top 3 subcategories by the brand's revenue with the brand's market share"). limit 400. Rows: Brand Name, Subcategory Context Name, Monthly Revenue, Market Share (a fraction, 0.067 = 6.7%), and Rn when the query returns it (the rebuilt Oct 25 handle does not; then dedupe on (Brand Name, Subcategory Context Name)).
 
 Steps:
 1. Run SELLERS, then SUBCATS, one call at a time. If a call errors or times out, split the names into calls of 50, then 25.

@@ -5,7 +5,7 @@ depends on an agent copying it correctly.
 
 Every run_query / query_analytics result in the session's subagent transcripts whose rows carry "Brand Name" plus
 "Seller Name" (sellers) or "Subcategory Context Name" (subcategories) is kept; rows are deduped on
-(Brand Name, Rn). expowest_smartscout.detail_rows reads these files instead of the agents' own copies when present.
+(Brand Name, Rn), or (Brand Name, seller / subcategory) when a query returns no Rn. expowest_smartscout.detail_rows reads these files instead of the agents' own copies when present.
 """
 import glob, json, os, sys
 
@@ -46,11 +46,14 @@ def main():
     for path in sorted(glob.glob(os.path.join(TX, "agent-*.jsonl"))):
         for r in results(path):
             for row in r.get("result") or []:
-                if not isinstance(row, dict) or "Brand Name" not in row or "Rn" not in row:
+                if not isinstance(row, dict) or "Brand Name" not in row:
                     continue
                 kind = "sellers" if "Seller Name" in row else "subcats" if "Subcategory Context Name" in row else None
                 if kind:
-                    seen[kind].setdefault((row["Brand Name"].lower(), row["Rn"]), row)
+                    # rebuilt saved queries (Oct 25) return subcategories without Rn: key on the subcategory instead
+                    rank = row.get("Rn") if row.get("Rn") not in (None, "") else (
+                        row.get("Seller Name") if kind == "sellers" else row.get("Subcategory Context Name"))
+                    seen[kind].setdefault((row["Brand Name"].lower(), rank), row)
     for kind, rows in seen.items():
         with open(os.path.join(OUT, f"ssd_{kind}_tx.jsonl"), "w", encoding="utf-8") as fh:
             for row in rows.values():
