@@ -95,7 +95,7 @@ def brand_rows():
                  r["Parent Company"]]
         k = key(s.get("SmartScout Brand", ""))
         num = lambda v: float(v) if v not in (None, "") else 0.0
-        rank = lambda x: int(x["Rn"]) if x.get("Rn") not in (None, "") else 99  # some queries return no Rn
+        rank = lambda x: int(x.get("Rn") or x.get("Rnk") or 99)  # rebuilt queries name it Rnk, or leave it out
         sl = sorted(sellers.get(k, []), key=lambda x: (rank(x), -num(x.get("Estimated Brand Share"))))[:5]
         sc = sorted(subcats.get(k, []), key=lambda x: (rank(x), -num(x.get("Monthly Revenue"))))[:3]
         sl = [{"seller": x["Seller Name"], "share_pct": pct(x.get("Estimated Brand Share")),

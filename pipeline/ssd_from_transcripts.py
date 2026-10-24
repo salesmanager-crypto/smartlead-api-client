@@ -51,7 +51,7 @@ def main():
                 kind = "sellers" if "Seller Name" in row else "subcats" if "Subcategory Context Name" in row else None
                 if kind:
                     # rebuilt saved queries (Oct 25) return subcategories without Rn: key on the subcategory instead
-                    rank = row.get("Rn") if row.get("Rn") not in (None, "") else (
+                    rank = row.get("Rn") or row.get("Rnk") or (
                         row.get("Seller Name") if kind == "sellers" else row.get("Subcategory Context Name"))
                     seen[kind].setdefault((row["Brand Name"].lower(), rank), row)
     for kind, rows in seen.items():
