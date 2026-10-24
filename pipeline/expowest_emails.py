@@ -5,6 +5,7 @@
   python3 pipeline/expowest_emails.py export N [IDS]   brands with decision makers and no email yet, priority order,
                                                          chunks of N -> pipeline/work/lg_in_NN.jsonl (IDS: optional
                                                          comma list to export only those brands)
+  python3 pipeline/expowest_emails.py redo N IDS       re-export brands already written, once new data arrived
   python3 pipeline/expowest_emails.py check            validate lg_out_NN.jsonl against the lead-gen rules
   python3 pipeline/expowest_emails.py collect          passing emails -> expowest_emails.csv
   python3 pipeline/expowest_emails.py status
@@ -96,8 +97,18 @@ def brand_rows():
         k = key(s.get("SmartScout Brand", ""))
         num = lambda v: float(v) if v not in (None, "") else 0.0
         rank = lambda x: int(x.get("Rn") or x.get("Rnk") or 99)  # rebuilt queries name it Rnk, or leave it out
-        sl = sorted(sellers.get(k, []), key=lambda x: (rank(x), -num(x.get("Estimated Brand Share"))))[:5]
-        sc = sorted(subcats.get(k, []), key=lambda x: (rank(x), -num(x.get("Monthly Revenue"))))[:3]
+
+        def top(rows, name, value, n):
+            """Largest first by the value itself (rebuilt queries return every row, ranks out of order), one row per
+            seller or subcategory, skipping rows in another query's field names."""
+            seen, out = set(), []
+            for x in sorted((x for x in rows if x.get(name)), key=lambda x: (-num(x.get(value)), rank(x))):
+                if x[name] not in seen:
+                    seen.add(x[name])
+                    out.append(x)
+            return out[:n]
+        sl = top(sellers.get(k, []), "Seller Name", "Estimated Brand Share", 5)
+        sc = top(subcats.get(k, []), "Subcategory Context Name", "Monthly Revenue", 3)
         sl = [{"seller": x["Seller Name"], "share_pct": pct(x.get("Estimated Brand Share")),
                "type": seller_type(x["Seller Name"], names)} for x in sl]
         own = round(sum(x["share_pct"] or 0 for x in sl if x["type"].startswith("likely the brand")), 1)
@@ -149,8 +160,9 @@ def detail_ready():
     return ok
 
 
-def export(n, ids=None):
-    q, ready = queued(), detail_ready()
+def export(n, ids=None, redo=False):
+    """redo=True re-exports the given ids even if they were written before (for example once seller data arrived)."""
+    q, ready = (set() if redo else queued()), detail_ready()
     todo = [r for r in brand_rows() if r["id"] not in q and (not ids or r["id"] in ids)
             and (not r["monthly_revenue"] or key(r["smartscout_brand"]) in ready)]
     nums = [int(re.search(r"_(\d+)\.jsonl$", f).group(1)) for f in glob.glob(os.path.join(WORK, "lg_in_*.jsonl"))]
@@ -240,5 +252,7 @@ if __name__ == "__main__":
     a = sys.argv[1:] or [""]
     if a[0] == "export":
         export(int(a[1]), set(a[2].split(",")) if len(a) > 2 else None)
+    elif a[0] == "redo":
+        export(int(a[1]), set(a[2].split(",")), redo=True)
     else:
         {"check": check, "collect": collect, "status": status}.get(a[0], lambda: print(__doc__))()
