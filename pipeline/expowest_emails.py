@@ -183,6 +183,10 @@ def problems(r, src):
         out.append("must name Albert Scott")
     if not src.get("monthly_revenue") and re.search(r"\$\d", body):
         out.append("cites revenue but none was provided")
+    if re.search(r"expo west", body, re.I) and not src.get("exhibiting_expo_west_2027"):
+        out.append("mentions Expo West but the brand is not on the 2027 exhibitor list")
+    if re.search(r"\b(see you|meet you|I'll be|I will be|we'll be) (at|in)\b", body, re.I):
+        out.append("implies Yoni will be at the show")
     if not r.get("angle", "").strip():
         out.append("angle missing")
     return out
