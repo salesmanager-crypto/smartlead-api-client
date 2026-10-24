@@ -12,7 +12,6 @@ import csv, json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT
 from expowest_people import ORDER, amazon_best, emails, master, people, targets, tier
-from cold_emails import check
 
 MASTER_OUT = os.path.join(ROOT, "expowest_amazon_master.csv")
 SL_OUT = os.path.join(ROOT, "expowest_smartlead_import.csv")
@@ -23,13 +22,17 @@ def clean(v):
 
 
 def custom_emails():
-    src, got, bad = check(quiet=True)
-    return {k: r for k, r in got.items() if k in src and k not in bad}, set(src)
+    """Brand-level emails from expowest_emails.py collect, keyed by Exhibitor ID (every contact at a brand gets the
+    same body; only {{first_name}} changes)."""
+    from expowest_emails import OUT
+    if not os.path.exists(OUT):
+        return {}
+    return {r["Exhibitor ID"]: r for r in csv.DictReader(open(OUT, encoding="utf-8"))}
 
 
 def build_master():
     m, amz, em = master(), amazon_best(), emails()
-    ce, queued = custom_emails()
+    ce = custom_emails()
     ppl = {}
     for p in people():
         ppl.setdefault(p["Exhibitor ID"], []).append(p)
@@ -49,7 +52,7 @@ def build_master():
               "Parent Company", "Parent Domain", "Parent Source", "Research Notes", "Address", "Amazon Status", "Amazon Store Name", "Has Amazon Store",
               "Amazon Store URL", "Amazon Brand Field", "Sample ASIN", "Sample Product", "Sold By",
               "Priority", "First Name", "Last Name", "Title", "LinkedIn URL", "Country", "Email", "Email Status",
-              "Email Subject", "Email Body", "Email Angle", "Show URLs"]
+              "Email Body", "Email Angle", "Email QA Flags", "Show URLs"]
     fields.remove("Amazon Store URL")  # not captured reliably; the store name is exact
     p2 = {}
     p2f = os.path.join(ROOT, "phase2_checkpoint.csv")
@@ -72,7 +75,7 @@ def build_master():
             return
         for p in sorted(ppl[eid], key=lambda p: int(p["Priority"])):
             r = em.get(p["Key"], {})
-            c = ce.get(p["Key"], {})
+            c = ce.get(eid, {})
             if not r:
                 why = "Email pending"
             elif not r.get("email"):
@@ -84,8 +87,8 @@ def build_master():
             rows.append({**base, "Row Status": why, "Priority": p["Priority"], "First Name": p["First Name"],
                          "Last Name": p["Last Name"], "Title": p["Title"], "LinkedIn URL": p["LinkedIn URL"],
                          "Country": p["Country"], "Email": r.get("email", ""), "Email Status": r.get("email_status", ""),
-                         "Email Subject": c.get("subject", ""), "Email Body": c.get("body", ""),
-                         "Email Angle": c.get("angle", "")})
+                         "Email Body": c.get("Email Body", ""), "Email Angle": c.get("Angle", ""),
+                         "Email QA Flags": c.get("QA Flags", "")})
 
     rows = []
     scope = {t["id"] for t in targets()}  # Amazon sellers after the supplier, false-match and client exclusions
@@ -138,7 +141,7 @@ def build_master():
 def build_smartlead():
     rows = [r for r in csv.DictReader(open(MASTER_OUT, encoding="utf-8")) if r["Row Status"] == "Ready"]
     fields = ["email", "first_name", "last_name", "company_name", "website", "linkedin_profile", "title",
-              "brand_store", "booth_2027", "email1_subject", "email1_body"]
+              "brand_store", "booth_2027", "email1_body"]  # subject lines are set in Smartlead
     with open(SL_OUT, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
@@ -148,7 +151,7 @@ def build_smartlead():
             w.writerow({"email": r["Email"], "first_name": r["First Name"], "last_name": r["Last Name"],
                         "company_name": r["Exhibitor"], "website": r["Website"], "linkedin_profile": r["LinkedIn URL"],
                         "title": r["Title"], "brand_store": r["Amazon Store Name"],
-                        "booth_2027": booth.group(1) if booth else "", "email1_subject": r["Email Subject"],
+                        "booth_2027": booth.group(1) if booth else "",
                         "email1_body": body.replace("\n", "<br>")})
     print(f"{len(rows)} leads -> {SL_OUT}")
 
