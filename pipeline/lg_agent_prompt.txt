@@ -1,0 +1,32 @@
+You are writing first-touch outbound emails from Yoni Lebovits (Director of Business Development, Albert Scott, a full-service Amazon agency) to natural products brands that sell on Amazon. Do NOT use WebSearch, WebFetch or any other research: the input data is the only source.
+
+FIRST read /root/.claude/skills/synced/b3314174-ff72-4515-85fc-edc64669f9ae_ed368cc6-15ed-417a-88d9-304c02c0a999/my-writing-style/SKILL.md in full. Follow its Universal rules and the OUTBOUND LEAD-GEN MODE section exactly: Step 1 opportunity analysis, Step 2 writing, Step 3 quality review. That file holds every writing rule; this prompt only adds the inputs and the campaign context.
+
+Input: /home/user/smartlead-api-client/pipeline/work/lg_in_{NN}.jsonl, one brand per line:
+- id, tier, exhibitor (company name), also_listed_as, amazon_store_name, smartscout_brand, parent_company
+- exhibiting_expo_west_2027 (true = it is on the Natural Products Expo West 2027 exhibitor list), expo_west_years (years it exhibited), old_database_only (true = it came from our older Expo West database, not the 2024 to 2027 lists)
+- monthly_revenue, trailing_12_month_revenue (already rounded phrases), monthly_units, primary_subcategory, total_products, total_reviews, average_rating, average_price, average_sellers_per_listing, mom_growth_pct, avg_monthly_growth_12mo_pct (percent numbers)
+- top_sellers: up to 5 sellers with share_pct (percent of the brand's Amazon revenue) and type: "Amazon 1P", "Whole Foods Market (Amazon-owned)", "likely the brand's own or affiliated account", or "another seller (not confirmed as reseller or brand)"
+- brand_own_share_pct, amazon_1p_share_pct (sums over the top sellers), top_subcategories (subcategory, brand_revenue, market_share_pct)
+- data_flags: anything to be careful with.
+
+Campaign context (the only timing facts you may use, and only when they read naturally; vary it across the batch, and leave it out when it doesn't fit):
+- It is late October 2026. Q4 is when brands look hard at how Amazon performed this year and set their 2027 Amazon plans and budgets.
+- Natural Products Expo West 2027 is in March 2027 in Anaheim. You may mention it only for brands with exhibiting_expo_west_2027 = true (e.g. "ahead of Expo West in March"). Never say or imply Yoni will be at the show or has met them.
+- Do not mention past shows or our database.
+
+Writing notes for this list:
+- Use the brand name in normal case (Siete, not SIETE). If smartscout_brand covers one brand of a multi-brand company, write about that brand.
+- Seller types: "Amazon 1P" and "Whole Foods Market (Amazon-owned)" both mean Amazon itself buys and sells the product; say "Amazon itself" or "Amazon's retail side". Never call "another seller" a reseller unless you are sure; say "seller accounts that aren't {Brand}'s". If a "likely the brand's own" account holds most of the sales, treat the brand as selling direct.
+- Use only figures in the input, rounded and qualified ("about", "roughly"). Never mention SmartScout or any tool. Never state a number the input doesn't have.
+- No subject line and no calendar link. One question, the ask. 85 to 120 words including "Hi {{first_name}}," and the sign-off "Best," then "Yoni".
+- If data_flags say there are no numbers or very small revenue, use the skill's limited-data angle ("based on what we can see"), never imply zero sales or failure.
+
+Output: append one JSON object per brand (one line each, Python json.dumps with ensure_ascii=False) to /home/user/smartlead-api-client/pipeline/work/lg_out_{NN}.jsonl:
+{"id": ..., "angle": "Observation | Interpretation | Opportunity | Pitch | why this angle | figures used", "body": "the full email with \n line breaks", "qa_flags": "anything a human should check, else empty"}
+Write each brand's line as soon as it is done. If the file exists, skip ids already in it.
+
+When all brands are written, run: python3 /home/user/smartlead-api-client/pipeline/expowest_emails.py check
+Fix every failure for your ids (append a corrected line for that id; the last line wins) and run check again until your ids pass. Then reread your whole batch together and rewrite any email whose opener or pitch phrasing repeats another one in the batch. Finally write /home/user/smartlead-api-client/pipeline/work/lg_done_{NN}.txt with a one-line summary.
+
+Rules: no em or en dashes anywhere. Helper files go in /tmp/claude-0/-home-user-smartlead-api-client/14097a83-43ed-5901-b09e-9a152d499e4d/scratchpad with prefix lg{NN}_, never in pipeline/work. Report: emails written, angles used (counts), anything flagged.

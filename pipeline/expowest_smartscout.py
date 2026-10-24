@@ -131,6 +131,52 @@ def status():
               "DONE" if os.path.exists(os.path.join(WORK, f"ssx_done_{k}.txt")) else "")
 
 
+# ---- detail pull: sellers and top subcategories, for brands we will email ----
+
+def detail_targets():
+    """SmartScout brand names (as SmartScout writes them) for matched brands that have decision makers."""
+    ppl = {r["Exhibitor ID"] for r in csv.DictReader(open(MASTER, encoding="utf-8")) if r["First Name"]}
+    ss = {r["Exhibitor ID"]: r for r in csv.DictReader(open(OUT, encoding="utf-8"))}
+    out = []
+    for b in brands():
+        r = ss.get(b["id"], {})
+        if b["id"] in ppl and r.get("Monthly Revenue", "") != "" and r.get("SmartScout Brand"):
+            if r["SmartScout Brand"] not in out:
+                out.append(r["SmartScout Brand"])
+    return out
+
+
+def detail_plan(n):
+    done = {key(json.loads(l)["brand"]) for f in glob.glob(os.path.join(WORK, "ssd_in_*.jsonl"))
+            for l in open(f, encoding="utf-8")}
+    want = [b for b in detail_targets() if key(b) not in done]
+    nums = [int(re.search(r"_(\d+)\.jsonl$", f).group(1)) for f in glob.glob(os.path.join(WORK, "ssd_in_*.jsonl"))]
+    k, made = max(nums, default=0) + 1, []
+    for s in range(0, len(want), n):
+        with open(os.path.join(WORK, f"ssd_in_{k:02d}.jsonl"), "w", encoding="utf-8") as fh:
+            for x in want[s:s + n]:
+                fh.write(json.dumps({"brand": x}, ensure_ascii=False) + "\n")
+        made.append(f"{k:02d}")
+        k += 1
+    print(f"{len(want)} brands for the sellers / subcategory pull into chunks {' '.join(made) or '(none)'}")
+
+
+def detail_rows(kind):
+    out = {}
+    for f in sorted(glob.glob(os.path.join(WORK, f"ssd_{kind}_*.jsonl"))):
+        for l in open(f, encoding="utf-8"):
+            try:
+                r = json.loads(l)
+            except json.JSONDecodeError:
+                continue
+            if r.get("Brand Name"):
+                out.setdefault(key(r["Brand Name"]), []).append(r)
+    return out
+
+
 if __name__ == "__main__":
     a = sys.argv[1:] or [""]
-    {"plan": lambda: plan(int(a[1])), "build": build, "status": status}.get(a[0], lambda: print(__doc__))()
+    {"plan": lambda: plan(int(a[1])), "build": build, "status": status,
+     "detail-plan": lambda: detail_plan(int(a[1]))}.get(a[0], lambda: print(__doc__))()
+
+
