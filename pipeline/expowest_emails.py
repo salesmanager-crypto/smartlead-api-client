@@ -128,9 +128,19 @@ def queued():
     return {json.loads(l)["id"] for f in glob.glob(os.path.join(WORK, "lg_in_*.jsonl")) for l in open(f, encoding="utf-8")}
 
 
+def detail_ready():
+    """SmartScout brand keys whose sellers / subcategory chunk has finished."""
+    ok = set()
+    for f in glob.glob(os.path.join(WORK, "ssd_in_*.jsonl")):
+        if os.path.exists(f.replace("ssd_in_", "ssd_done_").replace(".jsonl", ".txt")):
+            ok |= {key(json.loads(l)["brand"]) for l in open(f, encoding="utf-8")}
+    return ok
+
+
 def export(n, ids=None):
-    q = queued()
-    todo = [r for r in brand_rows() if r["id"] not in q and (not ids or r["id"] in ids)]
+    q, ready = queued(), detail_ready()
+    todo = [r for r in brand_rows() if r["id"] not in q and (not ids or r["id"] in ids)
+            and (not r["monthly_revenue"] or key(r["smartscout_brand"]) in ready)]
     nums = [int(re.search(r"_(\d+)\.jsonl$", f).group(1)) for f in glob.glob(os.path.join(WORK, "lg_in_*.jsonl"))]
     k, made = max(nums, default=0) + 1, []
     for s in range(0, len(todo), n):

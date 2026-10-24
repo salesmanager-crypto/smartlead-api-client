@@ -162,8 +162,10 @@ def detail_plan(n):
 
 
 def detail_rows(kind):
+    """Brand key -> rows. Prefers ssd_tx/ (rebuilt from the raw tool results by ssd_from_transcripts.py)."""
     out = {}
-    for f in sorted(glob.glob(os.path.join(WORK, f"ssd_{kind}_*.jsonl"))):
+    tx = os.path.join(WORK, "ssd_tx", f"ssd_{kind}_tx.jsonl")
+    for f in [tx] if os.path.exists(tx) else sorted(glob.glob(os.path.join(WORK, f"ssd_{kind}_*.jsonl"))):
         for l in open(f, encoding="utf-8"):
             try:
                 r = json.loads(l)

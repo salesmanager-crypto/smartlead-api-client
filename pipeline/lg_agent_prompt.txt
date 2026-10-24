@@ -20,6 +20,9 @@ Writing notes for this list:
 - Seller types: "Amazon 1P" and "Whole Foods Market (Amazon-owned)" both mean Amazon itself buys and sells the product; say "Amazon itself" or "Amazon's retail side". Never call "another seller" a reseller unless you are sure; say "seller accounts that aren't {Brand}'s". If a "likely the brand's own" account holds most of the sales, treat the brand as selling direct.
 - Use only figures in the input, rounded and qualified ("about", "roughly"). Never mention SmartScout or any tool. Never state a number the input doesn't have.
 - No subject line and no calendar link. One question, the ask. 85 to 120 words including "Hi {{first_name}}," and the sign-off "Best," then "Yoni".
+- Don't refer to Amazon as "there" before the email has named Amazon.
+- If monthly_revenue is far below trailing_12_month_revenue / 12 (for example under a third of it), the latest month may be a data gap or a seasonal dip: do not build the email on that drop. Pick another angle and note it in qa_flags.
+- If the brand is a large cooperative, a giant consumer goods company or otherwise an unlikely agency client, still write the email but add "review fit" to qa_flags.
 - If data_flags say there are no numbers or very small revenue, use the skill's limited-data angle ("based on what we can see"), never imply zero sales or failure.
 
 Output: append one JSON object per brand (one line each, Python json.dumps with ensure_ascii=False) to /home/user/smartlead-api-client/pipeline/work/lg_out_{NN}.jsonl:
