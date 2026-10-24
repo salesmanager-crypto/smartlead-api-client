@@ -214,6 +214,8 @@ def name_fits(company, domain, src):
         return False  # a city, school or agency with the same name
     if domain and domain_core(domain) in {domain_core(d) for d in [src.get("searched_domain")] + src.get("new_domains", []) if d}:
         return True
+    if (domain or "").lower().endswith(".org"):
+        return False  # a nonprofit with the same name (Vibrant Health KC, Chimes); the brand's own .org matched above
     alnum = lambda w: re.sub(r"[^a-z0-9]", "", w.lower())  # not squash(): it drops words such as "America"
     words = lambda x: [alnum(w) for w in re.split(r"[\s,&/.-]+", plain(x)) if alnum(w)]
     cw = words(company)
