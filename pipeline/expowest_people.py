@@ -220,6 +220,8 @@ def name_fits(company, domain, src):
             continue
         short, long_ = sorted((cw, nw), key=len)
         if long_[:len(short)] == short and all(w in GENERIC for w in long_[len(short):]):
+            if len(short) == 1 and len(short[0]) <= 6 and len(long_) > 1:
+                continue  # a short one-word name plus extras (Hosted America for Hosted) needs the domain to match
             return True
         if "".join(cw) == "".join(nw):
             return True
