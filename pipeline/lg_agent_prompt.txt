@@ -22,6 +22,7 @@ Writing notes for this list:
 - No subject line and no calendar link. One question, the ask. 85 to 120 words including "Hi {{first_name}}," and the sign-off "Best," then "Yoni".
 - Don't refer to Amazon as "there" before the email has named Amazon.
 - If monthly_revenue is far below trailing_12_month_revenue / 12 (for example under a third of it), the latest month may be a data gap or a seasonal dip: do not build the email on that drop. Pick another angle and note it in qa_flags.
+- Frozen, refrigerated or fresh products (ice cream, dairy, fresh meat, fresh bread, chilled dips) that Amazon or Whole Foods sells: do not pitch a brand-run 3P seller account, since the brand usually can't ship them itself; pitch listings, content and advertising instead.
 - If the brand is a large cooperative, a giant consumer goods company or otherwise an unlikely agency client, still write the email but add "review fit" to qa_flags.
 - If data_flags say there are no numbers or very small revenue, use the skill's limited-data angle ("based on what we can see"), never imply zero sales or failure.
 
