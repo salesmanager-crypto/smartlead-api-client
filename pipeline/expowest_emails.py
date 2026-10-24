@@ -53,15 +53,18 @@ def pct(x, frac=False):
 
 
 def sim(a, b):
-    """Seller name looks like the brand: one name starts with the other, a long name (5+) is contained in the
-    other, or they share a 5-character prefix. A bare substring match on a short name (EO in "Jude Our...")
-    does not count."""
-    a, b = key(a), key(b)
-    if not a or not b:
+    """Seller name looks like the brand: the brand is one of the seller's words ("Drink Juni", "Authorized Goya
+    Seller"), one name starts with the other, a long name (5+) is contained in the other, or they share a
+    5-character prefix. A bare substring match on a short name (EO in "Jude Our...") does not count."""
+    words = {key(w) for w in re.split(r"[\s&/,.-]+", str(a) + " " + str(b)) if key(w)}
+    ka, kb = key(a), key(b)
+    if not ka or not kb:
         return False
-    short, long_ = sorted((a, b), key=len)
-    return (long_.startswith(short) or (len(short) >= 5 and short in long_)
-            or len(os.path.commonprefix([a, b])) >= 5)
+    short, long_ = sorted((ka, kb), key=len)
+    wa = {key(w) for w in re.split(r"[\s&/,.-]+", str(a)) if key(w)}
+    wb = {key(w) for w in re.split(r"[\s&/,.-]+", str(b)) if key(w)}
+    return (ka in wb or kb in wa or long_.startswith(short) or (len(short) >= 5 and short in long_)
+            or len(os.path.commonprefix([ka, kb])) >= 5)
 
 
 def seller_type(name, names):
