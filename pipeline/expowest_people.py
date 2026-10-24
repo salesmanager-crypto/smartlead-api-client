@@ -210,6 +210,8 @@ GENERIC = {"foods", "food", "company", "co", "brands", "brand", "group", "usa", 
 def name_fits(company, domain, src):
     """Pass D name searches: the person's company must be the brand itself, not a look-alike (Red River Bank for
     Red River Foods). Same name, or the same name plus only generic words, or the brand's own domain."""
+    if re.search(r"\.(gov|edu|mil)(\.[a-z]{2})?$", (domain or "").lower()):
+        return False  # a city, school or agency with the same name
     if domain and domain_core(domain) in {domain_core(d) for d in [src.get("searched_domain")] + src.get("new_domains", []) if d}:
         return True
     alnum = lambda w: re.sub(r"[^a-z0-9]", "", w.lower())  # not squash(): it drops words such as "America"
