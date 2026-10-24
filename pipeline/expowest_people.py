@@ -203,6 +203,29 @@ def plain(name):
     return re.sub(r"\s+", " ", n).strip(" ,.-")
 
 
+GENERIC = {"foods", "food", "company", "co", "brands", "brand", "group", "usa", "us", "america", "northamerica",
+           "products", "international", "intl", "holdings", "the", "global", "naturals", "beverages", "snacks"}
+
+
+def name_fits(company, domain, src):
+    """Pass D name searches: the person's company must be the brand itself, not a look-alike (Red River Bank for
+    Red River Foods). Same name, or the same name plus only generic words, or the brand's own domain."""
+    if domain and domain_core(domain) in {domain_core(d) for d in [src.get("searched_domain")] + src.get("new_domains", []) if d}:
+        return True
+    words = lambda x: [squash(w) for w in re.split(r"[\s,&/.-]+", plain(x)) if squash(w)]
+    cw = words(company)
+    for n in src.get("names", []):
+        nw = words(n)
+        if not nw or not cw:
+            continue
+        short, long_ = sorted((cw, nw), key=len)
+        if long_[:len(short)] == short and all(w in GENERIC for w in long_[len(short):]):
+            return True
+        if "".join(cw) == "".join(nw):
+            return True
+    return False
+
+
 def sd_export(n):
     """Pass D: brands still under 5 people after passes A to C. Lists domains not searched yet (phase 2 research,
     parent-free) and the company names to search by (Surfe's company name, the Amazon store, the exhibitor)."""
@@ -261,10 +284,10 @@ def select():
             continue
         if str(p.get("pass", "")).startswith("DN"):
             cands = [c for c in (p.get("cands") or [p.get("id")]) if c in sdin]
-            score, best = max(((max([strict_sim(p.get("companyName", ""), x) for x in sdin[c]["names"] if x] or [0]), c)
-                               for c in cands), default=(0, None))
-            if score < 0.8:
+            fits = [c for c in cands if name_fits(p.get("companyName", ""), p.get("companyDomain", ""), sdin[c])]
+            if not fits:
                 continue
+            best = p.get("id") if p.get("id") in fits else fits[0]
             p = {**p, "id": best, "byname": True}
         if p.get("id") not in bad_match:
             raw.append(p)
