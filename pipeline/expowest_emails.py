@@ -26,7 +26,7 @@ OUT = os.path.join(ROOT, "expowest_emails.csv")
 BANNED = [r"—", r"–", r"!", r"\bI'?d love\b", r"\bwould love\b", r"hope this (email )?finds", r"\bleverag",
           r"\bsynerg", r"game.?changer", r"\bunlock", r"strategic opportunit", r"smartscout", r"amazon management agency",
           r"\bwe would\b", r"drive meaningful", r"[\U0001F300-\U0001FAFF☀-➿]", r"^\s*[-*•]", r"\bbump",
-          r"touch base", r"circle back", r"\bquick question\b", r"\{\{calendar_link\}\}"]
+          r"touch base", r"circle back", r"\bfollow(ing)?[ -]up\b", r"\breconnect", r"\bas promised\b", r"\bgreat (meeting|connecting)\b", r"\bquick question\b", r"\{\{calendar_link\}\}"]
 
 
 def money(x):
