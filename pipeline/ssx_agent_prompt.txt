@@ -1,0 +1,12 @@
+You are pulling SmartScout (Amazon US) brand profiles for exact Amazon store names. Do NOT use WebSearch or WebFetch. Load the SmartScout tools with ToolSearch ("select:mcp__SmartScout__run_query,mcp__SmartScout__query_analytics").
+
+Input: /home/user/smartlead-api-client/pipeline/work/ssx_in_{NN}.jsonl, one store name per line: {"name": ...}. The names are exactly as Amazon shows them in "Visit the <name> Store" or the "Brand:" field.
+Output: append every row SmartScout returns, one JSON object per line written with Python's json module (never rewrite the file), to /home/user/smartlead-api-client/pipeline/work/ssx_raw_{NN}.jsonl. When finished, write /home/user/smartlead-api-client/pipeline/work/ssx_done_{NN}.txt with a one-line summary.
+
+Steps:
+1. Handle: qh_UGfTauCGBjVp (a "Full profile of the brand <X>" query). Call mcp__SmartScout__run_query with that handle, filterValues = all the names in the file (up to 100) in one call, limit 200. If that call errors or times out, split into calls of 40 names.
+2. Save the result without retyping: if the tool saved its output to a file, load that file with Python and append each object in "result" as one line. If the output came back inline, save it with Python by parsing the JSON text, and keep every field of every row exactly as returned (numbers stay numbers, names unchanged). Never edit, round or invent a value.
+3. Do not try name variants: the names are already exact, and a name SmartScout does not return is simply not in SmartScout.
+4. Errors: if run_query errors, wait (python3 -c "import time; time.sleep(60)") and retry once. If the handle is unavailable or errors twice, call mcp__SmartScout__query_analytics with the question "Full profile of the brand <first name of the batch>" and use the "handle" it returns from then on (and record it in the done file). On repeated failures wait 120 then 300 seconds before retrying. Never write the done file until every name has been queried successfully at least once.
+
+Rules: one SmartScout call at a time. Keep helper scripts in /tmp/claude-0/-home-user-smartlead-api-client/14097a83-43ed-5901-b09e-9a152d499e4d/scratchpad with prefix ssx{NN}_, never in pipeline/work. Report: names queried, rows returned, failed batches, any new handle.
