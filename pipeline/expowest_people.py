@@ -212,7 +212,8 @@ def name_fits(company, domain, src):
     Red River Foods). Same name, or the same name plus only generic words, or the brand's own domain."""
     if domain and domain_core(domain) in {domain_core(d) for d in [src.get("searched_domain")] + src.get("new_domains", []) if d}:
         return True
-    words = lambda x: [squash(w) for w in re.split(r"[\s,&/.-]+", plain(x)) if squash(w)]
+    alnum = lambda w: re.sub(r"[^a-z0-9]", "", w.lower())  # not squash(): it drops words such as "America"
+    words = lambda x: [alnum(w) for w in re.split(r"[\s,&/.-]+", plain(x)) if alnum(w)]
     cw = words(company)
     for n in src.get("names", []):
         nw = words(n)
