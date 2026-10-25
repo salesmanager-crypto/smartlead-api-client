@@ -186,6 +186,13 @@ def build_master():
                      "Sample ASIN": b.get("asin", ""), "Sample Product": b.get("title", ""), "Sold By": b.get("sold_by", ""),
                      **research(oid)}
         add(base, oid)
+    from collections import Counter
+    shared = Counter(r["Email"].lower() for r in rows if r.get("Email"))
+    for r in rows:  # Surfe sometimes returns one address for two profiles of the same name
+        if r.get("Email") and shared[r["Email"].lower()] > 1:
+            r["Email Check"] = f"Review: same address returned for {shared[r['Email'].lower()]} contacts"
+            if r["Row Status"] == "Ready":
+                r["Row Status"] = "Email address needs review"
     rows.sort(key=lambda r: (r["Priority Tier"], r["In 2027 List"] != "Yes", ORDER[r["Amazon Status"]], r["Exhibitor ID"],
                              int(r.get("Priority") or 9)))
     with open(MASTER_OUT, "w", newline="", encoding="utf-8") as f:
