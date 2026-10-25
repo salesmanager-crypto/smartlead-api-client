@@ -21,6 +21,36 @@ def clean(v):
     return re.sub(r"\s*[–—]\s*", ", ", v) if isinstance(v, str) else v
 
 
+PERSONAL = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com", "icloud.com", "me.com", "msn.com",
+            "live.com", "comcast.net", "protonmail.com"}
+
+
+def email_check(email, person, base):
+    """Is the Surfe address at this brand? OK when its domain is the brand's, the parent's or the one Surfe lists for
+    the person, or when it carries the brand's name (kikkoman.com for Kikkoman USA). Anything else is held for review:
+    the person may have moved to another company since their profile was indexed."""
+    from amazon_http import domain_core
+    if not email or "@" not in email:
+        return ""
+    dom = email.rsplit("@", 1)[1].lower()
+    if dom in PERSONAL:
+        return "Review: personal address"
+    if re.search(r"\.(edu|gov|mil)(\.[a-z]{2})?$", dom):
+        return "Review: school or agency address"
+    core = domain_core(dom) or dom.split(".")[0]
+    known = [base.get(k, "") for k in ("Domain", "Domain Found", "Parent Domain", "Website")] + [person.get("Company Domain", "")]
+    hosts = {re.sub(r"^https?://(www\.)?", "", d.lower()).split("/")[0] for d in known if d}
+    cores = {domain_core(h) for h in hosts}
+    if dom in hosts or core in cores - {""}:
+        return "OK: company domain"
+    key = lambda x: re.sub(r"[^a-z0-9]", "", (x or "").lower())
+    for n in (base.get("Exhibitor"), base.get("Amazon Store Name"), base.get("Parent Company"), person.get("Surfe Company")):
+        for w in [key(n)] + [key(x) for x in re.split(r"[\s,&/.-]+", n or "")]:
+            if len(w) >= 4 and (w in key(dom.split(".")[0]) or key(dom.split(".")[0]) in w and len(key(dom.split(".")[0])) >= 4):
+                return "OK: brand-name domain"
+    return f"Review: address is at {dom}, not a known brand domain"
+
+
 def custom_emails():
     """Brand-level emails from expowest_emails.py collect, keyed by Exhibitor ID (every contact at a brand gets the
     same body; only {{first_name}} changes)."""
@@ -51,7 +81,7 @@ def build_master():
               "Booths", "Website", "Domain", "Domain Found", "Domain Source", "Exhibitor Type", "Type Reason",
               "Parent Company", "Parent Domain", "Parent Source", "Research Notes", "Address", "Amazon Status", "Amazon Store Name", "Has Amazon Store",
               "Amazon Store URL", "Amazon Brand Field", "Sample ASIN", "Sample Product", "Sold By",
-              "Priority", "First Name", "Last Name", "Title", "LinkedIn URL", "Country", "Email", "Email Status",
+              "Priority", "First Name", "Last Name", "Title", "LinkedIn URL", "Country", "Email", "Email Status", "Email Check",
               "Email Body", "Email Angle", "Email QA Flags", "Show URLs"]
     fields.remove("Amazon Store URL")  # not captured reliably; the store name is exact
     p2 = {}
@@ -82,11 +112,14 @@ def build_master():
                 why = "No email from Surfe"
             elif not c:
                 why = "Custom email pending"
+            elif not email_check(r.get("email"), p, base).startswith("OK"):
+                why = "Email address needs review"
             else:
                 why = "Ready"
             rows.append({**base, "Row Status": why, "Priority": p["Priority"], "First Name": p["First Name"],
                          "Last Name": p["Last Name"], "Title": p["Title"], "LinkedIn URL": p["LinkedIn URL"],
                          "Country": p["Country"], "Email": r.get("email", ""), "Email Status": r.get("email_status", ""),
+                         "Email Check": email_check(r.get("email", ""), p, base),
                          "Email Body": c.get("Email Body", ""), "Email Angle": c.get("Angle", ""),
                          "Email QA Flags": c.get("QA Flags", "")})
 
