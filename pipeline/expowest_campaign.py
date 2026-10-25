@@ -33,6 +33,11 @@ NICK = {"joseph": ("joe", "jo"), "michael": ("mike", "mick"), "catherine": ("kat
         "timothy": ("tim",), "kimberly": ("kim",), "deborah": ("deb", "debbie"), "susan": ("sue",), "theodore": ("ted",),
         "zachary": ("zach", "zack"), "joshua": ("josh",), "frederick": ("fred",), "gabriel": ("gabe",),
         "victoria": ("vicky", "tori"), "abigail": ("abby",), "joshuah": ("josh",)}
+NICK.update({"genevieve": ("gigi", "gen"), "alexandra": ("alex", "lexi", "sasha"), "alexander": ("alex", "sasha"),
+             "jacob": ("jake",), "michele": ("mich", "shell"), "juan": ("jm",)})
+for _full, _nicks in list(NICK.items()):  # Jim -> James: a nickname on the profile, the full name in the address
+    for _n in _nicks:
+        NICK[_n] = tuple(sorted(set(NICK.get(_n, ())) | {_full}))
 PERSONAL = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com", "icloud.com", "me.com", "msn.com",
             "live.com", "comcast.net", "protonmail.com"}
 
@@ -194,11 +199,19 @@ def build_master():
         add(base, oid)
     from collections import Counter
     shared = Counter(r["Email"].lower() for r in rows if r.get("Email"))
-    for r in rows:  # Surfe sometimes returns one address for two profiles of the same name
+    keep = {}
+    for r in sorted(rows, key=lambda r: (not r.get("Email Check", "").startswith("OK"), int(r.get("Priority") or 9))):
         if r.get("Email") and shared[r["Email"].lower()] > 1:
-            r["Email Check"] = f"Review: same address returned for {shared[r['Email'].lower()]} contacts"
-            if r["Row Status"] == "Ready":
-                r["Row Status"] = "Email address needs review"
+            keep.setdefault(r["Email"].lower(), r)
+    for r in rows:  # Surfe returns one address for two profiles of the same person: email it once
+        k = (r.get("Email") or "").lower()
+        if k in keep and keep[k] is not r:
+            kept = keep[k]
+            r["Email Check"] = f"Duplicate: same address as {kept['First Name']} {kept['Last Name']}"
+            r["Row Status"] = "Duplicate address"
+        elif k in keep and not r.get("Email Check", "").startswith("OK"):
+            r["Email Check"] = f"Review: same address returned for {shared[k]} contacts"
+            r["Row Status"] = "Email address needs review"
     rows.sort(key=lambda r: (r["Priority Tier"], r["In 2027 List"] != "Yes", ORDER[r["Amazon Status"]], r["Exhibitor ID"],
                              int(r.get("Priority") or 9)))
     with open(MASTER_OUT, "w", newline="", encoding="utf-8") as f:
