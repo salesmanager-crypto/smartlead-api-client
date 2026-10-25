@@ -21,6 +21,18 @@ def clean(v):
     return re.sub(r"\s*[–—]\s*", ", ", v) if isinstance(v, str) else v
 
 
+NICK = {"joseph": ("joe", "jo"), "michael": ("mike", "mick"), "catherine": ("kate", "cathy", "cat"),
+        "katherine": ("kate", "kathy", "kat"), "thomas": ("tom", "tommy"), "james": ("jim", "jimmy", "jamie"),
+        "robert": ("rob", "bob", "bobby"), "william": ("will", "bill", "billy"), "richard": ("rick", "rich", "dick"),
+        "elizabeth": ("liz", "beth", "betsy", "eliza"), "jennifer": ("jen", "jenn", "jenny"), "christopher": ("chris",),
+        "christine": ("chris", "christy"), "nicholas": ("nick",), "jonathan": ("jon",), "daniel": ("dan", "danny"),
+        "matthew": ("matt",), "andrew": ("andy", "drew"), "anthony": ("tony",), "edward": ("ed", "ted", "eddie"),
+        "patricia": ("pat", "patty", "trish"), "margaret": ("meg", "maggie", "peggy"), "rebecca": ("becky", "becca"),
+        "samuel": ("sam",), "samantha": ("sam",), "alexander": ("alex",), "alexandra": ("alex", "lexi"),
+        "benjamin": ("ben",), "gregory": ("greg",), "jeffrey": ("jeff",), "stephen": ("steve",), "steven": ("steve",),
+        "timothy": ("tim",), "kimberly": ("kim",), "deborah": ("deb", "debbie"), "susan": ("sue",), "theodore": ("ted",),
+        "zachary": ("zach", "zack"), "joshua": ("josh",), "frederick": ("fred",), "gabriel": ("gabe",),
+        "victoria": ("vicky", "tori"), "abigail": ("abby",), "joshuah": ("josh",)}
 PERSONAL = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com", "icloud.com", "me.com", "msn.com",
             "live.com", "comcast.net", "protonmail.com"}
 
@@ -32,7 +44,22 @@ def email_check(email, person, base):
     from amazon_http import domain_core
     if not email or "@" not in email:
         return ""
-    dom = email.rsplit("@", 1)[1].lower()
+    local, dom = email.rsplit("@", 1)[0].lower(), email.rsplit("@", 1)[1].lower()
+    import unicodedata
+    nk = lambda x: re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", x or "").encode("ascii", "ignore").decode().lower())
+    lk = nk(local)
+    firsts = [nk(w) for w in re.split(r"[\s.()-]+", person.get("First Name") or "") if nk(w)]
+    lasts = [nk(w) for w in re.split(r"[\s.()-]+", person.get("Last Name") or "") if len(nk(w)) >= 3]
+    fn = firsts[0] if firsts else ""
+    names = set(firsts) | {n for f in firsts for n in NICK.get(f, ())}
+    def fits():
+        if any(f[:3] in lk for f in names if len(f) >= 3) or any(l[:4] in lk for l in lasts):
+            return True
+        if nk(person.get("First Name")) and lk.startswith(nk(person.get("First Name"))):  # AJ, KB
+            return True
+        return any(lk.startswith(f[0] + l[:3]) or lk in (f[0] + l, f + l[0], f[0] + l[0]) for f in names for l in lasts)
+    if fn and lasts and not fits():
+        return f"Review: {local}@ does not match {person.get('First Name')} {person.get('Last Name')}"
     if dom in PERSONAL:
         return "Review: personal address"
     if re.search(r"\.(edu|gov|mil)(\.[a-z]{2})?$", dom):
