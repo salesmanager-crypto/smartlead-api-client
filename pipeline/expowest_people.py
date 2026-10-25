@@ -371,7 +371,9 @@ def people():
 def se_export(n, budget):
     done = {json.loads(l)["key"] for f in glob.glob(os.path.join(WORK, "se_in_*.jsonl")) for l in open(f)}
     order = {t["id"]: i for i, t in enumerate(targets())}
-    todo = sorted([p for p in people() if p["Key"] not in done],
+    mf = os.path.join(ROOT, "expowest_amazon_master.csv")  # campaign scope: brands on the master sheet
+    scope = {r["Exhibitor ID"] for r in csv.DictReader(open(mf, encoding="utf-8")) if r["First Name"]} if os.path.exists(mf) else set(order)
+    todo = sorted([p for p in people() if p["Key"] not in done and p["Exhibitor ID"] in scope],
                   key=lambda p: (order.get(p["Exhibitor ID"], 10**6), int(p["Priority"])))[:budget]
     nn = next_nn("se")
     for i in range(0, len(todo), n):
