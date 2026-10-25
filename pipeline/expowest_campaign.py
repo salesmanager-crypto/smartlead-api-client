@@ -49,8 +49,10 @@ def email_check(email, person, base):
     nk = lambda x: re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", x or "").encode("ascii", "ignore").decode().lower())
     lk = nk(local)
     full = nk(person.get("First Name")) + nk(person.get("Last Name"))
+    fn_raw = nk(person.get("First Name"))
     for co in (base.get("Exhibitor"), base.get("Amazon Store Name"), person.get("Surfe Company")):
-        if len(full) >= 6 and nk(co) and (full in nk(co) or nk(co) in full):
+        first_word = nk((re.split(r"[\s,&/.-]+", co or "") or [""])[0])
+        if len(full) >= 6 and nk(co) and (full in nk(co) or nk(co) in full) and fn_raw == first_word:
             return "Review: this looks like a company profile, not a person"
     firsts = [nk(w) for w in re.split(r"[\s.()-]+", person.get("First Name") or "") if nk(w)]
     lasts = [nk(w) for w in re.split(r"[\s.()-]+", person.get("Last Name") or "") if len(nk(w)) >= 3]
