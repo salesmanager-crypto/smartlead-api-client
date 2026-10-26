@@ -55,6 +55,29 @@ def num(v):
         return ""
 
 
+MANGLED = re.compile("Ã.|Â.|â€|â[\x80-\x9f]")
+
+
+def unmangle(s):
+    """Undo text that was UTF-8 read as Windows-1252, sometimes more than once (old database: CafÃƒÂƒÃ‚Â© -> Café)."""
+    for _ in range(5):
+        if not MANGLED.search(s):
+            break
+        fixed = None
+        for enc in ("cp1252", "latin-1"):
+            try:
+                fixed = s.encode(enc).decode("utf-8")
+                break
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                continue
+        if not fixed or fixed == s:
+            break
+        s = fixed
+    # stray C1 control characters are Windows-1252 punctuation read as Latin-1 (\x92 -> ’)
+    s = re.sub("[\x80-\x9f]", lambda m: bytes([ord(m.group())]).decode("cp1252", "ignore"), s)
+    return s.replace("​", "")
+
+
 def records():
     out = {}
     for f in sorted(glob.glob(os.path.join(WORK, "lg_in_*.jsonl")), key=lambda f: int(re.search(r"_(\d+)\.", f).group(1))):
@@ -106,7 +129,7 @@ def build():
     for row in rows:
         for c in cols:
             if isinstance(row[c], str):
-                row[c] = re.sub(r"\s*[–—]\s*", ", ", row[c])
+                row[c] = re.sub(r"\s*[–—]\s*", ", ", unmangle(row[c]))
     with open(OUT, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=cols)
         w.writeheader()
