@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade Show Calendar</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --ink: #1c2330;
+    --ink-2: #4a5568;
+    --ink-3: #7a8699;
+    --line: #e3e7ee;
+    --line-2: #eef1f5;
+    --brand: #1f4e79;
+    --brand-2: #2e6aa3;
+    --brand-soft: #e8f0f8;
+    --green: #17703f;
+    --green-bg: #e3f4ea;
+    --amber: #8a5a00;
+    --amber-bg: #fdf1d8;
+    --red: #b42318;
+    --red-bg: #fde8e6;
+    --new: #6d28d9;
+    --new-bg: #efe7fd;
+    --upd: #0e7490;
+    --upd-bg: #e0f4f8;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  a { color: var(--brand-2); }
+  button, input, select { font: inherit; color: inherit; }
+
+  header.top {
+    background: var(--brand);
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  header.top h1 { font-size: 19px; margin: 0; font-weight: 650; letter-spacing: .2px; }
+  header.top .sub { font-size: 12.5px; opacity: .8; }
+  header.top .spacer { flex: 1; }
+  header.top .updated {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  header.top .btn { background: #fff; color: var(--brand); border-color: #fff; }
+  header.top .btn:hover { background: var(--brand-soft); }
+
+  main { max-width: 1480px; margin: 0 auto; padding: 16px 24px 48px; }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--line-2); }
+  .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .btn.primary:hover { background: var(--brand-2); }
+
+  /* Month bar */
+  .monthbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tab {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .tab:hover { border-color: var(--brand-2); }
+  .tab .n {
+    font-size: 11.5px;
+    background: var(--line-2);
+    color: var(--ink-2);
+    border-radius: 999px;
+    padding: 0 7px;
+    min-width: 22px;
+    text-align: center;
+  }
+  .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .tab.active .n { background: rgba(255,255,255,.2); color: #fff; }
+  .tab.unresearched { color: var(--ink-3); }
+  .goto { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  .goto input {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 10px;
+    width: 190px;
+    background: var(--panel);
+  }
+  .goto .err { color: var(--red); font-size: 12.5px; }
+
+  /* Filters */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .filters label { font-size: 12px; color: var(--ink-3); display: flex; flex-direction: column; gap: 2px; }
+  .filters select, .filters input[type=search] {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 8px;
+    background: #fff;
+    min-width: 140px;
+  }
+  .filters input[type=search] { min-width: 240px; }
+  .filters .grow { flex: 1; }
+  .summary {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .summary b { color: var(--ink); }
+  .summary .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+  .summary .note { color: var(--ink-3); font-style: italic; }
+
+  /* Table */
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    position: sticky; top: 0;
+    background: #fafbfc;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--ink-2);
+    font-weight: 600;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--ink); }
+  thead th .arrow { color: var(--brand-2); margin-left: 3px; }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  tbody tr.row { cursor: pointer; }
+  tbody tr.row:hover td { background: #f8fafc; }
+  tbody tr.row.open td { background: var(--brand-soft); border-bottom-color: transparent; }
+  tbody tr.row.cancelled td { color: var(--ink-3); }
+  tbody tr.row.cancelled .name { text-decoration: line-through; }
+  td.c-name { min-width: 220px; }
+  td.c-name .name { font-weight: 600; }
+  td.c-name .chev { color: var(--ink-3); display: inline-block; width: 12px; transition: transform .15s; }
+  tr.open td.c-name .chev { transform: rotate(90deg); }
+  td.c-loc { min-width: 170px; }
+  td.c-loc .venue { color: var(--ink-3); font-size: 12.5px; }
+  td.c-dates { white-space: nowrap; }
+  td.c-dates .days { color: var(--ink-3); font-size: 12px; }
+  td.c-sec { min-width: 170px; max-width: 260px; }
+  td.c-web { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td.c-app { min-width: 120px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    vertical-align: 1px;
+  }
+  .badge.new { background: var(--new-bg); color: var(--new); }
+  .badge.upd { background: var(--upd-bg); color: var(--upd); }
+  .badge.tbc { background: var(--amber-bg); color: var(--amber); }
+  .badge.cxl { background: var(--red-bg); color: var(--red); }
+  .badge.pp { background: var(--red-bg); color: var(--red); }
+  .badge.partial { background: var(--line-2); color: var(--ink-2); }
+
+  .chip {
+    display: inline-block;
+    background: var(--line-2);
+    color: var(--ink-2);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin: 1px 3px 1px 0;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .chip.more { background: transparent; color: var(--ink-3); }
+
+  .ex {
+    display: inline-block;
+    border: 0;
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+  }
+  .ex small { font-weight: 500; opacity: .85; }
+  .ex.current { background: var(--green-bg); color: var(--green); }
+  .ex.previous { background: var(--amber-bg); color: var(--amber); }
+  .ex.not_found { background: var(--red-bg); color: var(--red); }
+  .ex:hover { filter: brightness(.96); }
+
+  .app-yes { color: var(--green); font-weight: 600; }
+  .app-no { color: var(--ink-3); }
+  .app-unk { color: var(--amber); }
+  .app-name { display: block; font-size: 12px; color: var(--ink-2); }
+
+  /* Details row */
+  tr.details td { background: #fbfcfe; padding: 0 10px 14px; border-bottom: 1px solid var(--line); }
+  .dgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px 24px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .dgrid h4 { margin: 0 0 3px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .4px; color: var(--ink-3); font-weight: 600; }
+  .dgrid p { margin: 0; }
+  .dgrid .wide { grid-column: 1 / -1; }
+  .dgrid ul { margin: 0; padding-left: 18px; }
+  .dgrid li { word-break: break-all; }
+  .fit { font-weight: 700; }
+  .fit.strong { color: var(--green); }
+  .fit.partial { color: var(--amber); }
+
+  /* Empty / not researched */
+  .empty { padding: 48px 24px; text-align: center; color: var(--ink-2); }
+  .empty h2 { margin: 0 0 6px; font-size: 18px; color: var(--ink); }
+  .cmd {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 8px 8px 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13.5px;
+  }
+  .cmd .btn { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+  .cmd .btn:hover { background: #334155; }
+
+  /* Popover */
+  .pop {
+    position: absolute;
+    z-index: 50;
+    max-width: 420px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(16,24,40,.16);
+    padding: 10px 12px;
+    font-size: 13px;
+    display: none;
+  }
+  .pop h5 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--ink-3); }
+  .pop ul { margin: 4px 0 0; padding-left: 18px; }
+  .pop li, .pop a { word-break: break-all; }
+  .pop .muted { color: var(--ink-3); }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); margin: 10px 2px 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #0f172a; color: #fff; padding: 8px 14px; border-radius: 6px;
+    font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .loaderr { margin: 40px auto; max-width: 640px; }
+
+  @media (max-width: 900px) {
+    main { padding: 12px; }
+    header.top { padding: 12px; }
+    .goto { margin-left: 0; }
+    .filters input[type=search] { min-width: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Trade Show Calendar</h1>
+    <div class="sub">Europe &amp; UK shows where most exhibitors are consumer-product brands that could sell on Amazon US</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="updated" id="lastUpdated">Last updated: –</div>
+  <button class="btn" id="exportMonth" title="Export the shows in this month (with current filters) as CSV">Export CSV: this month</button>
+  <button class="btn" id="exportAll" title="Export every show in every month as CSV">Export CSV: all months</button>
+</header>
+
+<main>
+  <div class="monthbar">
+    <div class="tabs" id="tabs"></div>
+    <form class="goto" id="gotoForm" autocomplete="off">
+      <input id="gotoInput" placeholder="Any month, e.g. March 2027 or 03/2027" aria-label="Go to month">
+      <button class="btn primary" type="submit">Show</button>
+      <span class="err" id="gotoErr"></span>
+    </form>
+  </div>
+
+  <section class="panel" id="panel">
+    <div class="filters" id="filters">
+      <label>Country<select id="fCountry"></select></label>
+      <label>Sector<select id="fSector"></select></label>
+      <label>App<select id="fApp">
+        <option value="">Any</option><option value="yes">Yes</option><option value="no">No</option><option value="unknown">Unknown</option>
+      </select></label>
+      <label>Amazon fit<select id="fFit">
+        <option value="">Any</option><option value="strong">Strong</option><option value="partial">Partial</option>
+      </select></label>
+      <label>Exhibitor figure<select id="fEx">
+        <option value="">Any</option><option value="current">This edition (green)</option><option value="previous">Last edition (amber)</option><option value="not_found">Not found (red)</option>
+      </select></label>
+      <label class="grow">Search<input type="search" id="fText" placeholder="Name, city, organiser, notes…"></label>
+      <button class="btn" id="fClear" type="button">Clear filters</button>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div id="body"></div>
+  </section>
+
+  <div class="legend">
+    <span><span class="ex current">1,240 <small>· 2027</small></span> announced for this edition</span>
+    <span><span class="ex previous">1,240 <small>(2026 edition)</small></span> last edition's figure</span>
+    <span><span class="ex not_found">Not found</span> click to see the sources checked</span>
+    <span><span class="badge new" style="margin:0">New</span> added in the latest update</span>
+    <span><span class="badge upd" style="margin:0">Updated</span> data changed in the latest update</span>
+  </div>
+</main>
+
+<div class="pop" id="pop"></div>
+<div class="toast" id="toast"></div>
+
+<script src="data/shows.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var SHOWS = window.SHOWS, META = window.META;
+  var $ = function (id) { return document.getElementById(id); };
+
+  if (!Array.isArray(SHOWS) || !META) {
+    $("panel").innerHTML = '<div class="empty loaderr"><h2>Couldn\'t load data/shows.js</h2>' +
+      '<p>Keep <code>index.html</code> and the <code>data/</code> folder together, then reload.</p></div>';
+    return;
+  }
+
+  var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  var MON = MONTHS.map(function (m) { return m.slice(0, 3); });
+  var DEFAULT_RANGE = monthRange("2026-11", "2027-07");
+  var researched = new Set(META.researched_months || []);
+  var lastUpdated = META.last_updated || "";
+
+  // ---------- helpers ----------
+  function monthRange(a, b) {
+    var out = [], y = +a.slice(0, 4), m = +a.slice(5, 7), ey = +b.slice(0, 4), em = +b.slice(5, 7);
+    while (y < ey || (y === ey && m <= em)) {
+      out.push(y + "-" + String(m).padStart(2, "0"));
+      if (++m > 12) { m = 1; y++; }
+    }
+    return out;
+  }
+  function monthLabel(ym, short) {
+    var n = +ym.slice(5, 7) - 1;
+    return (short ? MON[n] : MONTHS[n]) + " " + ym.slice(0, 4);
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmtN(n) { return Number(n).toLocaleString("en-GB"); }
+  function fmtDate(iso) {
+    var p = iso.split("-");
+    return +p[2] + " " + MON[+p[1] - 1] + " " + p[0];
+  }
+  function fmtRange(s) {
+    if (!s.start_date) {
+      return "TBC (" + s.months_covered.map(function (m) { return monthLabel(m, true); }).join(" / ") + ")";
+    }
+    var a = s.start_date.split("-"), b = (s.end_date || s.start_date).split("-");
+    if (s.start_date === s.end_date) return fmtDate(s.start_date);
+    if (a[0] !== b[0]) return fmtDate(s.start_date) + " – " + fmtDate(s.end_date);
+    if (a[1] !== b[1]) return +a[2] + " " + MON[+a[1] - 1] + " – " + +b[2] + " " + MON[+b[1] - 1] + " " + b[0];
+    return +a[2] + "–" + +b[2] + " " + MON[+a[1] - 1] + " " + a[0];
+  }
+  function dayCount(s) {
+    if (!s.start_date || !s.end_date) return "";
+    var d = Math.round((Date.parse(s.end_date) - Date.parse(s.start_date)) / 864e5) + 1;
+    return d + (d === 1 ? " day" : " days");
+  }
+  function hostOf(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return url || ""; }
+  }
+  function exFigure(s) {
+    if (s.exhibitors_status === "current" && s.exhibitors_current != null)
+      return { n: s.exhibitors_current, year: s.edition_year, src: s.exhibitors_current_source, kind: "current" };
+    if (s.exhibitors_status === "previous" && s.exhibitors_previous != null)
+      return { n: s.exhibitors_previous, year: s.exhibitors_previous_year, src: s.exhibitors_previous_source, kind: "previous" };
+    return { n: null, kind: "not_found" };
+  }
+  function exText(s) {
+    var f = exFigure(s);
+    if (f.kind === "current") return fmtN(f.n) + " (" + f.year + ", announced)";
+    if (f.kind === "previous") return fmtN(f.n) + " (" + f.year + " edition)";
+    return "Not found";
+  }
+  function isNew(s) { return !!lastUpdated && s.added_on === lastUpdated; }
+  function isUpdated(s) { return !!lastUpdated && !isNew(s) && s.updated_on === lastUpdated; }
+  function appKey(s) { return s.has_app === true ? "yes" : s.has_app === false ? "no" : "unknown"; }
+  function link(url, text) {
+    if (!url) return "";
+    if (!/^https?:\/\//.test(url)) return esc(url);
+    return '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(text || url) + "</a>";
+  }
+
+  function parseMonth(input) {
+    var t = String(input || "").trim().toLowerCase().replace(/\s+/g, " ");
+    if (!t) return null;
+    var m, y, mm;
+    if ((m = t.match(/^(\d{4})[-\/.](\d{1,2})$/))) { y = +m[1]; mm = +m[2]; }
+    else if ((m = t.match(/^(\d{1,2})[-\/.](\d{2}|\d{4})$/))) { mm = +m[1]; y = +m[2]; }
+    else if ((m = t.match(/^([a-zäéû]+)\.?,? ?'?(\d{2}|\d{4})$/))) {
+      var name = m[1];
+      var idx = MONTHS.findIndex(function (x) { return x.toLowerCase().indexOf(name) === 0 && name.length >= 3; });
+      if (idx < 0) return null;
+      mm = idx + 1; y = +m[2];
+    } else return null;
+    if (y < 100) y += 2000;
+    if (!(mm >= 1 && mm <= 12) || y < 2000 || y > 2100) return null;
+    return y + "-" + String(mm).padStart(2, "0");
+  }
+
+  // ---------- state ----------
+  var tabMonths = DEFAULT_RANGE.slice();
+  SHOWS.forEach(function (s) { (s.months_covered || []).forEach(function (m) { if (tabMonths.indexOf(m) < 0 && researched.has(m)) tabMonths.push(m); }); });
+  researched.forEach(function (m) { if (tabMonths.indexOf(m) < 0) tabMonths.push(m); });
+  tabMonths.sort();
+
+  var state = {
+    month: initialMonth(),
+    sort: { key: "dates", dir: 1 },
+    open: new Set(),
+    f: { country: "", sector: "", app: "", fit: "", ex: "", text: "" }
+  };
+
+  function initialMonth() {
+    var fromHash = parseMonth(decodeURIComponent(location.hash.slice(1)));
+    if (fromHash) return fromHash;
+    var now = new Date(), cur = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+    if (tabMonths.indexOf(cur) >= 0) return cur;
+    return tabMonths[0];
+  }
+
+  function showsIn(month) {
+    return SHOWS.filter(function (s) { return (s.months_covered || []).indexOf(month) >= 0; });
+  }
+
+  // ---------- header + tabs ----------
+  $("lastUpdated").textContent = "Last updated: " + (lastUpdated ? fmtDate(lastUpdated) : "–");
+
+  function renderTabs() {
+    $("tabs").innerHTML = tabMonths.map(function (m) {
+      var n = showsIn(m).length, r = researched.has(m) || n > 0;
+      return '<button class="tab' + (m === state.month ? " active" : "") + (r ? "" : " unresearched") + '" data-m="' + m + '"' +
+        (r ? "" : ' title="Not researched yet"') + ">" + monthLabel(m, true) +
+        '<span class="n">' + (r ? n : "–") + "</span></button>";
+    }).join("");
+  }
+  $("tabs").addEventListener("click", function (e) {
+    var b = e.target.closest(".tab");
+    if (b) goTo(b.dataset.m);
+  });
+  $("gotoForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var m = parseMonth($("gotoInput").value);
+    if (!m) { $("gotoErr").textContent = "Try \"March 2027\" or \"03/2027\""; return; }
+    $("gotoErr").textContent = "";
+    $("gotoInput").value = "";
+    goTo(m);
+  });
+  function goTo(m) {
+    state.month = m;
+    state.open.clear();
+    history.replaceState(null, "", "#" + m);
+    render();
+  }
+
+  // ---------- filters ----------
+  function fillSelect(el, label, values) {
+    var cur = el.value;
+    el.innerHTML = '<option value="">All ' + label + "</option>" + values.map(function (v) {
+      return '<option value="' + esc(v) + '">' + esc(v) + "</option>";
+    }).join("");
+    el.value = values.indexOf(cur) >= 0 ? cur : "";
+  }
+  function uniq(arr) { return Array.from(new Set(arr)).sort(function (a, b) { return a.localeCompare(b); }); }
+  fillSelect($("fCountry"), "countries", uniq(SHOWS.map(function (s) { return s.country; })));
+  fillSelect($("fSector"), "sectors", uniq([].concat.apply([], SHOWS.map(function (s) { return s.sectors || []; }))));
+
+  [["fCountry", "country"], ["fSector", "sector"], ["fApp", "app"], ["fFit", "fit"], ["fEx", "ex"]].forEach(function (p) {
+    $(p[0]).addEventListener("change", function () { state.f[p[1]] = this.value; render(); });
+  });
+  $("fText").addEventListener("input", function () { state.f.text = this.value; render(); });
+  $("fClear").addEventListener("click", function () {
+    state.f = { country: "", sector: "", app: "", fit: "", ex: "", text: "" };
+    ["fCountry", "fSector", "fApp", "fFit", "fEx", "fText"].forEach(function (id) { $(id).value = ""; });
+    render();
+  });
+
+  function applyFilters(list) {
+    var f = state.f, q = f.text.trim().toLowerCase();
+    return list.filter(function (s) {
+      if (f.country && s.country !== f.country) return false;
+      if (f.sector && (s.sectors || []).indexOf(f.sector) < 0) return false;
+      if (f.app && appKey(s) !== f.app) return false;
+      if (f.fit && s.amazon_fit !== f.fit) return false;
+      if (f.ex && s.exhibitors_status !== f.ex) return false;
+      if (q) {
+        var hay = [s.name, s.city, s.country, s.venue, s.organiser, s.notes, s.fit_notes, s.app_name, (s.sectors || []).join(" ")].join(" ").toLowerCase();
+        if (hay.indexOf(q) < 0) return false;
+      }
+      return true;
+    });
+  }
+
+  // ---------- sorting ----------
+  var COLS = [
+    { key: "name", label: "Show name" },
+    { key: "loc", label: "Location" },
+    { key: "dates", label: "Dates" },
+    { key: "ex", label: "# of Exhibitors" },
+    { key: "sector", label: "Sector" },
+    { key: "web", label: "Website" },
+    { key: "app", label: "App" }
+  ];
+  function sortVal(s, key) {
+    switch (key) {
+      case "name": return s.name.toLowerCase();
+      case "loc": return (s.country + " " + s.city).toLowerCase();
+      case "dates": return (s.start_date || (s.months_covered[0] + "-99")) + s.name.toLowerCase();
+      case "ex": var f = exFigure(s); return f.n == null ? -1 : f.n;
+      case "sector": return (s.sectors || []).join(", ").toLowerCase();
+      case "web": return hostOf(s.website);
+      case "app": return { yes: 0, unknown: 1, no: 2 }[appKey(s)] + (s.app_name || "").toLowerCase();
+    }
+  }
+  function sortList(list) {
+    var k = state.sort.key, d = state.sort.dir;
+    return list.slice().sort(function (a, b) {
+      var x = sortVal(a, k), y = sortVal(b, k);
+      if (typeof x === "number" && typeof y === "number") return (x - y) * d;
+      return String(x).localeCompare(String(y)) * d;
+    });
+  }
+
+  // ---------- render ----------
+  function render() {
+    renderTabs();
+    var month = state.month, all = showsIn(month), isResearched = researched.has(month) || all.length > 0;
+    var body = $("body"), summary = $("summary");
+    $("filters").style.display = isResearched && all.length ? "" : "none";
+    $("exportMonth").disabled = !all.length;
+
+    if (!isResearched) {
+      summary.innerHTML = "<b>" + monthLabel(month) + "</b>";
+      var cmd = "/research-month " + monthLabel(month);
+      body.innerHTML = '<div class="empty"><h2>Not researched yet</h2>' +
+        "<p>There's no data for " + esc(monthLabel(month)) + ". Run this command in Claude Code, in this repository:</p>" +
+        '<div class="cmd"><span id="cmdText">' + esc(cmd) + '</span><button class="btn" id="copyCmd">Copy</button></div></div>';
+      $("copyCmd").addEventListener("click", function () { copy(cmd); });
+      return;
+    }
+
+    var list = sortList(applyFilters(all));
+    var cnt = function (st) { return all.filter(function (s) { return s.exhibitors_status === st; }).length; };
+    var nNew = all.filter(isNew).length, nUpd = all.filter(isUpdated).length;
+    var mnote = META.month_notes && META.month_notes[month];
+    summary.innerHTML =
+      "<span><b>" + monthLabel(month) + "</b>: " + all.length + " show" + (all.length === 1 ? "" : "s") +
+      (list.length !== all.length ? " (" + list.length + " shown)" : "") + "</span>" +
+      '<span><span class="dot" style="background:var(--green)"></span>' + cnt("current") + " this edition</span>" +
+      '<span><span class="dot" style="background:#d99a1e"></span>' + cnt("previous") + " last edition</span>" +
+      '<span><span class="dot" style="background:var(--red)"></span>' + cnt("not_found") + " not found</span>" +
+      (nNew ? '<span><span class="badge new" style="margin:0">' + nNew + " new</span></span>" : "") +
+      (nUpd ? '<span><span class="badge upd" style="margin:0">' + nUpd + " updated</span></span>" : "") +
+      (mnote ? '<span class="note">' + esc(mnote) + "</span>" : "");
+
+    if (!all.length) {
+      body.innerHTML = '<div class="empty"><h2>No qualifying shows found</h2><p>' + esc(monthLabel(month)) +
+        " has been researched, but no show met the inclusion rules.</p></div>";
+      return;
+    }
+    if (!list.length) {
+      body.innerHTML = '<div class="empty"><h2>No shows match these filters</h2><p>Try clearing the filters.</p></div>';
+      return;
+    }
+
+    var head = "<thead><tr>" + COLS.map(function (c) {
+      var arrow = state.sort.key === c.key ? '<span class="arrow">' + (state.sort.dir > 0 ? "▲" : "▼") + "</span>" : "";
+      return '<th data-k="' + c.key + '">' + c.label + arrow + "</th>";
+    }).join("") + "</tr></thead>";
+
+    var rows = list.map(function (s) {
+      var open = state.open.has(s.id);
+      var f = exFigure(s);
+      var exHtml = f.kind === "current"
+        ? fmtN(f.n) + " <small>· " + f.year + "</small>"
+        : f.kind === "previous" ? fmtN(f.n) + " <small>(" + f.year + " edition)</small>" : "Not found";
+      var exTitle = f.kind === "not_found"
+        ? "Not found. Click to see the sources checked."
+        : "Source: " + (f.src || "n/a") + (s.exhibitors_note ? "\n" + s.exhibitors_note : "");
+      var badges =
+        (isNew(s) ? '<span class="badge new">New</span>' : "") +
+        (isUpdated(s) ? '<span class="badge upd" title="' + esc((s.changes || []).join("\n")) + '">Updated</span>' : "") +
+        (s.status === "dates TBC" ? '<span class="badge tbc">Dates TBC</span>' : "") +
+        (s.status === "postponed" ? '<span class="badge pp">Postponed</span>' : "") +
+        (s.status === "cancelled" ? '<span class="badge cxl">Cancelled</span>' : "");
+      var app = s.has_app === true
+        ? '<span class="app-yes">Yes</span><span class="app-name">' + esc(s.app_name || "") + (s.app_platform ? " · " + esc(s.app_platform) : "") + "</span>"
+        : s.has_app === false ? '<span class="app-no">No</span>' : '<span class="app-unk">Unknown</span>';
+      var tr = '<tr class="row' + (open ? " open" : "") + (s.status === "cancelled" ? " cancelled" : "") + '" data-id="' + esc(s.id) + '">' +
+        '<td class="c-name"><span class="chev">▸</span> <span class="name">' + esc(s.name) + "</span>" + badges +
+          (s.amazon_fit === "partial" ? '<span class="badge partial" title="Mixed show: only some halls fit">Partial fit</span>' : "") + "</td>" +
+        '<td class="c-loc">' + esc(s.city) + ", " + esc(s.country) + '<div class="venue">' + esc(s.venue) + "</div></td>" +
+        '<td class="c-dates">' + esc(fmtRange(s)) + '<div class="days">' + dayCount(s) + "</div></td>" +
+        '<td class="c-ex"><button class="ex ' + f.kind + '" data-ex="' + esc(s.id) + '" title="' + esc(exTitle) + '">' + exHtml + "</button></td>" +
+        '<td class="c-sec" title="' + esc((s.sectors || []).join(", ")) + '">' + (s.sectors || []).slice(0, 3).map(function (x) { return '<span class="chip">' + esc(x) + "</span>"; }).join("") +
+          ((s.sectors || []).length > 3 ? '<span class="chip more">+' + (s.sectors.length - 3) + " more</span>" : "") + "</td>" +
+        '<td class="c-web">' + link(s.website, hostOf(s.website)) + "</td>" +
+        '<td class="c-app">' + app + "</td></tr>";
+      if (open) tr += '<tr class="details"><td colspan="7">' + details(s) + "</td></tr>";
+      return tr;
+    }).join("");
+
+    body.innerHTML = '<div class="tablewrap"><table>' + head + "<tbody>" + rows + "</tbody></table></div>";
+  }
+
+  function details(s) {
+    var aud = { trade: "Trade only (B2B)", "trade+consumer": "Trade + consumer days", consumer: "Consumer (public) show" }[s.audience] || s.audience;
+    var f = exFigure(s);
+    var exSrc = [];
+    if (s.exhibitors_current != null) exSrc.push("This edition (" + s.edition_year + "): " + fmtN(s.exhibitors_current) + " · " + link(s.exhibitors_current_source));
+    if (s.exhibitors_previous != null) exSrc.push(s.exhibitors_previous_year + " edition: " + fmtN(s.exhibitors_previous) + " · " + link(s.exhibitors_previous_source));
+    var appTxt = s.has_app === true
+      ? esc(s.app_name || "Yes") + (s.app_platform ? " (" + esc(s.app_platform) + ")" : "") + (s.app_source ? "<br>" + link(s.app_source) : "")
+      : s.has_app === false ? "No app found" : "Unknown";
+    return '<div class="dgrid">' +
+      "<div><h4>Venue</h4><p>" + esc(s.venue) + "<br>" + esc(s.city) + ", " + esc(s.country) + "</p></div>" +
+      "<div><h4>Audience</h4><p>" + esc(aud) + "</p></div>" +
+      "<div><h4>Organiser</h4><p>" + esc(s.organiser) + "</p></div>" +
+      "<div><h4>Status</h4><p>" + esc(s.status) + " · " + esc(fmtRange(s)) + "</p></div>" +
+      '<div><h4>Amazon fit</h4><p><span class="fit ' + esc(s.amazon_fit) + '">' + esc(s.amazon_fit === "strong" ? "Strong" : "Partial") + "</span>: " + esc(s.fit_notes) + "</p></div>" +
+      "<div><h4>App</h4><p>" + appTxt + "</p></div>" +
+      "<div><h4>Sectors</h4><p>" + esc((s.sectors || []).join(", ")) + "</p></div>" +
+      '<div class="wide"><h4>Exhibitors: ' + esc(exText(s)) + "</h4>" +
+        (exSrc.length ? "<ul><li>" + exSrc.join("</li><li>") + "</li></ul>" : "") +
+        (s.exhibitors_note ? "<p>" + esc(s.exhibitors_note) + "</p>" : "") +
+        (f.kind === "not_found" || (s.sources_checked || []).length
+          ? "<p style=\"margin-top:4px\"><b>Sources checked:</b></p><ul>" + (s.sources_checked || []).map(function (x) { return "<li>" + link(x) + "</li>"; }).join("") + "</ul>"
+          : "") +
+      "</div>" +
+      (s.notes ? '<div class="wide"><h4>Notes</h4><p>' + esc(s.notes) + "</p></div>" : "") +
+      ((s.changes || []).length && isUpdated(s) ? '<div class="wide"><h4>Changed in the latest update</h4><ul><li>' + s.changes.map(esc).join("</li><li>") + "</li></ul></div>" : "") +
+      "<div><h4>Website</h4><p>" + link(s.website) + "</p></div>" +
+      "<div><h4>Last verified</h4><p>" + esc(s.last_verified ? fmtDate(s.last_verified) : "–") + " · added " + esc(s.added_on ? fmtDate(s.added_on) : "–") + "</p></div>" +
+      "</div>";
+  }
+
+  // ---------- interactions ----------
+  $("body").addEventListener("click", function (e) {
+    var exBtn = e.target.closest("[data-ex]");
+    if (exBtn) { e.stopPropagation(); showPop(exBtn); return; }
+    if (e.target.closest("a")) return;
+    var th = e.target.closest("th[data-k]");
+    if (th) {
+      var k = th.dataset.k;
+      state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : (k === "ex" ? -1 : 1) };
+      render();
+      return;
+    }
+    var row = e.target.closest("tr.row");
+    if (row) {
+      var id = row.dataset.id;
+      if (state.open.has(id)) state.open.delete(id); else state.open.add(id);
+      render();
+    }
+  });
+
+  var pop = $("pop");
+  function showPop(btn) {
+    var s = SHOWS.find(function (x) { return x.id === btn.dataset.ex; });
+    var f = exFigure(s), html;
+    if (f.kind === "not_found") {
+      html = "<h5>Exhibitor figure not found</h5><p class=\"muted\">Sources checked; look it up here:</p><ul>" +
+        (s.sources_checked || []).map(function (x) { return "<li>" + link(x) + "</li>"; }).join("") + "</ul>";
+    } else {
+      html = "<h5>" + (f.kind === "current" ? "Announced for " + f.year : "Last edition (" + f.year + ")") + "</h5>" +
+        "<p><b>" + fmtN(f.n) + "</b> exhibitors</p>" +
+        (s.exhibitors_note ? '<p class="muted">' + esc(s.exhibitors_note) + "</p>" : "") +
+        "<p>Source: " + (f.src ? link(f.src) : "n/a") + "</p>";
+    }
+    pop.innerHTML = html;
+    pop.style.display = "block";
+    var r = btn.getBoundingClientRect();
+    var left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 12);
+    pop.style.left = Math.max(8, left) + "px";
+    pop.style.top = (window.scrollY + r.bottom + 6) + "px";
+  }
+  document.addEventListener("click", function (e) { if (!pop.contains(e.target) && !e.target.closest("[data-ex]")) pop.style.display = "none"; });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") pop.style.display = "none"; });
+  window.addEventListener("hashchange", function () { var m = parseMonth(decodeURIComponent(location.hash.slice(1))); if (m && m !== state.month) goTo(m); });
+
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.classList.remove("show"); }, 1800);
+  }
+  function copy(text) {
+    var done = function () { toast("Copied: " + text); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text) && done(); });
+    } else if (fallbackCopy(text)) done();
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+    if (!ok) window.prompt("Copy this command:", text);
+    return ok;
+  }
+
+  // ---------- CSV ----------
+  var CSV_COLS = [
+    ["Month(s)", function (s) { return s.months_covered.join(" / "); }],
+    ["Show name", "name"], ["Edition", "edition_year"], ["Start date", "start_date"], ["End date", "end_date"],
+    ["Dates", fmtRange], ["City", "city"], ["Country", "country"], ["Venue", "venue"], ["Organiser", "organiser"],
+    ["Sectors", function (s) { return (s.sectors || []).join("; "); }], ["Audience", "audience"],
+    ["Exhibitors", function (s) { var f = exFigure(s); return f.n == null ? "" : f.n; }],
+    ["Exhibitor figure", exText], ["Exhibitor status", "exhibitors_status"],
+    ["Exhibitor source", function (s) { return exFigure(s).src || ""; }], ["Exhibitor note", "exhibitors_note"],
+    ["Sources checked", function (s) { return (s.sources_checked || []).join(" | "); }],
+    ["Website", "website"], ["App", function (s) { return appKey(s); }], ["App name", "app_name"], ["App platform", "app_platform"],
+    ["App source", "app_source"], ["Amazon fit", "amazon_fit"], ["Fit notes", "fit_notes"], ["Status", "status"],
+    ["Added on", "added_on"], ["Updated on", "updated_on"], ["Last verified", "last_verified"], ["Notes", "notes"]
+  ];
+  function toCSV(list) {
+    var cell = function (v) {
+      v = v == null ? "" : String(v);
+      return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+    var lines = [CSV_COLS.map(function (c) { return cell(c[0]); }).join(",")];
+    list.forEach(function (s) {
+      lines.push(CSV_COLS.map(function (c) { return cell(typeof c[1] === "function" ? c[1](s) : s[c[1]]); }).join(","));
+    });
+    return "﻿" + lines.join("\r\n");
+  }
+  function download(name, text) {
+    var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  $("exportMonth").addEventListener("click", function () {
+    var list = sortList(applyFilters(showsIn(state.month)));
+    download("trade-shows-" + state.month + ".csv", toCSV(list));
+  });
+  $("exportAll").addEventListener("click", function () {
+    var list = SHOWS.slice().sort(function (a, b) { return sortVal(a, "dates").localeCompare(sortVal(b, "dates")); });
+    download("trade-shows-all.csv", toCSV(list));
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
