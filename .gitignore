@@ -11,3 +11,4 @@ scripts/.sync-gap-state.json
 scripts/*.log
 scripts/deliverability-log.txt
 logs/
+trade-show-calendar/dist/
