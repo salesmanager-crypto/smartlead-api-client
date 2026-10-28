@@ -506,7 +506,7 @@
 
   function renderTabs() {
     $("tabs").innerHTML = tabMonths.map(function (m) {
-      var n = showsIn(m).length, r = researched.has(m) || n > 0;
+      var n = showsIn(m).length, r = researched.has(m);
       return '<button class="tab' + (m === state.month ? " active" : "") + (r ? "" : " unresearched") + '" data-m="' + m + '"' +
         (r ? "" : ' title="Not researched yet"') + ">" + monthLabel(m, true) +
         '<span class="n">' + (r ? n : "–") + "</span></button>";
@@ -602,17 +602,21 @@
   // ---------- render ----------
   function render() {
     renderTabs();
-    var month = state.month, all = showsIn(month), isResearched = researched.has(month) || all.length > 0;
+    var month = state.month, all = showsIn(month), isResearched = researched.has(month);
     var body = $("body"), summary = $("summary");
-    $("filters").style.display = isResearched && all.length ? "" : "none";
+    $("filters").style.display = all.length ? "" : "none";
     $("exportMonth").disabled = !all.length;
+    var cmd = "/research-month " + monthLabel(month);
+    var notResearchedBox = '<div class="empty"><h2>Not researched yet</h2>' +
+      "<p>" + (all.length
+        ? esc(monthLabel(month)) + " hasn't been researched. The shows below only appear because they run over from a neighbouring month."
+        : "There's no data for " + esc(monthLabel(month)) + ".") +
+      " Run this command in Claude Code, in this repository:</p>" +
+      '<div class="cmd"><span id="cmdText">' + esc(cmd) + '</span><button class="btn" id="copyCmd">Copy</button></div></div>';
 
-    if (!isResearched) {
+    if (!isResearched && !all.length) {
       summary.innerHTML = "<b>" + monthLabel(month) + "</b>";
-      var cmd = "/research-month " + monthLabel(month);
-      body.innerHTML = '<div class="empty"><h2>Not researched yet</h2>' +
-        "<p>There's no data for " + esc(monthLabel(month)) + ". Run this command in Claude Code, in this repository:</p>" +
-        '<div class="cmd"><span id="cmdText">' + esc(cmd) + '</span><button class="btn" id="copyCmd">Copy</button></div></div>';
+      body.innerHTML = notResearchedBox;
       $("copyCmd").addEventListener("click", function () { copy(cmd); });
       return;
     }
@@ -678,7 +682,9 @@
       return tr;
     }).join("");
 
-    body.innerHTML = '<div class="tablewrap"><table>' + head + "<tbody>" + rows + "</tbody></table></div>";
+    body.innerHTML = (isResearched ? "" : notResearchedBox) +
+      '<div class="tablewrap"><table>' + head + "<tbody>" + rows + "</tbody></table></div>";
+    if (!isResearched) $("copyCmd").addEventListener("click", function () { copy(cmd); });
   }
 
   function details(s) {

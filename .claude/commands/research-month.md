@@ -22,6 +22,13 @@ team goes to these shows to meet exhibiting brands, so missing a relevant show i
 3. Export the current data: `node trade-show-calendar/tools/datafile.mjs export <scratch>/current.json`
    and list the shows already in this month (`months_covered` includes `YYYY-MM`).
 4. Today's date (`date +%F`) is the run date: `RUN`.
+5. If `trade-show-calendar/data/leads-*.json` exists, load the leads for this month as a starting
+   list. They are unverified, so re-check every field. Once the month is done, remove those leads
+   from the file.
+6. **Search budget:** each turn allows about 200 web searches, **shared by all subagents**. Give
+   each subagent an explicit cap (e.g. 20–25 searches) and tell it to combine facts per search
+   (dates + exhibitors in one query). If the budget runs out, save what you have, list the gaps in
+   `META.month_notes` and the CHANGELOG, and continue in the next turn.
 
 ## 1. Inclusion rules
 

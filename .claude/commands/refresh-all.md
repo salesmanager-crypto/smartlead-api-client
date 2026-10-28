@@ -29,6 +29,9 @@ spot-check of existing rows. For every month in range:
 - Read `trade-show-calendar/CLAUDE.md` (full rules, sector labels, data model).
 - `node trade-show-calendar/tools/datafile.mjs export <scratch>/current.json`, then keep a copy as
   `<scratch>/before.json` for the diff.
+- **Search budget:** about 200 web searches per turn, shared by all subagents. Give each subagent a
+  cap and do the biggest shows first. If the budget runs out, save the progress, note which months
+  are done in the CHANGELOG, and tell the user to run `/refresh-all` again to continue.
 
 ## Inclusion rules (same as /research-month)
 
