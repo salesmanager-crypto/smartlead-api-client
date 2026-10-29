@@ -1,5 +1,5 @@
 {
-  "pulledAt": "2026-10-28T16:11:22.034Z",
+  "pulledAt": "2026-10-29T16:16:19.801Z",
   "primaryCampaignId": 561604,
   "linkedin": {
     "campaigns": 1,
@@ -9,17 +9,17 @@
     "listName": "Global Brands 4",
     "senders": 2,
     "leads": 1987,
-    "processed": 1367,
-    "pending": 620,
-    "connectionsSent": 1191,
-    "accepted": 169,
+    "processed": 1393,
+    "pending": 594,
+    "connectionsSent": 1217,
+    "accepted": 174,
     "connNone": 176,
-    "messagesSent": 183,
+    "messagesSent": 188,
     "replies": 32,
-    "inSequence": 80,
-    "pendingInBatch": 50,
-    "failed": 126,
-    "finished": 1111
+    "inSequence": 103,
+    "pendingInBatch": 41,
+    "failed": 135,
+    "finished": 1114
   },
   "campaigns": [
     {
@@ -30,17 +30,17 @@
       "listName": "Global Brands 4",
       "senders": 2,
       "leads": 1987,
-      "processed": 1367,
-      "pending": 620,
-      "connectionsSent": 1191,
-      "accepted": 169,
+      "processed": 1393,
+      "pending": 594,
+      "connectionsSent": 1217,
+      "accepted": 174,
       "connNone": 176,
-      "messagesSent": 183,
+      "messagesSent": 188,
       "replies": 32,
-      "inSequence": 80,
-      "pendingInBatch": 50,
-      "failed": 126,
-      "finished": 1111
+      "inSequence": 103,
+      "pendingInBatch": 41,
+      "failed": 135,
+      "finished": 1114
     }
   ]
 }
