@@ -131,6 +131,8 @@ def evidence(rows):
                 usd.append(v)
         if mo:
             usd += [mo * x / 100 for x in shares[:3] + sellers + own if x]
+            # a category's part of the brand's own revenue ("penne brings in about half of that")
+            pct += [100 * v / mo for v in (num(r["Sub 1 Revenue"]), num(r["Sub 2 Revenue"]), num(r["Sub 3 Revenue"])) if v]
         cnt += [x for x in (num(r["Total Products"]), num(r["Total Reviews"]), num(r["Seller Count"])) if x]
     for col in ("Monthly Revenue", "Annual Revenue (TTM)", "Total Products"):  # portfolio totals across the company's brands
         tot = sum(num(v) or 0 for v in rows[col])
@@ -297,7 +299,11 @@ def main():
         for pat, why in BANNED.items():
             if re.search(pat, claims, re.I):
                 fail.append(f"{why}: '{re.search(pat, claims, re.I).group(0)}'")
-        t = TYPO.search(re.sub(r"<br>", "\n", text))
+        typo_text = re.sub(r"<br>", "\n", text)  # brand names can repeat a word (Good Good, Kuli Kuli): stand them in
+        for n in re.split(r"[;/|]", x["Exhibitor Name"] + ";" + x["Brands Owned"]):
+            if n.strip() and re.search(r"\b(\w+) \1\b", n, re.I):
+                typo_text = re.sub(re.escape(SUFFIX.sub("", n.strip())), "Brand", typo_text, flags=re.I)
+        t = TYPO.search(typo_text)
         if t:
             fail.append(f"typo (double possessive, double punctuation or repeated word): '{t.group(0)}'")
         for pat, why in WARN_WORDS.items():

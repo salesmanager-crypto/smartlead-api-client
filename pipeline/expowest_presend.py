@@ -19,6 +19,7 @@ WORK = os.path.join(ROOT, "pipeline", "work")
 OUT = os.path.join(WORK, "presend")
 MASTER = os.path.join(ROOT, "expowest_amazon_master.csv")
 EMAILS = os.path.join(ROOT, "expowest_emails.csv")
+HOLDS = os.path.join(WORK, "send_holds.csv")  # Exhibitor ID, Reason: brands kept out of the send (restricted, doubtful data)
 SHOW = "Natural Products Expo West"
 DOUBLE = {"mary", "anna", "juan", "jose", "josé", "maría", "maria", "rosa", "rose", "bobbi", "dee", "jo", "ann"}
 
@@ -64,6 +65,26 @@ def greet_name(first, last="", email=""):
     return pick, ("" if pick == raw else f"'{raw}' -> '{pick}'")
 
 
+def email_brand(body, names):
+    """The brand as the email itself writes it: the longest leading run of words of any known name that the email
+    contains, in the email's own spelling ("Nightingale" for "Nightingale Ice Cream Sandwiches")."""
+    text = body.split("Albert Scott", 1)[-1]
+    best = None
+    for n in names:
+        n = re.sub(r"[,.]?\s+(inc|llc|ltd|co|corp|corporation|company|limited)\.?$", "", (n or "").strip(), flags=re.I)
+        words = n.split()
+        for k in range(len(words), 0, -1):
+            phrase = " ".join(words[:k])
+            if len(phrase) < 3:
+                break
+            m = re.search(r"(?<![A-Za-z0-9])" + re.escape(phrase) + r"(?![A-Za-z0-9])", text, re.I)
+            if m:
+                if best is None or (k, -m.start()) > (best[0], -best[1]):
+                    best = (k, m.start(), m.group(0))
+                break
+    return best[2].replace("’", "'") if best else ""
+
+
 def fnum(v):
     try:
         return float(str(v).replace(",", ""))
@@ -77,6 +98,7 @@ def build():
     ss = {r["Exhibitor ID"]: r for r in csv.DictReader(open(os.path.join(ROOT, "smartscout_brands.csv"), encoding="utf-8"))}
     sellers, subcats = detail_rows("sellers"), detail_rows("subcats")
     rows = list(csv.DictReader(open(MASTER, encoding="utf-8")))
+    holds = {r["Exhibitor ID"]: r["Reason"] for r in csv.DictReader(open(HOLDS, encoding="utf-8"))} if os.path.exists(HOLDS) else {}
     gm, notes = [], {}
     for r in rows:
         if not r["First Name"]:
@@ -90,8 +112,20 @@ def build():
                                                          r["Also Listed As"]) if x),
                    "SmartScout Brand": s.get("SmartScout Brand", ""), "Domain": r["Domain"],
                    "First Name": g, "Last Name": r["Last Name"], "Card Email": r["Email"],
-                   "Email Body": e.get("Email Body", ""), "Row Status": r["Row Status"] if e else "No email copy",
+                   "Email Body": e.get("Email Body", ""),
+                   "Row Status": ("Held: " + holds[r["Exhibitor ID"]]) if r["Exhibitor ID"] in holds and r["Row Status"] == "Ready"
+                   else r["Row Status"] if e else "No email copy",
                    "Show Mention": "Yes" if r["In 2027 List"] == "Yes" and re.search(r"2027: [^;]+", r["Booths"]) else "No"})
+    with open(os.path.join(OUT, "brand_fix.csv"), "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        w.writerow(["Exhibitor ID", "Brand"])
+        for eid, e in emails.items():
+            s = ss.get(eid, {})
+            m = next((r for r in rows if r["Exhibitor ID"] == eid), {})
+            b = email_brand(e["Email Body"], [s.get("SmartScout Brand"), m.get("Amazon Store Name"), m.get("Exhibitor"),
+                                              *re.split(r"[;/]", m.get("Also Listed As", ""))])
+            if b:
+                w.writerow([eid, b])
     with open(os.path.join(OUT, "gate_master.csv"), "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=list(gm[0]))
         w.writeheader()
@@ -133,7 +167,8 @@ def run():
     build()
     cmd = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "presend_qa.py"),
            "--master", os.path.join(OUT, "gate_master.csv"), "--evidence", os.path.join(OUT, "gate_evidence.xlsx"),
-           "--show", SHOW, "--show-col", "Show Mention", "--out", OUT, "--min-words", "75", "--max-words", "110"]
+           "--show", SHOW, "--show-col", "Show Mention",
+           "--brand-fix", os.path.join(OUT, "brand_fix.csv"), "--out", OUT, "--min-words", "75", "--max-words", "110"]
     return subprocess.call(cmd)
 
 
