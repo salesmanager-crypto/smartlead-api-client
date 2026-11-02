@@ -1,0 +1,56 @@
+You are rewriting first-touch outbound emails from Yoni Lebovits (Albert Scott) to natural products brands that sell on Amazon, to Yoni's revised lead-gen standard (November 2026). Do NOT use WebSearch, WebFetch or any other research: the input data is the only source.
+
+FIRST read /root/.claude/skills/synced/b3314174-ff72-4515-85fc-edc64669f9ae_ed368cc6-15ed-417a-88d9-304c02c0a999/my-writing-style/SKILL.md in full. Follow its Universal rules and the OUTBOUND LEAD-GEN MODE section exactly (Step 1 analysis, Step 2 writing, Step 3 final review), and its examples (Blue 84, HydraPeak, MasterPieces). That section is the standard; where anything in this prompt seems to conflict with it, the skill wins, except for the campaign context below, which replaces the skill's show wording (this list is NOT a show follow-up).
+
+Input: /home/user/smartlead-api-client/pipeline/work/lg2_in_{NN}.jsonl, one brand per line:
+- id, tier, exhibitor (company name), also_listed_as, amazon_store_name, smartscout_brand, smartscout_match, parent_company
+- exhibiting_expo_west_2027 (true = on the Natural Products Expo West 2027 exhibitor list), expo_west_years, old_database_only
+- monthly_revenue, trailing_12_month_revenue (already rounded phrases), monthly_units, primary_subcategory, total_products, total_reviews, average_rating, average_price, average_sellers_per_listing, mom_growth_pct, avg_monthly_growth_12mo_pct
+- top_sellers: up to 5 sellers with share_pct (percent of the brand's Amazon revenue) and type: "Amazon 1P", "Whole Foods Market (Amazon-owned)", "likely the brand's own or affiliated account", or "another seller (not confirmed as reseller or brand)"
+- brand_own_share_pct, amazon_1p_share_pct (sums over the top sellers), top_subcategories (subcategory, brand_revenue, market_share_pct)
+- data_flags: anything to be careful with.
+
+Campaign context (the only timing facts you may use):
+- It is early November 2026. Brands are reviewing how Amazon went this year and setting 2027 Amazon plans and budgets.
+- Natural Products Expo West 2027 is in March 2027 in Anaheim. For brands with exhibiting_expo_west_2027 = true, the opening paragraph names it as the reason for writing now, e.g. "I'm reaching out ahead of Natural Products Expo West in March." or "With Natural Products Expo West coming up in March, I wanted to connect about Siete's Amazon plans for 2027." For every other brand, never mention Expo West or any show; use the 2027 planning timing instead, e.g. "As brands set their 2027 Amazon plans, I wanted to connect about Siete's Amazon business."
+- Never say or imply Yoni will be at the show, has met them, or a colleague met them. Never mention an exhibitor list, past shows or our database.
+
+The email, exactly in this shape (paragraphs separated by one blank line):
+Hi {{first_name}},
+
+I'm Yoni with Albert Scott, an Amazon management agency. <the reason for writing now, one complete sentence, per the campaign context><optionally the one observation, one or two rounded, qualified figures>
+
+<optional: the observation, if it is not in the first paragraph>
+
+<the work: connect the observation to what we could do, naming the brand's products or category: "We could help your team ...", "We could work alongside your vendor team on ...", "We could support ...". Where the seller setup is unclear: "I'd be interested in how that account fits into your current Amazon strategy.">
+
+Would you be open to a short call to discuss this?
+
+Best,
+Yoni
+
+- Keep "Hi {{first_name}}," exactly as typed: a later step writes each contact's real first name into it.
+- 80 to 105 words including greeting and sign-off. Exactly one question mark (the ask). For a brand without usable figures (see thin data), the ask is "Would you be open to a short call to discuss your plans?".
+- Vary the "reason for writing" sentence and the work paragraph's opening across your batch so no two emails read the same.
+
+Reading the data (Step 1), applied to this list:
+- amazon_1p_share_pct is the majority (Amazon 1P or Whole Foods Market): that is Amazon retail / Vendor Central. Support the vendor business (vendor account support, catalog, advertising, promotions, inventory and availability planning). Never pitch 3P, hybrid, Seller Central or a seller account of their own.
+- One "another seller" account carries most sales: say most sales run through one seller account and ask how it fits their strategy. Never call it a reseller, never say the brand lacks control or should replace it.
+- Several sellers each with real share: offer coordination (consistent content, promotions and advertising across accounts). A direct account may be offered only as an option that fits their distribution strategy.
+- The brand's own account carries most sales: growth in a specific range (a top_subcategories line that carries real revenue for the brand). Category share is an opportunity, never a diagnosis; never say the smallest category is the best opportunity; never cite a 0% or 0.0% share (use the revenue instead, or another angle).
+- Never claim a decline, an easing, a trend or seasonality, even if mom_growth_pct or avg_monthly_growth_12mo_pct is negative; never compare one month with the yearly average. Do not cite growth figures at all.
+- No rank claims (ranked, #3, leader, leading, number one). No "control", "reseller", "limited", "small", "tiny", "weak", "poor".
+- Thin data: if data_flags say no SmartScout numbers or very small revenue, or smartscout_match is neither "exact" nor "same name, different case or spacing" (that one is the same brand and its figures are fine to use), or the figures look doubtful, write no figures: write about the product range and their 2027 Amazon plans (skill: thin or questionable data), and end with "Would you be open to a short call to discuss your plans?". Never say or imply the business is small, limited or absent. Put the reason in qa_flags.
+- Fit the work to the product: frozen, refrigerated or fresh ranges: assortment, pack format and fulfillment that fit the existing distribution; supplements and personal care: product content, catalog organization and advertising on relevant searches; food and beverage: pack sizes, subscribe-and-save style replenishment is NOT a fact you have, so do not claim it.
+- Use the brand name in normal case (Siete, not SIETE). If smartscout_brand covers one brand of a multi-brand company, write about that brand.
+- Only figures in the input, rounded and qualified ("an estimated", "about", "roughly"), at most two. Never mention SmartScout or any tool.
+- If the brand is a giant consumer goods company or a large cooperative, still write it, and add "review fit" to qa_flags.
+
+Output: append one JSON object per brand (one line each, Python json.dumps with ensure_ascii=False) to /home/user/smartlead-api-client/pipeline/work/lg2_out_{NN}.jsonl:
+{"id": ..., "angle": "Observation | Interpretation | Opportunity | Pitch | figures used", "body": "the full email with \n line breaks", "qa_flags": "anything a human should check, else empty"}
+Write each brand's line as soon as it is done. If the file exists, skip ids already in it.
+
+When all brands are written, run: python3 /home/user/smartlead-api-client/pipeline/expowest_emails.py v2-check <comma-separated ids of your batch>
+Fix every failure (append a corrected line for that id; the last line wins) and run it again until your ids pass. Then reread the whole batch as the recipient would (skill Step 3) and rewrite any email that fails a review question or repeats another email's phrasing. Finally write /home/user/smartlead-api-client/pipeline/work/lg2_done_{NN}.txt with a one-line summary.
+
+Rules: no em or en dashes anywhere. Helper files go in /tmp/claude-0/-home-user-smartlead-api-client/14097a83-43ed-5901-b09e-9a152d499e4d/scratchpad with prefix lg2_{NN}_, never in pipeline/work. Report: emails written, angles used (counts), anything flagged.

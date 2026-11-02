@@ -2,8 +2,9 @@
 
   python3 pipeline/expowest_campaign.py master      -> expowest_amazon_master.csv (one row per person; in-scope
                                                       exhibitors with no people get one row saying why)
-  python3 pipeline/expowest_campaign.py smartlead   -> expowest_smartlead_import.csv (people with an email and a
-                                                      passing custom email only)
+
+The Smartlead upload is no longer built here: it comes only from the pre-send gate (expowest_presend.py), which writes
+each contact's own first name into the copy and checks it before anything is uploaded.
 
 Text columns are cleaned of em and en dashes before writing.
 """
@@ -14,7 +15,6 @@ from common import ROOT
 from expowest_people import ORDER, amazon_best, emails, master, people, targets, tier
 
 MASTER_OUT = os.path.join(ROOT, "expowest_amazon_master.csv")
-SL_OUT = os.path.join(ROOT, "expowest_smartlead_import.csv")
 
 
 def clean(v):
@@ -224,29 +224,11 @@ def build_master():
     print(dict(Counter(r["Row Status"] for r in rows)))
 
 
-def build_smartlead():
-    rows = [r for r in csv.DictReader(open(MASTER_OUT, encoding="utf-8")) if r["Row Status"] == "Ready"]
-    fields = ["email", "first_name", "last_name", "company_name", "website", "linkedin_profile", "title",
-              "brand_store", "booth_2027", "email1_body"]  # subject lines are set in Smartlead
-    with open(SL_OUT, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader()
-        for r in rows:
-            booth = re.search(r"2027: ([^;]+)", r["Booths"])
-            body = r["Email Body"]
-            w.writerow({"email": r["Email"], "first_name": r["First Name"], "last_name": r["Last Name"],
-                        "company_name": r["Exhibitor"], "website": r["Website"], "linkedin_profile": r["LinkedIn URL"],
-                        "title": r["Title"], "brand_store": r["Amazon Store Name"],
-                        "booth_2027": booth.group(1) if booth else "",
-                        "email1_body": body.replace("\n", "<br>")})
-    print(f"{len(rows)} leads -> {SL_OUT}")
-
-
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "master":
         build_master()
     elif cmd == "smartlead":
-        build_smartlead()
+        sys.exit("The Smartlead file comes from the pre-send gate: python3 pipeline/expowest_presend.py")
     else:
         print(__doc__)

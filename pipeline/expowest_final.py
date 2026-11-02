@@ -17,6 +17,7 @@ import csv, glob, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT
+from expowest_presend import greet_name, OUT as PRESEND
 
 WORK = os.path.join(ROOT, "pipeline", "work")
 MASTER = os.path.join(ROOT, "expowest_amazon_master.csv")
@@ -27,7 +28,8 @@ GROUPS = [  # (group, header colour, cell colour, [(column, source key or callab
     ("Lead", "#2E7D32", "#E8F5E9", ["Exhibitor", "Brand", "First Name", "Last Name", "Email"]),
     ("Contact details", "#558B2F", "#F1F8E9", ["Title", "LinkedIn URL", "Country", "Contact Priority", "Email Status",
                                                "Email Check", "Send Status"]),
-    ("Custom email", "#AD1457", "#FCE4EC", ["Email Body", "Email Angle", "Email QA Flags", "Review Decision"]),
+    ("Custom email", "#AD1457", "#FCE4EC", ["Email Body", "Greeting Name", "Pre-send QA", "Pre-send Issues", "Email Angle",
+                                            "Email QA Flags", "Review Decision"]),
     ("SmartScout", "#F9A825", "#FFFDE7", ["SmartScout Brand", "SmartScout Match", "Monthly Revenue", "12-Month Revenue",
                                           "Monthly Units", "Primary Category", "Primary Subcategory", "Total Products",
                                           "Total Reviews", "Average Rating", "Average Price", "Average Sellers per Listing",
@@ -91,6 +93,13 @@ def build():
     ss = {r["Exhibitor ID"]: r for r in csv.DictReader(open(os.path.join(ROOT, "smartscout_brands.csv"), encoding="utf-8"))}
     ex = {r["Exhibitor ID"]: r for r in csv.DictReader(open(os.path.join(ROOT, "expowest_master.csv"), encoding="utf-8"))}
     lg = records()
+    qa = {}  # (Exhibitor ID, card email, last name) -> gate result, from the gate's own report
+    rep, gm = os.path.join(PRESEND, "qa_report.csv"), os.path.join(PRESEND, "gate_master.csv")
+    if os.path.exists(rep) and os.path.exists(gm):
+        g = list(csv.DictReader(open(gm, encoding="utf-8")))
+        for q in csv.DictReader(open(rep, encoding="utf-8")):
+            x = g[int(q["Row"]) - 2]
+            qa[(x["Exhibitor ID"], x["Card Email"].lower(), x["Last Name"])] = (q["Result"], q["Issues"])
     cols = [c for _, _, _, cs in GROUPS for c in cs]
     rows = []
     for m in csv.DictReader(open(MASTER, encoding="utf-8")):
@@ -100,6 +109,9 @@ def build():
         subs = "; ".join(f'{x["subcategory"]}: {x.get("brand_revenue") or "n/a"}, {x.get("market_share_pct")}% share'
                          for x in r.get("top_subcategories") or [])
         mrr = num(s.get("Monthly Revenue"))
+        greet = greet_name(m["First Name"], m["Last Name"], m["Email"])[0] if m["First Name"] else ""
+        body = m["Email Body"].replace("{{first_name}}", greet or "there") if m["Email Body"] else ""  # the copy as sent
+        res, issues = qa.get((eid, m["Email"].lower(), m["Last Name"]), ("", ""))
         row = {
             "Exhibitor": m["Exhibitor"],
             "Brand": m["Amazon Store Name"] or s.get("SmartScout Brand") or m["Exhibitor"],
@@ -107,7 +119,8 @@ def build():
             "Title": m["Title"], "LinkedIn URL": m["LinkedIn URL"], "Country": m["Country"],
             "Contact Priority": num(m["Priority"]), "Email Status": m["Email Status"], "Email Check": m["Email Check"],
             "Send Status": m["Row Status"],
-            "Email Body": m["Email Body"], "Email Angle": m["Email Angle"], "Email QA Flags": m["Email QA Flags"],
+            "Email Body": body, "Greeting Name": greet, "Pre-send QA": res, "Pre-send Issues": issues,
+            "Email Angle": m["Email Angle"], "Email QA Flags": m["Email QA Flags"],
             "Review Decision": "",
             "SmartScout Brand": s.get("SmartScout Brand", ""), "SmartScout Match": s.get("SmartScout Match", ""),
             "Monthly Revenue": mrr, "12-Month Revenue": num(s.get("TTM Revenue")),
