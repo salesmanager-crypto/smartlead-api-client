@@ -1,26 +1,26 @@
 {
-  "generatedAt": "2026-11-15T16:27:02.107Z",
-  "today": "2026-11-15",
+  "generatedAt": "2026-11-16T19:42:09.046Z",
+  "today": "2026-11-16",
   "sources": {
     "smartlead": {
-      "lastSuccess": "2026-11-15T16:24:04.463Z",
-      "lastAttempt": "2026-11-15T16:24:04.463Z",
+      "lastSuccess": "2026-11-16T19:38:54.855Z",
+      "lastAttempt": "2026-11-16T19:38:54.855Z",
       "error": null,
-      "records": 172,
+      "records": 173,
       "note": null,
       "status": "ok"
     },
     "pipedrive": {
-      "lastSuccess": "2026-11-15T16:24:03.538Z",
-      "lastAttempt": "2026-11-15T16:24:03.538Z",
+      "lastSuccess": "2026-11-16T19:38:53.634Z",
+      "lastAttempt": "2026-11-16T19:38:53.634Z",
       "error": null,
-      "records": 284,
+      "records": 279,
       "note": null,
       "status": "ok"
     },
     "heyreach": {
-      "lastSuccess": "2026-11-15T16:26:49.126Z",
-      "lastAttempt": "2026-11-15T16:26:49.126Z",
+      "lastSuccess": "2026-11-16T19:41:50.090Z",
+      "lastAttempt": "2026-11-16T19:41:50.090Z",
       "error": null,
       "records": 1,
       "note": null,
@@ -36,7 +36,7 @@
     },
     "seoIssues": {
       "lastSuccess": null,
-      "lastAttempt": "2026-11-15T16:27:02.104Z",
+      "lastAttempt": "2026-11-16T19:42:09.041Z",
       "error": null,
       "records": 239,
       "note": "Google secrets not set; showing the 2026-09-11 snapshot",
@@ -51,8 +51,8 @@
       "note": null
     },
     "tradeshows": {
-      "lastSuccess": "2026-11-15T16:27:02.105Z",
-      "lastAttempt": "2026-11-15T16:27:02.105Z",
+      "lastSuccess": "2026-11-16T19:42:09.042Z",
+      "lastAttempt": "2026-11-16T19:42:09.042Z",
       "error": null,
       "records": 226,
       "note": null,
