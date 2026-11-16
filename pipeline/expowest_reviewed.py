@@ -27,6 +27,26 @@ EXTRA_HOLDS = {
 }
 
 
+# QA notes (expowest_emails.csv) that say the brand's Amazon data may be wrong: a mismatched brand, listings that look
+# like another company's, or a monthly figure far from the yearly one. Every contact at such a brand is left out.
+MISMATCH = re.compile(r"mismatch|overlap|likely (another|an? other|mapping)|mixed|different (company|business|brand)|"
+                      r"probably (a )?different|may belong|misclassif|mapping|check (the )?(match|category|product|brand match|"
+                      r"data match)|confirm the (match|data|range)|looks? (like|wrong|odd|off|unusual)|\bodd\b|unexpected|"
+                      r"not credible|unusual|unlikely|doesn.t look|data lists|belongs? to", re.I)
+INCONSISTENT = re.compile(r"inconsisten|doubtful|monthly figure|vs\.? trailing|far (above|below)|well (above|below)|recent jump|"
+                          r"volatile|swing|(figures|revenue)[^.;]{0,25}(don.t|do not|doesn.t)|looks (low|high)|too (low|high)|"
+                          r"latest month|recent ramp", re.I)
+
+
+def unsure_brands():
+    """{Exhibitor ID: reason} for brands whose QA note says the data is mismatched or inconsistent."""
+    out = {}
+    for r in csv.DictReader(open(os.path.join(ROOT, "expowest_emails.csv"), encoding="utf-8")):
+        if MISMATCH.search(r["QA Flags"]) or INCONSISTENT.search(r["QA Flags"]):
+            out[r["Exhibitor ID"]] = "brand data unsure: " + r["QA Flags"][:120]
+    return out
+
+
 def reviewed(path):
     ws = openpyxl.load_workbook(path).active
     rows = list(ws.iter_rows(values_only=True))
@@ -73,6 +93,7 @@ def main(path):
     import pandas as pd
     team = build(path)
     holds = dict(EXTRA_HOLDS)
+    holds.update(unsure_brands())
     for _ in range(4):
         rc = P.run(out=OUT, signature=SIGNATURE, min_words="60", max_words="115",
                    emails_path=os.path.join(OUT, "emails_reviewed.csv"), team_greeting=team, hold_ids=holds, no_show=True)
