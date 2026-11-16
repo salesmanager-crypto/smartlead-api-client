@@ -74,7 +74,7 @@ def brand_name(x, text=""):
     cands = [b.strip() for b in re.split(r"[;/]", x.get("Brands Owned", "") + ";" + x.get("SmartScout Brand", "")) if b.strip()]
     clean = SUFFIX.sub("", re.split(r"\s*[|(]", x["Exhibitor Name"])[0].strip()).strip()
     cands.append(clean)
-    plain = re.sub(r"<br>", " ", text).split("Albert Scott", 1)[-1]
+    plain = re.split(r"\s*Best,\s*Yoni", re.sub(r"<br>", " ", text))[0].split("Albert Scott", 1)[-1]  # not the signature
     best = None
     for c in cands:
         c = SUFFIX.sub("", c).strip().rstrip(",.")
@@ -148,7 +148,8 @@ def supported(val, pool, kind, qual):
         return any(0 <= p <= val * 1.02 for p in pool)
     if qual in ("over", "more than", "above", "at least"):
         return any(val * 0.98 <= p <= val * 2.5 for p in pool)
-    tol = (lambda p: abs(p - val) <= max(1.6, 0.16 * val)) if kind == "pct" else (lambda p: abs(p - val) <= 0.16 * val)
+    # a $ figure rounded to the nearest $1K can sit 0.5K from the exact number ("about $1K" for $1,450)
+    tol = (lambda p: abs(p - val) <= max(1.6, 0.16 * val)) if kind == "pct" else (lambda p: abs(p - val) <= max(0.16 * val, 600))
     return any(tol(p) for p in pool)
 
 
@@ -209,6 +210,7 @@ def main():
     a.add_argument("--card-only", action="store_true", help="send only to the email on the card; never swap in a Surfe work email")
     a.add_argument("--show-col", help="column saying per contact whether the show is mentioned: 'Yes' = the email must name the show, "
                                       "anything else = it must not (for lists where only some companies exhibit at the next show)")
+    a.add_argument("--signature", default="", help="lines after 'Yoni' that every email ends with, separated by | (Albert Scott|Full Service Amazon Agency)")
     a.add_argument("--only", help="CSV exported from Smartlead (any column holding emails): keep only contacts whose email is in it")
     o = a.parse_args()
     os.makedirs(o.out, exist_ok=True)
@@ -320,8 +322,9 @@ def main():
                 pool = {"pct": pct, "usd": usd, "cnt": cnt}[kind]
                 if not supported(v, pool, kind, qual):
                     fail.append(f"figure '{raw}' not found in this company's SmartScout data")
-        if not text.endswith("<br><br>Best,<br>Yoni"):
-            fail.append("does not end with 'Best,' / 'Yoni'")
+        sig = "".join("<br>" + l for l in o.signature.split("|") if l)
+        if not text.endswith("<br><br>Best,<br>Yoni" + sig):
+            fail.append("does not end with 'Best,' / 'Yoni'" + (f" / {o.signature}" if sig else ""))
         n = len(re.sub(r"<br>", " ", text).split())
         if not o.min_words <= n <= o.max_words:
             warn.append(f"{n} words")

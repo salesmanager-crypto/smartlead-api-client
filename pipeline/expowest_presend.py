@@ -68,7 +68,7 @@ def greet_name(first, last="", email=""):
 def email_brand(body, names):
     """The brand as the email itself writes it: the longest leading run of words of any known name that the email
     contains, in the email's own spelling ("Nightingale" for "Nightingale Ice Cream Sandwiches")."""
-    text = body.split("Albert Scott", 1)[-1]
+    text = re.split(r"\n\s*Best,", body)[0].split("Albert Scott", 1)[-1]  # after the intro, before the sign-off
     best = None
     for n in names:
         n = re.sub(r"[,.]?\s+(inc|llc|ltd|co|corp|corporation|company|limited)\.?$", "", (n or "").strip(), flags=re.I)
@@ -92,19 +92,26 @@ def fnum(v):
         return None
 
 
-def build():
-    os.makedirs(OUT, exist_ok=True)
-    emails = {r["Exhibitor ID"]: r for r in csv.DictReader(open(EMAILS, encoding="utf-8"))}
+def build(emails_path=EMAILS, out=None, team_greeting=None, hold_ids=None, no_show=False):
+    """emails_path: Exhibitor ID, Email Body (greeting written 'Hi {{first_name}},'). team_greeting: {(Exhibitor ID,
+    raw first name): name to greet instead} for contacts whose first name is not a person's. hold_ids: {id: reason}
+    kept out of the send. no_show: copy never names the show, so no row may."""
+    out = out or OUT
+    os.makedirs(out, exist_ok=True)
+    emails = {r["Exhibitor ID"]: r for r in csv.DictReader(open(emails_path, encoding="utf-8"))}
     ss = {r["Exhibitor ID"]: r for r in csv.DictReader(open(os.path.join(ROOT, "smartscout_brands.csv"), encoding="utf-8"))}
     sellers, subcats = detail_rows("sellers"), detail_rows("subcats")
     rows = list(csv.DictReader(open(MASTER, encoding="utf-8")))
     holds = {r["Exhibitor ID"]: r["Reason"] for r in csv.DictReader(open(HOLDS, encoding="utf-8"))} if os.path.exists(HOLDS) else {}
+    holds.update(hold_ids or {})
     gm, notes = [], {}
     for r in rows:
         if not r["First Name"]:
             continue
         e = emails.get(r["Exhibitor ID"], {})
         g, note = greet_name(r["First Name"], r["Last Name"], r["Email"])
+        if team_greeting and (r["Exhibitor ID"], r["First Name"]) in team_greeting:
+            g, note = team_greeting[(r["Exhibitor ID"], r["First Name"])], "first name is not a person's"
         notes[(r["Exhibitor ID"], r["Email"], r["First Name"])] = (g, note)
         s = ss.get(r["Exhibitor ID"], {})
         gm.append({"Exhibitor ID": r["Exhibitor ID"], "Exhibitor Name": r["Exhibitor"],
@@ -115,8 +122,8 @@ def build():
                    "Email Body": e.get("Email Body", ""),
                    "Row Status": ("Held: " + holds[r["Exhibitor ID"]]) if r["Exhibitor ID"] in holds and r["Row Status"] == "Ready"
                    else r["Row Status"] if e else "No email copy",
-                   "Show Mention": "Yes" if r["In 2027 List"] == "Yes" and re.search(r"2027: [^;]+", r["Booths"]) else "No"})
-    with open(os.path.join(OUT, "brand_fix.csv"), "w", newline="", encoding="utf-8") as fh:
+                   "Show Mention": "Yes" if not no_show and r["In 2027 List"] == "Yes" and re.search(r"2027: [^;]+", r["Booths"]) else "No"})
+    with open(os.path.join(out, "brand_fix.csv"), "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["Exhibitor ID", "Brand"])
         for eid, e in emails.items():
@@ -126,7 +133,7 @@ def build():
                                               *re.split(r"[;/]", m.get("Also Listed As", ""))])
             if b:
                 w.writerow([eid, b])
-    with open(os.path.join(OUT, "gate_master.csv"), "w", newline="", encoding="utf-8") as fh:
+    with open(os.path.join(out, "gate_master.csv"), "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=list(gm[0]))
         w.writeheader()
         w.writerows(gm)
@@ -156,19 +163,22 @@ def build():
             rec[f"Sub {i + 1} Revenue"] = x.get("Monthly Revenue", "")
         ev.append(rec)
     import pandas as pd
-    pd.DataFrame(ev).to_excel(os.path.join(OUT, "gate_evidence.xlsx"), index=False)
+    pd.DataFrame(ev).to_excel(os.path.join(out, "gate_evidence.xlsx"), index=False)
     cleaned = sum(1 for g, n in notes.values() if n)
     print(f"{len(gm)} contacts with a person, {sum(1 for x in gm if x['Email Body'])} with copy, {cleaned} first names cleaned; "
           f"{len(ev)} companies of evidence")
     return notes
 
 
-def run():
-    build()
+def run(out=None, signature="", min_words="75", max_words="110", **build_args):
+    out = out or OUT
+    build(out=out, **build_args)
     cmd = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "presend_qa.py"),
-           "--master", os.path.join(OUT, "gate_master.csv"), "--evidence", os.path.join(OUT, "gate_evidence.xlsx"),
+           "--master", os.path.join(out, "gate_master.csv"), "--evidence", os.path.join(out, "gate_evidence.xlsx"),
            "--show", SHOW, "--show-col", "Show Mention",
-           "--brand-fix", os.path.join(OUT, "brand_fix.csv"), "--out", OUT, "--min-words", "75", "--max-words", "110"]
+           "--brand-fix", os.path.join(out, "brand_fix.csv"), "--out", out, "--min-words", min_words, "--max-words", max_words]
+    if signature:
+        cmd += ["--signature", signature]
     return subprocess.call(cmd)
 
 
