@@ -62,6 +62,8 @@ def greet_name(first, last="", email=""):
     pick = pick or (words[0] if words else raw)
     if pick.isupper() and len(pick) > 2 or pick.islower():
         pick = pick.title()
+    if len(pick) == 2 and pick.isalpha() and not re.search("[aeiouyAEIOUY]", pick):
+        pick = pick.upper()  # initials used as a name: TJ, JP, KC, PJ, CJ
     return pick, ("" if pick == raw else f"'{raw}' -> '{pick}'")
 
 
