@@ -1,5 +1,5 @@
 {
-  "pulledAt": "2026-11-19T18:24:42.874Z",
+  "pulledAt": "2026-11-20T17:54:36.458Z",
   "primaryCampaignId": 561604,
   "linkedin": {
     "campaigns": 1,
@@ -12,7 +12,7 @@
     "processed": 1652,
     "pending": 334,
     "connectionsSent": 1450,
-    "accepted": 203,
+    "accepted": 204,
     "connNone": 202,
     "messagesSent": 218,
     "replies": 39,
@@ -33,7 +33,7 @@
       "processed": 1652,
       "pending": 334,
       "connectionsSent": 1450,
-      "accepted": 203,
+      "accepted": 204,
       "connNone": 202,
       "messagesSent": 218,
       "replies": 39,
